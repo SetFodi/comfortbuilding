@@ -42,6 +42,8 @@ export interface Project {
   readonly mapQuery: string;
   readonly cover: SiteImage;
   readonly listingImage?: SiteImage;
+  readonly heroImage?: SiteImage;
+  readonly heroImageMobile?: SiteImage;
   readonly gallery: readonly SiteImage[];
   readonly floorplans?: readonly SiteImage[];
 }

@@ -348,6 +348,26 @@ export const PROJECTS: readonly Project[] = [
         ru: "Дом на Парнаваза — улучшенная архитектурная фотография завершённого здания",
       },
     },
+    heroImage: {
+      src: "/images/experimental-ai/house-on-parnavaz-hero.png",
+      width: 1672,
+      height: 941,
+      alt: {
+        ka: "სახლი ფარნავაზზე — დასრულებული შენობის ფართო, გაუმჯობესებული არქიტექტურული ფოტო",
+        en: "House on Parnavaz Mepe — enhanced wide architectural photograph of the completed building",
+        ru: "Дом на Парнаваза — улучшенная широкоформатная фотография завершённого здания",
+      },
+    },
+    heroImageMobile: {
+      src: "/images/experimental-ai/house-on-parnavaz-hero-mobile.png",
+      width: 1122,
+      height: 1402,
+      alt: {
+        ka: "სახლი ფარნავაზზე — დასრულებული შენობის სრული ხედი მობილურისთვის",
+        en: "House on Parnavaz Mepe — complete mobile view of the finished building",
+        ru: "Дом на Парнаваза — полный мобильный вид завершённого здания",
+      },
+    },
     gallery: [
       {
         src: "/images/projects/house-on-parnavaz/render.jpg",
@@ -885,6 +905,16 @@ export const PROJECTS: readonly Project[] = [
         ka: "რედ ლაინი — გაუმჯობესებული არქიტექტურული ვიზუალიზაცია",
         en: "Red Line — enhanced architectural visualisation",
         ru: "Ред Лайн — улучшенная архитектурная визуализация",
+      },
+    },
+    heroImage: {
+      src: "/images/experimental-ai/red-line-hero.png",
+      width: 1672,
+      height: 941,
+      alt: {
+        ka: "რედ ლაინი — ფართო, გაუმჯობესებული არქიტექტურული ვიზუალიზაცია",
+        en: "Red Line — enhanced wide architectural visualisation",
+        ru: "Ред Лайн — улучшенная широкоформатная архитектурная визуализация",
       },
     },
     gallery: [

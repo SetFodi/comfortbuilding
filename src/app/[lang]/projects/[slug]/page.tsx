@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ContactBand } from "@/components/contact-band";
@@ -54,6 +54,7 @@ export async function generateMetadata({
   params,
 }: ProjectPageProps): Promise<Metadata> {
   const { lang, project } = await resolveProject(params);
+  const heroImage = project.heroImage ?? project.listingImage ?? project.cover;
   return {
     title: project.name[lang],
     description: project.summary[lang],
@@ -68,7 +69,7 @@ export async function generateMetadata({
     openGraph: {
       title: project.name[lang],
       description: project.summary[lang],
-      images: [project.cover.src],
+      images: [heroImage.src],
     },
   };
 }
@@ -78,6 +79,31 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const dict = getDict(lang);
   const projectIndex = PROJECTS.findIndex((item) => item.slug === project.slug);
   const nextProject = PROJECTS[(projectIndex + 1) % PROJECTS.length];
+  const heroImage = project.heroImage ?? project.listingImage ?? project.cover;
+  const mobileHeroImage = project.heroImageMobile ?? heroImage;
+  const heroImageCommon = {
+    alt: heroImage.alt[lang],
+    sizes: "100vw",
+    quality: 90,
+    fetchPriority: "high" as const,
+  };
+  const {
+    props: { srcSet: desktopHeroSrcSet },
+  } = getImageProps({
+    ...heroImageCommon,
+    src: heroImage.src,
+    width: heroImage.width,
+    height: heroImage.height,
+  });
+  const {
+    props: { srcSet: mobileHeroSrcSet, ...heroImgProps },
+  } = getImageProps({
+    ...heroImageCommon,
+    alt: mobileHeroImage.alt[lang],
+    src: mobileHeroImage.src,
+    width: mobileHeroImage.width,
+    height: mobileHeroImage.height,
+  });
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.mapQuery)}`;
   const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(project.mapQuery)}&output=embed`;
   const titleCells = [
@@ -105,15 +131,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       <article>
         <section className="relative flex min-h-svh items-end overflow-hidden bg-ink pt-24">
           <div className="hero-media absolute inset-0">
-            <Image
-              src={project.cover.src}
-              alt={project.cover.alt[lang]}
-              fill
-              loading="eager"
-              fetchPriority="high"
-              sizes="100vw"
-              className="object-cover"
-            />
+            <picture>
+              <source media="(min-width: 768px)" srcSet={desktopHeroSrcSet} />
+              <source media="(max-width: 767px)" srcSet={mobileHeroSrcSet} />
+              <img
+                {...heroImgProps}
+                alt={mobileHeroImage.alt[lang]}
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+            </picture>
           </div>
           <div
             className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,13,15,.48)_0%,rgba(11,13,15,.18)_35%,rgba(11,13,15,.94)_100%)]"
