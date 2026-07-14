@@ -1,4 +1,5 @@
 import type { Project } from "./types";
+import { COMFORT_HOUSE_INVENTORY } from "./comfort-house-inventory";
 
 /**
  * Figures, dates, addresses, descriptions, and feature lists are sourced from
@@ -28,11 +29,15 @@ export const PROJECTS: readonly Project[] = [
     startDate: { ka: "ივლისი 2022", en: "July 2022", ru: "Июль 2022" },
     endDate: { ka: "აგვისტო 2024", en: "August 2024", ru: "Август 2024" },
     priceFrom: {
-      ka: "1200 $-დან / მ²",
-      en: "from $1,200 / m²",
-      ru: "от $1200 / м²",
+      ka: "1750 $-დან / მ²",
+      en: "from $1,750 / m²",
+      ru: "от $1750 / м²",
     },
-    areasLabel: { ka: "38–74 მ²", en: "38–74 m²", ru: "38–74 м²" },
+    areasLabel: {
+      ka: "38.5–142.2 მ²",
+      en: "38.5–142.2 m²",
+      ru: "38,5–142,2 м²",
+    },
     summary: {
       ka: "საცხოვრებელი კომპლექსი ბათუმში — თანამედროვე, კომფორტული სახლი ქალაქის ცხოვრების წყნარი ატმოსფეროთი, „6 მაისის“ პარკთან ახლოს.",
       en: "A residential complex in Batumi — a modern, comfortable home in a calm corner of city life, close to May 6 Park.",
@@ -59,7 +64,7 @@ export const PROJECTS: readonly Project[] = [
         "წყლისა და გაზის მრიცხველები",
         "იტალიური ლიფტი",
         "კეთილმოწყობილი ეზო",
-        "კომერციული ფართები პირველ სართულზე — 182,2 მ²",
+        "კომერციული ფართები პირველ სართულზე — 162,1 მ²",
       ],
       en: [
         "Black frame / white frame finish",
@@ -67,7 +72,7 @@ export const PROJECTS: readonly Project[] = [
         "Water and gas meters installed",
         "Italian elevator",
         "Landscaped yard",
-        "Ground-floor commercial space — 182.2 m²",
+        "Ground-floor commercial space — 162.1 m²",
       ],
       ru: [
         "Чёрный каркас / белый каркас",
@@ -75,7 +80,7 @@ export const PROJECTS: readonly Project[] = [
         "Установлены счётчики воды и газа",
         "Итальянский лифт",
         "Обустроенный двор",
-        "Коммерческие помещения на первом этаже — 182,2 м²",
+        "Коммерческие помещения на первом этаже — 162,1 м²",
       ],
     },
     availability: [
@@ -85,13 +90,14 @@ export const PROJECTS: readonly Project[] = [
           en: "Available apartments",
           ru: "Свободные квартиры",
         },
-        value: "38",
+        value: "11",
       },
       {
         label: { ka: "ტერასა", en: "Terrace", ru: "Терраса" },
         value: "1",
       },
     ],
+    inventory: COMFORT_HOUSE_INVENTORY,
     mapQuery: "Gorgasali Street 104, Batumi, Georgia",
     cover: {
       src: "/images/experimental-ai/comfort-house-golden-hour.png",

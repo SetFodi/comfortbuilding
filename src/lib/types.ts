@@ -20,6 +20,37 @@ export interface AvailabilityItem {
   readonly value: string;
 }
 
+export type InventoryStatus = "available" | "sold";
+
+export type InventoryUnitKind =
+  "apartment" | "commercial" | "parking" | "terrace";
+
+export interface ProjectInventoryUnit {
+  readonly id: string;
+  readonly kind: InventoryUnitKind;
+  readonly number?: string;
+  readonly label?: Localized;
+  readonly interiorArea?: number;
+  readonly balconyArea?: number;
+  readonly totalArea: number;
+  readonly status: InventoryStatus;
+  readonly pricePerSqm?: number;
+}
+
+export interface ProjectInventoryFloor {
+  readonly id: string;
+  readonly label: Localized;
+  readonly image: SiteImage;
+  readonly units: readonly ProjectInventoryUnit[];
+}
+
+export interface ProjectInventory {
+  readonly sourceHref: string;
+  readonly sourceName: string;
+  readonly planRevision: string;
+  readonly floors: readonly ProjectInventoryFloor[];
+}
+
 export interface Project {
   readonly slug: string;
   readonly accent: string;
@@ -39,6 +70,7 @@ export interface Project {
   readonly features: LocalizedList;
   readonly soldPercent?: number;
   readonly availability: readonly AvailabilityItem[];
+  readonly inventory?: ProjectInventory;
   readonly mapQuery: string;
   readonly cover: SiteImage;
   readonly listingImage?: SiteImage;

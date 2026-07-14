@@ -9,6 +9,7 @@ import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { StatusChip } from "@/components/status-chip";
 import { TitleBlock } from "@/components/title-block";
+import { UnitInventory } from "@/components/unit-inventory";
 import { getDict } from "@/lib/dictionary";
 import { getProject, PROJECTS } from "@/lib/projects";
 import { CONTACT } from "@/lib/site";
@@ -30,6 +31,18 @@ const PUBLISHED_FIGURES: Localized = {
   ka: "გამოქვეყნებული მონაცემები",
   en: "Published figures",
   ru: "Опубликованные данные",
+};
+
+const AVAILABILITY_2026: Localized = {
+  ka: "2026 წლის ხელმისაწვდომობა",
+  en: "2026 availability",
+  ru: "Наличие на 2026 год",
+};
+
+const APARTMENTS_AND_PRICING: Localized = {
+  ka: "ბინები, გეგმები და ფასები",
+  en: "Apartments, plans & pricing",
+  ru: "Квартиры, планы и цены",
 };
 
 interface ProjectPageProps {
@@ -209,7 +222,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   {project.soldPercent !== undefined && (
                     <div className="mt-8">
                       <div className="flex items-end justify-between gap-4">
-                        <span className="text-sm text-ink/65">{dict.misc.sold}</span>
+                        <span className="text-sm text-ink/65">
+                          {dict.misc.sold}
+                        </span>
                         <span className="font-mono text-4xl text-ink">
                           {project.soldPercent}%
                         </span>
@@ -251,7 +266,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                           <dt className="text-sm text-ink/70">
                             {item.label[lang]}
                           </dt>
-                          <dd className="font-mono text-xl text-ink">{item.value}</dd>
+                          <dd className="font-mono text-xl text-ink">
+                            {item.value}
+                          </dd>
                         </div>
                       ))}
                     </dl>
@@ -271,6 +288,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             )}
           </div>
         </section>
+
+        {project.inventory && (
+          <section
+            id="availability"
+            className="draft-grid bg-ink py-24 md:py-32"
+          >
+            <div className="wrap">
+              <SectionHeading
+                eyebrow={AVAILABILITY_2026[lang]}
+                title={APARTMENTS_AND_PRICING[lang]}
+              />
+              <div className="mt-12">
+                <UnitInventory inventory={project.inventory} lang={lang} />
+              </div>
+            </div>
+          </section>
+        )}
 
         {project.features[lang].length > 0 && (
           <section className="bg-ink py-24 md:py-32">
@@ -347,7 +381,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <section className="bg-limestone py-24 text-ink md:py-32">
           <div className="wrap grid gap-10 lg:grid-cols-12 lg:items-stretch">
             <Reveal className="lg:col-span-4">
-              <p className="eyebrow eyebrow-on-light">{dict.sections.location}</p>
+              <p className="eyebrow eyebrow-on-light">
+                {dict.sections.location}
+              </p>
               <h2 className="mt-5 font-display text-4xl leading-tight font-medium">
                 {project.city[lang]}
               </h2>
@@ -363,7 +399,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 {dict.misc.openMap} <span aria-hidden>↗</span>
               </a>
             </Reveal>
-            <Reveal className="min-h-80 overflow-hidden border border-ink/15 lg:col-span-8" delayMs={100}>
+            <Reveal
+              className="min-h-80 overflow-hidden border border-ink/15 lg:col-span-8"
+              delayMs={100}
+            >
               <iframe
                 src={mapEmbedUrl}
                 title={`${project.name[lang]} — ${dict.sections.location}`}
