@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/json-ld";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { getDict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
+import {
+  breadcrumbJsonLd,
+  jsonLdGraph,
+  pageMetadata,
+  pagePath,
+  SITE_URL,
+  webPageJsonLd,
+} from "@/lib/seo";
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const TITLE: Localized = {
@@ -32,6 +41,19 @@ const HERO_ALT: Localized = {
   ru: "Комфорт Хаус вечером",
 };
 
+const HERO_IMAGE = {
+  src: "/images/projects/comfort-house/evening.jpg",
+  width: 1920,
+  height: 1329,
+  alt: HERO_ALT,
+} as const;
+
+const META_TITLE: Localized = {
+  ka: "კონტაქტი — ბინები და პროექტები ბათუმში",
+  en: "Contact — apartments and projects in Batumi",
+  ru: "Контакты — квартиры и проекты в Батуми",
+};
+
 interface ContactPageProps {
   readonly params: Promise<{ lang: string }>;
 }
@@ -46,18 +68,13 @@ export async function generateMetadata({
   params,
 }: ContactPageProps): Promise<Metadata> {
   const lang = await resolveLang(params);
-  return {
-    title: getDict(lang).nav.contact,
+  return pageMetadata({
+    lang,
+    title: META_TITLE[lang],
     description: LEDE[lang],
-    alternates: {
-      canonical: `/${lang}/contact`,
-      languages: {
-        ka: "/ka/contact",
-        en: "/en/contact",
-        ru: "/ru/contact",
-      },
-    },
-  };
+    suffix: "/contact",
+    image: HERO_IMAGE,
+  });
 }
 
 export default async function ContactPage({ params }: ContactPageProps) {
@@ -86,11 +103,29 @@ export default async function ContactPage({ params }: ContactPageProps) {
 
   return (
     <>
+      <JsonLd
+        data={jsonLdGraph([
+          {
+            ...webPageJsonLd(
+              lang,
+              "/contact",
+              META_TITLE[lang],
+              LEDE[lang],
+              "ContactPage",
+            ),
+            mainEntity: { "@id": `${SITE_URL}/#organization` },
+          },
+          breadcrumbJsonLd([
+            { name: dict.nav.home, path: pagePath(lang) },
+            { name: dict.nav.contact, path: pagePath(lang, "/contact") },
+          ]),
+        ])}
+      />
       <PageHero
         eyebrow={dict.nav.contact}
         title={TITLE[lang]}
         lede={LEDE[lang]}
-        image="/images/projects/comfort-house/evening.jpg"
+        image={HERO_IMAGE.src}
         imageAlt={HERO_ALT[lang]}
         annotation="DIRECT CONTACT / BATUMI / GEORGIA"
       />
@@ -108,7 +143,9 @@ export default async function ContactPage({ params }: ContactPageProps) {
                     </p>
                     <a
                       href={detail.href}
-                      target={detail.href.startsWith("https") ? "_blank" : undefined}
+                      target={
+                        detail.href.startsWith("https") ? "_blank" : undefined
+                      }
                       rel={
                         detail.href.startsWith("https")
                           ? "noopener noreferrer"
@@ -143,7 +180,10 @@ export default async function ContactPage({ params }: ContactPageProps) {
             </div>
           </div>
 
-          <Reveal className="min-h-[32rem] overflow-hidden border border-ink/20 lg:col-span-7" delayMs={100}>
+          <Reveal
+            className="min-h-[32rem] overflow-hidden border border-ink/20 lg:col-span-7"
+            delayMs={100}
+          >
             <iframe
               src={mapEmbedUrl}
               title={`${OFFICE[lang]} — ${CONTACT.address[lang]}`}

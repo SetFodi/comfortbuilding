@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ContactBand } from "@/components/contact-band";
 import { Gallery } from "@/components/gallery";
+import { JsonLd } from "@/components/json-ld";
 import { PlanViewer } from "@/components/plan-viewer";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
@@ -12,8 +13,16 @@ import { TitleBlock } from "@/components/title-block";
 import { UnitInventory } from "@/components/unit-inventory";
 import { getDict } from "@/lib/dictionary";
 import { getProject, PROJECTS } from "@/lib/projects";
+import {
+  breadcrumbJsonLd,
+  jsonLdGraph,
+  pageMetadata,
+  pagePath,
+  projectJsonLd,
+  webPageJsonLd,
+} from "@/lib/seo";
 import { CONTACT } from "@/lib/site";
-import { isLang, type Lang, type Localized } from "@/lib/types";
+import { isLang, type Lang, type Localized, type Project } from "@/lib/types";
 
 const DOSSIER: Localized = {
   ka: "პროექტის დოსიე",
@@ -45,6 +54,29 @@ const APARTMENTS_AND_PRICING: Localized = {
   ru: "Квартиры, планы и цены",
 };
 
+function projectMetaTitle(project: Project, lang: Lang): string {
+  if (lang === "ka") {
+    const city = project.city.ka === "ბათუმი" ? "ბათუმში" : "თბილისში";
+    return `${project.name.ka} — საცხოვრებელი პროექტი ${city}`;
+  }
+  if (lang === "ru") {
+    return `${project.name.ru} — жилой проект в ${project.city.ru}`;
+  }
+  return `${project.name.en} residential project in ${project.city.en}`;
+}
+
+function projectMetaDescription(project: Project, lang: Lang): string {
+  const hasInventory = Boolean(project.inventory);
+  if (lang === "ka") {
+    const city = project.city.ka === "ბათუმი" ? "ბათუმში" : "თბილისში";
+    return `${project.name.ka} — საცხოვრებელი პროექტი ${city}, ${project.address.ka}. იხილეთ ფოტოები, მახასიათებლები, მდებარეობა${hasInventory ? ", ბინების გეგმები, ფასები და ხელმისაწვდომობა" : " და გამოქვეყნებული მონაცემები"}.`;
+  }
+  if (lang === "ru") {
+    return `${project.name.ru} — жилой проект в ${project.city.ru}, ${project.address.ru}. Фото, характеристики, расположение${hasInventory ? ", планировки, цены и наличие квартир" : " и опубликованные данные"}.`;
+  }
+  return `${project.name.en} is a residential project in ${project.city.en} at ${project.address.en}. View photos, specifications, location${hasInventory ? ", apartment plans, prices, and availability" : ", and published details"}.`;
+}
+
 interface ProjectPageProps {
   readonly params: Promise<{ lang: string; slug: string }>;
 }
@@ -68,23 +100,13 @@ export async function generateMetadata({
 }: ProjectPageProps): Promise<Metadata> {
   const { lang, project } = await resolveProject(params);
   const heroImage = project.heroImage ?? project.listingImage ?? project.cover;
-  return {
-    title: project.name[lang],
-    description: project.summary[lang],
-    alternates: {
-      canonical: `/${lang}/projects/${project.slug}`,
-      languages: {
-        ka: `/ka/projects/${project.slug}`,
-        en: `/en/projects/${project.slug}`,
-        ru: `/ru/projects/${project.slug}`,
-      },
-    },
-    openGraph: {
-      title: project.name[lang],
-      description: project.summary[lang],
-      images: [heroImage.src],
-    },
-  };
+  return pageMetadata({
+    lang,
+    title: projectMetaTitle(project, lang),
+    description: projectMetaDescription(project, lang),
+    suffix: `/projects/${project.slug}`,
+    image: heroImage,
+  });
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
@@ -141,6 +163,28 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <>
+      <JsonLd
+        data={jsonLdGraph([
+          webPageJsonLd(
+            lang,
+            `/projects/${project.slug}`,
+            projectMetaTitle(project, lang),
+            projectMetaDescription(project, lang),
+          ),
+          projectJsonLd(project, lang),
+          breadcrumbJsonLd([
+            { name: dict.nav.home, path: pagePath(lang) },
+            {
+              name: dict.nav.projects,
+              path: pagePath(lang, "/projects"),
+            },
+            {
+              name: project.name[lang],
+              path: pagePath(lang, `/projects/${project.slug}`),
+            },
+          ]),
+        ])}
+      />
       <article>
         <section className="relative flex min-h-svh items-end overflow-hidden bg-ink pt-24">
           <div className="hero-media absolute inset-0">

@@ -9,8 +9,15 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Preloader } from "@/components/preloader";
 import { getDict } from "@/lib/dictionary";
+import {
+  absoluteUrl,
+  HOME_DESCRIPTIONS,
+  languageAlternates,
+  pagePath,
+  SITE_URL,
+} from "@/lib/seo";
 import { COMPANY_NAME } from "@/lib/site";
-import { isLang, LANGS, type Lang } from "@/lib/types";
+import { isLang, LANGS } from "@/lib/types";
 import "../globals.css";
 
 const serifGeorgian = Noto_Serif_Georgian({
@@ -34,12 +41,6 @@ const sansGeorgian = Noto_Sans_Georgian({
   display: "swap",
 });
 
-const DESCRIPTIONS: Record<Lang, string> = {
-  ka: "სამშენებლო კომპანია ბათუმში — საცხოვრებელი პროექტების სრული არქივი, რეალური ფოტოები და საკონტაქტო ინფორმაცია.",
-  en: "A construction company in Batumi — the complete residential project archive, real photography, and contact information.",
-  ru: "Строительная компания в Батуми — полный архив жилых проектов, реальные фотографии и контакты.",
-};
-
 interface LocaleLayoutProps {
   readonly children: React.ReactNode;
   readonly params: Promise<{ lang: string }>;
@@ -58,23 +59,58 @@ export async function generateMetadata({
   const lang = isLang(candidate) ? candidate : "ka";
 
   return {
-    metadataBase: new URL("https://comfortbuilding.ge"),
+    metadataBase: new URL(SITE_URL),
+    applicationName: "Comfort Building",
     title: {
       default: COMPANY_NAME[lang],
       template: `%s — ${COMPANY_NAME[lang]}`,
     },
-    description: DESCRIPTIONS[lang],
-    alternates: {
-      canonical: `/${lang}`,
-      languages: { ka: "/ka", en: "/en", ru: "/ru" },
+    description: HOME_DESCRIPTIONS[lang],
+    alternates: languageAlternates(lang),
+    category: "construction and real estate",
+    creator: COMPANY_NAME[lang],
+    publisher: COMPANY_NAME[lang],
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
     openGraph: {
       type: "website",
+      url: absoluteUrl(pagePath(lang)),
       siteName: COMPANY_NAME[lang],
       title: COMPANY_NAME[lang],
-      description: DESCRIPTIONS[lang],
+      description: HOME_DESCRIPTIONS[lang],
       locale: lang === "ka" ? "ka_GE" : lang === "ru" ? "ru_RU" : "en_US",
-      images: ["/images/experimental-ai/comfort-house-golden-hour.png"],
+      alternateLocale: ["ka_GE", "en_US", "ru_RU"].filter(
+        (locale) =>
+          locale !==
+          (lang === "ka" ? "ka_GE" : lang === "ru" ? "ru_RU" : "en_US"),
+      ),
+      images: [
+        {
+          url: absoluteUrl(
+            "/images/experimental-ai/comfort-house-golden-hour.png",
+          ),
+          width: 1517,
+          height: 1037,
+          alt: COMPANY_NAME[lang],
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: COMPANY_NAME[lang],
+      description: HOME_DESCRIPTIONS[lang],
+      images: [
+        absoluteUrl("/images/experimental-ai/comfort-house-golden-hour.png"),
+      ],
     },
   };
 }

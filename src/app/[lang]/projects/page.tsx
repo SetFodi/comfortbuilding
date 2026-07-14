@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { JsonLd } from "@/components/json-ld";
 import { PageHero } from "@/components/page-hero";
 import {
   ProjectsBrowser,
@@ -7,12 +8,20 @@ import {
 } from "@/components/projects-browser";
 import { getDict } from "@/lib/dictionary";
 import { PROJECTS } from "@/lib/projects";
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLdGraph,
+  pageMetadata,
+  pagePath,
+  webPageJsonLd,
+} from "@/lib/seo";
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const TITLE: Localized = {
-  ka: "პროექტების არქივი",
-  en: "Project archive",
-  ru: "Архив проектов",
+  ka: "საცხოვრებელი პროექტები",
+  en: "Residential projects",
+  ru: "Жилые проекты",
 };
 
 const LEDE: Localized = {
@@ -26,6 +35,13 @@ const IMAGE_ALT: Localized = {
   en: "Enhanced architectural photograph of House near the Piazza",
   ru: "Улучшенная архитектурная фотография дома возле Пьяццы",
 };
+
+const HERO_IMAGE = {
+  src: "/images/experimental-ai/house-near-piazza-enhanced.png",
+  width: 1419,
+  height: 1109,
+  alt: IMAGE_ALT,
+} as const;
 
 interface ProjectsPageProps {
   readonly params: Promise<{ lang: string }>;
@@ -41,18 +57,13 @@ export async function generateMetadata({
   params,
 }: ProjectsPageProps): Promise<Metadata> {
   const lang = await resolveLang(params);
-  return {
+  return pageMetadata({
+    lang,
     title: TITLE[lang],
     description: LEDE[lang],
-    alternates: {
-      canonical: `/${lang}/projects`,
-      languages: {
-        ka: "/ka/projects",
-        en: "/en/projects",
-        ru: "/ru/projects",
-      },
-    },
-  };
+    suffix: "/projects",
+    image: HERO_IMAGE,
+  });
 }
 
 export default async function ProjectsPage({ params }: ProjectsPageProps) {
@@ -78,11 +89,38 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
 
   return (
     <>
+      <JsonLd
+        data={jsonLdGraph([
+          {
+            ...webPageJsonLd(
+              lang,
+              "/projects",
+              TITLE[lang],
+              LEDE[lang],
+              "CollectionPage",
+            ),
+            mainEntity: {
+              "@type": "ItemList",
+              numberOfItems: PROJECTS.length,
+              itemListElement: PROJECTS.map((project, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                name: project.name[lang],
+                url: absoluteUrl(pagePath(lang, `/projects/${project.slug}`)),
+              })),
+            },
+          },
+          breadcrumbJsonLd([
+            { name: dict.nav.home, path: pagePath(lang) },
+            { name: TITLE[lang], path: pagePath(lang, "/projects") },
+          ]),
+        ])}
+      />
       <PageHero
         eyebrow={dict.nav.projects}
         title={TITLE[lang]}
         lede={LEDE[lang]}
-        image="/images/experimental-ai/house-near-piazza-enhanced.png"
+        image={HERO_IMAGE.src}
         imageAlt={IMAGE_ALT[lang]}
         annotation="ARCHIVE / 06 PROJECTS / 02 CITIES"
       />

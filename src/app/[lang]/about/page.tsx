@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ContactBand } from "@/components/contact-band";
+import { JsonLd } from "@/components/json-ld";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
@@ -9,6 +10,13 @@ import { ServicesSection } from "@/components/services-section";
 import { StatBand } from "@/components/stat-band";
 import { getDict } from "@/lib/dictionary";
 import { ADVANTAGES, COMPANY_NAME, COMPANY_STORY } from "@/lib/site";
+import {
+  breadcrumbJsonLd,
+  jsonLdGraph,
+  pageMetadata,
+  pagePath,
+  webPageJsonLd,
+} from "@/lib/seo";
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const TITLE: Localized = {
@@ -41,6 +49,19 @@ const HERO_ALT: Localized = {
   ru: "Гранд Хаус Тбилиси в процессе строительства",
 };
 
+const HERO_IMAGE = {
+  src: "/images/projects/grand-house/construction.jpg",
+  width: 2060,
+  height: 1977,
+  alt: HERO_ALT,
+} as const;
+
+const META_TITLE: Localized = {
+  ka: "ჩვენ შესახებ — სამშენებლო კომპანია ბათუმში",
+  en: "About our construction company in Batumi",
+  ru: "О строительной компании в Батуми",
+};
+
 interface AboutPageProps {
   readonly params: Promise<{ lang: string }>;
 }
@@ -55,14 +76,13 @@ export async function generateMetadata({
   params,
 }: AboutPageProps): Promise<Metadata> {
   const lang = await resolveLang(params);
-  return {
-    title: getDict(lang).nav.about,
+  return pageMetadata({
+    lang,
+    title: META_TITLE[lang],
     description: LEDE[lang],
-    alternates: {
-      canonical: `/${lang}/about`,
-      languages: { ka: "/ka/about", en: "/en/about", ru: "/ru/about" },
-    },
-  };
+    suffix: "/about",
+    image: HERO_IMAGE,
+  });
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {
@@ -71,11 +91,26 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   return (
     <>
+      <JsonLd
+        data={jsonLdGraph([
+          webPageJsonLd(
+            lang,
+            "/about",
+            META_TITLE[lang],
+            LEDE[lang],
+            "AboutPage",
+          ),
+          breadcrumbJsonLd([
+            { name: dict.nav.home, path: pagePath(lang) },
+            { name: dict.nav.about, path: pagePath(lang, "/about") },
+          ]),
+        ])}
+      />
       <PageHero
         eyebrow={dict.nav.about}
         title={TITLE[lang]}
         lede={LEDE[lang]}
-        image="/images/projects/grand-house/construction.jpg"
+        image={HERO_IMAGE.src}
         imageAlt={HERO_ALT[lang]}
         annotation="COMPANY PROFILE / BATUMI / GEORGIA"
       />
@@ -115,7 +150,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
               <figure>
                 <div className="relative aspect-[4/5] overflow-hidden">
                   <Image
-                    src="/images/projects/grand-house/construction.jpg"
+                    src={HERO_IMAGE.src}
                     alt={HERO_ALT[lang]}
                     fill
                     sizes="(min-width: 1024px) 40vw, 100vw"

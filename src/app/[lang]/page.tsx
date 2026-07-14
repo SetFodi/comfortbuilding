@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AboutTeaser } from "@/components/about-teaser";
 import { ContactBand } from "@/components/contact-band";
 import { Hero } from "@/components/hero";
+import { JsonLd } from "@/components/json-ld";
 import {
   ProjectRegister,
   type ProjectRegisterItem,
@@ -13,12 +14,20 @@ import { ServicesSection } from "@/components/services-section";
 import { StatBand } from "@/components/stat-band";
 import { getDict } from "@/lib/dictionary";
 import { PROJECTS } from "@/lib/projects";
+import {
+  HOME_DESCRIPTIONS,
+  jsonLdGraph,
+  organizationJsonLd,
+  pageMetadata,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const PAGE_TITLE: Localized = {
-  ka: "სამშენებლო კომპანია ბათუმში",
-  en: "Construction company in Batumi",
-  ru: "Строительная компания в Батуми",
+  ka: "კომფორტ ბილდინგი — სამშენებლო კომპანია ბათუმში",
+  en: "Comfort Building — construction company in Batumi",
+  ru: "Comfort Building — строительная компания в Батуми",
 };
 
 const REGISTER_TITLE: Localized = {
@@ -41,13 +50,14 @@ export async function generateMetadata({
   params,
 }: HomePageProps): Promise<Metadata> {
   const lang = await resolveLang(params);
-  return {
+  const image =
+    PROJECTS[0].heroImage ?? PROJECTS[0].listingImage ?? PROJECTS[0].cover;
+  return pageMetadata({
+    lang,
     title: PAGE_TITLE[lang],
-    alternates: {
-      canonical: `/${lang}`,
-      languages: { ka: "/ka", en: "/en", ru: "/ru" },
-    },
-  };
+    description: HOME_DESCRIPTIONS[lang],
+    image,
+  });
 }
 
 export default async function HomePage({ params }: HomePageProps) {
@@ -76,6 +86,13 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <>
+      <JsonLd
+        data={jsonLdGraph([
+          organizationJsonLd(lang),
+          websiteJsonLd(lang),
+          webPageJsonLd(lang, "", PAGE_TITLE[lang], HOME_DESCRIPTIONS[lang]),
+        ])}
+      />
       <Hero lang={lang} dict={dict} projects={PROJECTS} />
       <StatBand lang={lang} />
 
