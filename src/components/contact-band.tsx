@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Dict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
 import type { Lang, Localized } from "@/lib/types";
@@ -85,12 +86,13 @@ export function ContactBand({ lang, dict }: ContactBandProps) {
             >
               {dict.cta.call}
             </a>
-            <a
-              href={`mailto:${CONTACT.email}`}
+            <Link
+              href={`/${lang}/contact?interest=apartments#inquiry`}
+              data-contact-action="contact-band-inquiry"
               className="inline-flex h-12 items-center gap-3 border border-cream/30 px-7 text-sm font-medium tracking-wide text-cream transition-colors hover:border-brass hover:text-brass"
             >
               {dict.cta.write}
-            </a>
+            </Link>
           </div>
         </Reveal>
 

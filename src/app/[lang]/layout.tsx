@@ -7,7 +7,7 @@ import {
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { Preloader } from "@/components/preloader";
+import { ContactDock } from "@/components/contact-dock";
 import { getDict } from "@/lib/dictionary";
 import {
   absoluteUrl,
@@ -128,11 +128,9 @@ export default async function LocaleRootLayout({
     <html
       lang={candidate}
       data-scroll-behavior="smooth"
-      data-preloading=""
       className={`${serifGeorgian.variable} ${serifLatin.variable} ${sansGeorgian.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
-        <Preloader lang={candidate} />
+      <body className="flex min-h-full flex-col pb-16 lg:pb-0">
         <a href="#main-content" className="skip-link">
           {dict.misc.skipContent}
         </a>
@@ -141,6 +139,7 @@ export default async function LocaleRootLayout({
           {children}
         </main>
         <Footer lang={candidate} dict={dict} />
+        <ContactDock lang={candidate} dict={dict} />
       </body>
     </html>
   );

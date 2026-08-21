@@ -4,6 +4,7 @@ export interface Dict {
   readonly nav: {
     readonly home: string;
     readonly apartments: string;
+    readonly guide: string;
     readonly projects: string;
     readonly about: string;
     readonly contact: string;
@@ -78,6 +79,7 @@ export const DICT: Record<Lang, Dict> = {
     nav: {
       home: "მთავარი",
       apartments: "გასაყიდი ბინები",
+      guide: "ბინის ყიდვის გზამკვლევი",
       projects: "პროექტები",
       about: "ჩვენ შესახებ",
       contact: "კონტაქტი",
@@ -148,6 +150,7 @@ export const DICT: Record<Lang, Dict> = {
     nav: {
       home: "Home",
       apartments: "Apartments",
+      guide: "Buyer guide",
       projects: "Projects",
       about: "About",
       contact: "Contact",
@@ -218,6 +221,7 @@ export const DICT: Record<Lang, Dict> = {
     nav: {
       home: "Главная",
       apartments: "Квартиры",
+      guide: "Как купить квартиру",
       projects: "Проекты",
       about: "О нас",
       contact: "Контакты",

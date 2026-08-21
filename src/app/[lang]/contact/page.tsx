@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/json-ld";
+import { LeadInquiryForm } from "@/components/lead-inquiry-form";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { getDict } from "@/lib/dictionary";
+import { PROJECTS } from "@/lib/projects";
 import { CONTACT } from "@/lib/site";
 import {
   breadcrumbJsonLd,
   jsonLdGraph,
+  organizationJsonLd,
   pageMetadata,
   pagePath,
   SITE_URL,
@@ -82,6 +85,14 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const dict = getDict(lang);
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT.mapQuery)}`;
   const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(CONTACT.mapQuery)}&output=embed`;
+  const apartmentNumbers = PROJECTS.flatMap(
+    (project) => project.inventory?.floors ?? [],
+  )
+    .flatMap((floor) => floor.units)
+    .filter(
+      (unit) => unit.kind === "apartment" && unit.status === "available",
+    )
+    .flatMap((unit) => (unit.number ? [unit.number] : []));
 
   const details = [
     {
@@ -105,6 +116,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
     <>
       <JsonLd
         data={jsonLdGraph([
+          organizationJsonLd(lang),
           {
             ...webPageJsonLd(
               lang,
@@ -128,6 +140,11 @@ export default async function ContactPage({ params }: ContactPageProps) {
         image={HERO_IMAGE.src}
         imageAlt={HERO_ALT[lang]}
         annotation="DIRECT CONTACT / BATUMI / GEORGIA"
+      />
+
+      <LeadInquiryForm
+        lang={lang}
+        apartmentNumbers={apartmentNumbers}
       />
 
       <section className="draft-grid-light bg-limestone py-24 text-ink md:py-32">

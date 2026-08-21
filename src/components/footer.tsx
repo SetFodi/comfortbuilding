@@ -37,6 +37,7 @@ export function Footer({ lang, dict }: FooterProps) {
           {[
             { href: `/${lang}`, label: dict.nav.home },
             { href: `/${lang}/apartments`, label: dict.nav.apartments },
+            { href: `/${lang}/buying-guide`, label: dict.nav.guide },
             { href: `/${lang}/projects`, label: dict.nav.projects },
             { href: `/${lang}/about`, label: dict.nav.about },
             { href: `/${lang}/contact`, label: dict.nav.contact },

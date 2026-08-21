@@ -25,7 +25,7 @@ const canonicalUrls = Array.from(
   (match) => match[1],
 );
 
-assert.equal(canonicalUrls.length, 33, "sitemap must contain 33 page URLs");
+assert.equal(canonicalUrls.length, 36, "sitemap must contain 36 page URLs");
 assert.equal(
   new Set(canonicalUrls).size,
   canonicalUrls.length,
@@ -54,6 +54,10 @@ const pageAudits = await Promise.all(
     assert.equal(response.status, 200, `${canonical.pathname} must return 200`);
 
     const html = await response.text();
+    assert.ok(
+      !html.includes("data-preloading"),
+      `${canonical.pathname} must not block search visitors behind a preloader`,
+    );
     assert.equal(
       canonicalFrom(html),
       canonicalUrl,
@@ -100,6 +104,14 @@ const pageAudits = await Promise.all(
       html.includes(`href="/${language}/apartments"`),
       `${canonical.pathname} must link directly to the apartments page`,
     );
+    assert.ok(
+      html.includes(`href="/${language}/buying-guide"`),
+      `${canonical.pathname} must link directly to the buyer guide`,
+    );
+    assert.ok(
+      html.includes('data-contact-action="mobile-dock-call"'),
+      `${canonical.pathname} must expose the mobile call action`,
+    );
 
     return { canonicalUrl, title, description };
   }),
@@ -132,6 +144,50 @@ for (const [language, heading] of [
     html.match(/id="apartment-[^"]+"/g)?.length,
     11,
     `/${language}/apartments must render 11 apartment cards`,
+  );
+  assert.equal(
+    html.match(/data-contact-action="apartment-inquiry"/g)?.length,
+    11,
+    `/${language}/apartments must expose an inquiry action for every apartment`,
+  );
+}
+
+for (const [language, heading] of [
+  ["ka", "როგორ ვიყიდოთ ბინა ბათუმში"],
+  ["en", "How to buy an apartment in Batumi"],
+  ["ru", "Как купить квартиру в Батуми"],
+]) {
+  const response = await get(`/${language}/buying-guide`);
+  const html = await response.text();
+  assert.ok(
+    html.includes(heading),
+    `/${language}/buying-guide must target ${heading}`,
+  );
+  assert.ok(
+    html.includes("napr.gov.ge"),
+    `/${language}/buying-guide must link to the official Public Registry`,
+  );
+  assert.ok(
+    html.includes('"@type":"Article"'),
+    `/${language}/buying-guide must include Article structured data`,
+  );
+}
+
+for (const language of languages) {
+  const response = await get(`/${language}/contact`);
+  const html = await response.text();
+  assert.ok(
+    html.includes("data-lead-inquiry"),
+    `/${language}/contact must render the guided inquiry form`,
+  );
+  assert.equal(
+    html.match(/<option value="apartment-[^"]+"/g)?.length,
+    11,
+    `/${language}/contact must offer all 11 available apartments`,
+  );
+  assert.ok(
+    html.includes('"@type":"ContactPoint"'),
+    `/${language}/contact must publish sales contact structured data`,
   );
 }
 

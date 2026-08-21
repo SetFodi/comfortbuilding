@@ -40,6 +40,7 @@ const COPY = {
     rate: "ფასი მ²-ზე",
     view: "ბინის ნახვა",
     viewAll: "ყველა 11 ბინის ნახვა",
+    guide: "როგორ ვიყიდოთ ბინა ბათუმში",
     call: "გაყიდვების გუნდთან დარეკვა",
     note: "სავარაუდო ფასი გამოთვლილია სრული ფართობისა და გამოქვეყნებული მ²-ის ფასის მიხედვით. ხელმისაწვდომობა და საბოლოო ფასი გადაამოწმეთ გაყიდვების გუნდთან.",
   },
@@ -56,6 +57,7 @@ const COPY = {
     rate: "Price per m²",
     view: "View apartment",
     viewAll: "View all 11 apartments",
+    guide: "How to buy an apartment in Batumi",
     call: "Call the sales team",
     note: "The estimate is the published rate per m² multiplied by total area. Confirm current availability and the final price with the sales team.",
   },
@@ -72,6 +74,7 @@ const COPY = {
     rate: "Цена за м²",
     view: "Смотреть квартиру",
     viewAll: "Смотреть все 11 квартир",
+    guide: "Как купить квартиру в Батуми",
     call: "Позвонить в отдел продаж",
     note: "Расчётная стоимость равна общей площади, умноженной на опубликованную цену за м². Уточните наличие и итоговую цену в отделе продаж.",
   },
@@ -229,12 +232,20 @@ export function AvailableApartmentsSpotlight({
 
         <div className="mt-7 flex flex-col gap-5 border-t border-ink/15 pt-6 text-xs leading-relaxed text-ink/55 md:flex-row md:items-center md:justify-between">
           <p className="max-w-3xl">{copy.note}</p>
-          <a
-            href={CONTACT.phoneHref}
-            className="link-slide inline-flex min-h-11 shrink-0 items-center gap-3 self-start font-semibold text-bronze md:self-auto"
-          >
-            {copy.call} <span aria-hidden>↗</span>
-          </a>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <Link
+              href={`/${lang}/buying-guide`}
+              className="link-slide inline-flex min-h-11 items-center gap-3 font-semibold text-bronze"
+            >
+              {copy.guide} <span aria-hidden>→</span>
+            </Link>
+            <a
+              href={CONTACT.phoneHref}
+              className="link-slide inline-flex min-h-11 shrink-0 items-center gap-3 font-semibold text-bronze"
+            >
+              {copy.call} <span aria-hidden>↗</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>

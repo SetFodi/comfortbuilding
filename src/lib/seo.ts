@@ -126,6 +126,13 @@ export function organizationJsonLd(lang: Lang) {
     description: HOME_DESCRIPTIONS[lang],
     telephone: CONTACT.phoneDisplay,
     email: CONTACT.email,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "sales",
+      telephone: CONTACT.phoneDisplay,
+      email: CONTACT.email,
+      availableLanguage: ["Georgian", "English", "Russian"],
+    },
     address: {
       "@type": "PostalAddress",
       streetAddress: OFFICE_STREETS[lang],
@@ -137,6 +144,7 @@ export function organizationJsonLd(lang: Lang) {
       { "@type": "City", name: "Batumi" },
       { "@type": "City", name: "Tbilisi" },
     ],
+    hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT.mapQuery)}`,
     sameAs: [CONTACT.facebook, CONTACT.instagram],
   };
 }

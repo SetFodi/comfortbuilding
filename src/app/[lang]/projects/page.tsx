@@ -192,12 +192,20 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
-            <Link
-              href={`/${lang}/apartments`}
-              className="mt-8 inline-flex min-h-12 items-center bg-ink px-6 text-sm font-semibold text-cream transition-colors hover:bg-iron"
-            >
-              {dict.cta.availableApartments} <span aria-hidden>→</span>
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href={`/${lang}/apartments`}
+                className="inline-flex min-h-12 items-center bg-ink px-6 text-sm font-semibold text-cream transition-colors hover:bg-iron"
+              >
+                {dict.cta.availableApartments} <span aria-hidden>→</span>
+              </Link>
+              <Link
+                href={`/${lang}/buying-guide`}
+                className="inline-flex min-h-12 items-center border border-ink/25 px-6 text-sm font-semibold text-ink transition-colors hover:border-bronze hover:text-bronze"
+              >
+                {dict.nav.guide} <span aria-hidden>→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

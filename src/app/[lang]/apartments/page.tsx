@@ -75,6 +75,7 @@ const COPY = {
     ],
     projectLink: "Comfort House-ის სრული გვერდი",
     sourceLink: "წყარო PDF-ის ნახვა",
+    guideLink: "ბინის ყიდვის გზამკვლევი",
     inventoryEyebrow: "ფასები და ხელმისაწვდომობა",
     inventoryTitle: "შეადარეთ 11 გასაყიდი ბინა",
     inventoryLede:
@@ -88,6 +89,7 @@ const COPY = {
     estimate: "სავარაუდო სრული ფასი",
     available: "თავისუფალია",
     plan: "გეგმის ნახვა",
+    inquire: "იკითხეთ ამ ბინაზე",
     sourceNote:
       "წყარო: Comfort house-2026.pdf. გეგმის თარიღი: 15.01.2024. ხელმისაწვდომობა და ფასი შეიძლება შეიცვალოს.",
     faqEyebrow: "ხშირი კითხვები",
@@ -131,6 +133,7 @@ const COPY = {
     ],
     projectLink: "Full Comfort House project page",
     sourceLink: "View the source PDF",
+    guideLink: "Apartment buyer guide",
     inventoryEyebrow: "Prices and availability",
     inventoryTitle: "Compare 11 apartments for sale",
     inventoryLede:
@@ -144,6 +147,7 @@ const COPY = {
     estimate: "Estimated total",
     available: "Available",
     plan: "View floor plan",
+    inquire: "Ask about this apartment",
     sourceNote:
       "Source: Comfort house-2026.pdf. Plan revision: 15.01.2024. Availability and pricing may change.",
     faqEyebrow: "Buyer questions",
@@ -187,6 +191,7 @@ const COPY = {
     ],
     projectLink: "Полная страница Comfort House",
     sourceLink: "Открыть исходный PDF",
+    guideLink: "Как купить квартиру",
     inventoryEyebrow: "Цены и наличие",
     inventoryTitle: "Сравните 11 квартир в продаже",
     inventoryLede:
@@ -200,6 +205,7 @@ const COPY = {
     estimate: "Расчётная стоимость",
     available: "Свободно",
     plan: "Смотреть план этажа",
+    inquire: "Спросить об этой квартире",
     sourceNote:
       "Источник: Comfort house-2026.pdf. Дата плана: 15.01.2024. Наличие и цены могут измениться.",
     faqEyebrow: "Вопросы покупателей",
@@ -424,6 +430,12 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
               >
                 {copy.sourceLink} <span aria-hidden>↗</span>
               </a>
+              <Link
+                href={`/${lang}/buying-guide`}
+                className="inline-flex min-h-12 items-center border border-ink/30 px-6 text-sm font-semibold text-ink transition-colors hover:border-bronze hover:text-bronze"
+              >
+                {copy.guideLink} <span aria-hidden>→</span>
+              </Link>
             </div>
           </div>
 
@@ -549,12 +561,21 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
                     ) : null}
                   </dl>
 
-                  <Link
-                    href={`/${lang}/projects/comfort-house#availability`}
-                    className="link-slide mt-7 inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-brass-bright"
-                  >
-                    {copy.plan} <span aria-hidden>→</span>
-                  </Link>
+                  <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
+                    <Link
+                      href={`/${lang}/contact?interest=apartment-${number}#inquiry`}
+                      data-contact-action="apartment-inquiry"
+                      className="inline-flex min-h-11 items-center bg-brass px-4 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright"
+                    >
+                      {copy.inquire}
+                    </Link>
+                    <Link
+                      href={`/${lang}/projects/comfort-house#availability`}
+                      className="link-slide inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-brass-bright"
+                    >
+                      {copy.plan} <span aria-hidden>→</span>
+                    </Link>
+                  </div>
                 </article>
               );
             })}

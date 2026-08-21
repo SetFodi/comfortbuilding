@@ -47,6 +47,14 @@ const STATIC_ROUTES = [
     ],
   },
   {
+    suffix: "/buying-guide",
+    changeFrequency: "monthly" as const,
+    priority: 0.85,
+    images: [
+      absoluteUrl("/images/experimental-ai/comfort-house-golden-hour.png"),
+    ],
+  },
+  {
     suffix: "/about",
     changeFrequency: "monthly" as const,
     priority: 0.7,
