@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { BuildingFloorSelector } from "@/components/building-floor-selector";
 import type { Lang, ProjectInventory, ProjectInventoryUnit } from "@/lib/types";
 
 interface UnitInventoryProps {
@@ -125,8 +126,26 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
   const minRate = Math.min(...rates);
   const maxRate = Math.max(...rates);
 
+  const handleBuildingFloorSelect = (floorId: string) => {
+    setActiveFloorId(floorId);
+    requestAnimationFrame(() => {
+      floorTabsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+  };
+
   return (
     <div className="overflow-hidden border border-cream/15 bg-basalt">
+      <BuildingFloorSelector
+        key={activeFloor.id}
+        inventory={inventory}
+        lang={lang}
+        activeFloorId={activeFloor.id}
+        onSelectFloor={handleBuildingFloorSelect}
+      />
+
       <div className="grid border-b border-cream/15 sm:grid-cols-2 xl:grid-cols-4">
         {[
           {

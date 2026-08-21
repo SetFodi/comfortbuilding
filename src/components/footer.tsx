@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Dict } from "@/lib/dictionary";
+import { PROJECTS } from "@/lib/projects";
 import { CONTACT } from "@/lib/site";
 import type { Lang } from "@/lib/types";
 
@@ -14,7 +15,7 @@ export function Footer({ lang, dict }: FooterProps) {
 
   return (
     <footer className="border-t border-cream/10 bg-ink">
-      <div className="wrap grid gap-12 py-16 md:grid-cols-3">
+      <div className="wrap grid gap-12 py-16 md:grid-cols-2 xl:grid-cols-[1.15fr_0.75fr_1.1fr_1fr]">
         <div className="flex flex-col items-start gap-5">
           <Link href={`/${lang}`} aria-label="Comfort Building">
             <Image
@@ -35,6 +36,7 @@ export function Footer({ lang, dict }: FooterProps) {
         >
           {[
             { href: `/${lang}`, label: dict.nav.home },
+            { href: `/${lang}/apartments`, label: dict.nav.apartments },
             { href: `/${lang}/projects`, label: dict.nav.projects },
             { href: `/${lang}/about`, label: dict.nav.about },
             { href: `/${lang}/contact`, label: dict.nav.contact },
@@ -47,6 +49,30 @@ export function Footer({ lang, dict }: FooterProps) {
               {item.label}
             </Link>
           ))}
+        </nav>
+
+        <nav aria-label={`${dict.nav.projects} · Footer`}>
+          <p className="font-mono text-[10px] tracking-[0.18em] text-cream/45 uppercase">
+            {dict.nav.projects}
+          </p>
+          <ol className="mt-4 space-y-2.5">
+            {PROJECTS.map((project, index) => (
+              <li key={project.slug} className="flex items-baseline gap-3">
+                <span
+                  aria-hidden
+                  className="font-mono text-[10px] text-cream/35"
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <Link
+                  href={`/${lang}/projects/${project.slug}`}
+                  className="link-slide text-sm leading-snug text-cream/80 hover:text-cream"
+                >
+                  {project.name[lang]}
+                </Link>
+              </li>
+            ))}
+          </ol>
         </nav>
 
         <div className="flex flex-col items-start gap-3 text-sm text-cream/80">

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { CSSProperties } from "react";
 import type { Dict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
@@ -99,6 +100,12 @@ export function Hero({ lang, dict, projects }: HeroProps) {
             className="hero-fade mt-9 flex flex-wrap items-center gap-4"
             style={{ "--fade-delay": "1.1s" } as CSSProperties}
           >
+            <Link
+              href={`/${lang}/apartments`}
+              className="inline-flex min-h-12 items-center rounded-full bg-brass px-7 text-sm font-semibold tracking-wide text-ink transition-colors hover:bg-brass-bright"
+            >
+              {dict.cta.availableApartments}
+            </Link>
             <a
               href={CONTACT.phoneHref}
               className="inline-flex min-h-12 items-center gap-3 rounded-full border border-cream/25 px-7 text-sm font-medium tracking-wide text-cream transition-colors hover:border-brass hover:text-brass"

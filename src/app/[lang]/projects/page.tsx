@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ContactBand } from "@/components/contact-band";
 import { JsonLd } from "@/components/json-ld";
 import { PageHero } from "@/components/page-hero";
 import {
   ProjectsBrowser,
   type ProjectBrowserItem,
 } from "@/components/projects-browser";
+import { SectionHeading } from "@/components/section-heading";
 import { getDict } from "@/lib/dictionary";
 import { PROJECTS } from "@/lib/projects";
 import {
@@ -16,18 +19,50 @@ import {
   pagePath,
   webPageJsonLd,
 } from "@/lib/seo";
-import { isLang, type Lang, type Localized } from "@/lib/types";
+import {
+  isLang,
+  type Lang,
+  type Localized,
+  type LocalizedList,
+} from "@/lib/types";
 
 const TITLE: Localized = {
-  ka: "საცხოვრებელი პროექტები",
-  en: "Residential projects",
-  ru: "Жилые проекты",
+  ka: "ბინები და საცხოვრებელი პროექტები ბათუმში",
+  en: "Apartments and residential projects in Batumi",
+  ru: "Квартиры и жилые проекты в Батуми",
 };
 
 const LEDE: Localized = {
-  ka: "კომპანიის ოფიციალურ ვებსაიტზე გამოქვეყნებული ექვსივე საცხოვრებელი პროექტი — ერთიან, გასაგებ რეესტრში.",
-  en: "All six residential projects published on the company’s official website — brought together in one clear register.",
-  ru: "Все шесть жилых проектов с официального сайта компании — в едином понятном реестре.",
+  ka: "Comfort Building-ის ექვსი მიმდინარე და დასრულებული პროექტი ბათუმსა და თბილისში. შეადარეთ მდებარეობა, სტატუსი, სართულიანობა და გამოქვეყნებული მონაცემები.",
+  en: "Six current and completed Comfort Building projects in Batumi and Tbilisi. Compare location, status, floors, and published details.",
+  ru: "Шесть текущих и завершённых проектов Comfort Building в Батуми и Тбилиси. Сравните расположение, статус, этажность и опубликованные данные.",
+};
+
+const META_TITLE: Localized = {
+  ka: "ბინები ბათუმში და საცხოვრებელი პროექტები",
+  en: "New-build apartments and projects in Batumi",
+  ru: "Новостройки и квартиры в Батуми от застройщика",
+};
+
+const BUYING_TITLE: Localized = {
+  ka: "ბინის შეძენა ბათუმში პირდაპირ დეველოპერისგან",
+  en: "Buying an apartment directly from the developer",
+  ru: "Покупка квартиры в Батуми напрямую у застройщика",
+};
+
+const BUYING_COPY: LocalizedList = {
+  ka: [
+    "თუ ეძებთ გასაყიდ ბინას ბათუმში, Comfort House-ის გამოქვეყნებული ხელმისაწვდომობა ერთ გვერდზე აერთიანებს ფართობებს, სართულებს, გეგმებსა და ფასებს კვადრატულ მეტრზე.",
+    "დასრულებული პროექტების არქივი გაჩვენებთ Comfort Building-ის მშენებლობებს ბათუმსა და თბილისში, მათ მისამართებს, პერიოდებს, მახასიათებლებსა და ფოტოებს.",
+  ],
+  en: [
+    "If you are looking for an apartment for sale in Batumi, the published Comfort House inventory puts areas, floors, plans, and rates per square metre on one page.",
+    "The completed-project archive records Comfort Building developments in Batumi and Tbilisi with their addresses, dates, specifications, and photographs.",
+  ],
+  ru: [
+    "Если вы ищете квартиру в Батуми от застройщика, опубликованное наличие в Comfort House собрано на одной странице с площадями, этажами, планами и ценами за квадратный метр.",
+    "Архив завершённых проектов показывает дома Comfort Building в Батуми и Тбилиси, их адреса, сроки, характеристики и фотографии.",
+  ],
 };
 
 const IMAGE_ALT: Localized = {
@@ -59,7 +94,7 @@ export async function generateMetadata({
   const lang = await resolveLang(params);
   return pageMetadata({
     lang,
-    title: TITLE[lang],
+    title: META_TITLE[lang],
     description: LEDE[lang],
     suffix: "/projects",
     image: HERO_IMAGE,
@@ -141,6 +176,33 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
           />
         </div>
       </section>
+
+      <section className="draft-grid-light bg-limestone py-24 text-ink md:py-32">
+        <div className="wrap grid gap-14 lg:grid-cols-12 lg:gap-20">
+          <div className="lg:col-span-6">
+            <SectionHeading
+              eyebrow={dict.nav.apartments}
+              title={BUYING_TITLE[lang]}
+              onLight
+            />
+          </div>
+          <div className="lg:col-span-6">
+            <div className="space-y-6 border-t border-ink/15 pt-6 text-[1.02rem] leading-[1.8] text-ink/70">
+              {BUYING_COPY[lang].map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+            <Link
+              href={`/${lang}/apartments`}
+              className="mt-8 inline-flex min-h-12 items-center bg-ink px-6 text-sm font-semibold text-cream transition-colors hover:bg-iron"
+            >
+              {dict.cta.availableApartments} <span aria-hidden>→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <ContactBand lang={lang} dict={dict} />
     </>
   );
 }

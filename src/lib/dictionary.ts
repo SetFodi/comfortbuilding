@@ -3,6 +3,7 @@ import type { Lang } from "./types";
 export interface Dict {
   readonly nav: {
     readonly home: string;
+    readonly apartments: string;
     readonly projects: string;
     readonly about: string;
     readonly contact: string;
@@ -41,6 +42,7 @@ export interface Dict {
     readonly advantages: string;
   };
   readonly cta: {
+    readonly availableApartments: string;
     readonly allProjects: string;
     readonly viewProject: string;
     readonly call: string;
@@ -75,15 +77,16 @@ export const DICT: Record<Lang, Dict> = {
   ka: {
     nav: {
       home: "მთავარი",
+      apartments: "გასაყიდი ბინები",
       projects: "პროექტები",
       about: "ჩვენ შესახებ",
       contact: "კონტაქტი",
     },
     hero: {
-      eyebrow: "სამშენებლო კომპანია · ბათუმი",
-      titleA: "კომპანია,",
-      titleB: "რომელსაც ენდობიან",
-      lede: "საცხოვრებელი პროექტები ბათუმსა და თბილისში — ხარისხიანი მასალები, უსაფრთხოება და დროული ჩაბარება კომპანიის გამოქვეყნებული პრიორიტეტებია.",
+      eyebrow: "Comfort Building · ბათუმი",
+      titleA: "სამშენებლო კომპანია",
+      titleB: "ბათუმში",
+      lede: "გაეცანით გასაყიდ ბინებს, გამოქვეყნებულ ფასებსა და გეგმებს, ასევე Comfort Building-ის საცხოვრებელ პროექტებს ბათუმსა და თბილისში.",
     },
     titleBlock: {
       project: "პროექტი",
@@ -110,6 +113,7 @@ export const DICT: Record<Lang, Dict> = {
       advantages: "უპირატესობები",
     },
     cta: {
+      availableApartments: "გასაყიდი ბინების ნახვა",
       allProjects: "ყველა პროექტი",
       viewProject: "პროექტის ნახვა",
       call: "დაგვირეკეთ",
@@ -143,15 +147,16 @@ export const DICT: Record<Lang, Dict> = {
   en: {
     nav: {
       home: "Home",
+      apartments: "Apartments",
       projects: "Projects",
       about: "About",
       contact: "Contact",
     },
     hero: {
-      eyebrow: "Construction company · Batumi",
-      titleA: "A builder",
-      titleB: "people trust",
-      lede: "Residential projects in Batumi and Tbilisi — quality materials, safety, and on-time delivery are the company’s published priorities.",
+      eyebrow: "Comfort Building · Batumi",
+      titleA: "Residential developer",
+      titleB: "in Batumi",
+      lede: "See apartments for sale, published prices and floor plans, plus Comfort Building's residential projects in Batumi and Tbilisi.",
     },
     titleBlock: {
       project: "Project",
@@ -178,6 +183,7 @@ export const DICT: Record<Lang, Dict> = {
       advantages: "Advantages",
     },
     cta: {
+      availableApartments: "View apartments for sale",
       allProjects: "All projects",
       viewProject: "View project",
       call: "Call us",
@@ -211,15 +217,16 @@ export const DICT: Record<Lang, Dict> = {
   ru: {
     nav: {
       home: "Главная",
+      apartments: "Квартиры",
       projects: "Проекты",
       about: "О нас",
       contact: "Контакты",
     },
     hero: {
-      eyebrow: "Строительная компания · Батуми",
-      titleA: "Компания,",
-      titleB: "которой доверяют",
-      lede: "Жилые проекты в Батуми и Тбилиси — качественные материалы, безопасность и сдача в срок являются заявленными приоритетами компании.",
+      eyebrow: "Comfort Building · Батуми",
+      titleA: "Строительная компания",
+      titleB: "в Батуми",
+      lede: "Смотрите квартиры в продаже, опубликованные цены и планировки, а также жилые проекты Comfort Building в Батуми и Тбилиси.",
     },
     titleBlock: {
       project: "Проект",
@@ -246,6 +253,7 @@ export const DICT: Record<Lang, Dict> = {
       advantages: "Преимущества",
     },
     cta: {
+      availableApartments: "Смотреть квартиры",
       allProjects: "Все проекты",
       viewProject: "Смотреть проект",
       call: "Позвоните нам",

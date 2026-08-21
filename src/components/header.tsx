@@ -74,6 +74,7 @@ export function Header({ lang, dict }: HeaderProps) {
   const closeMobileMenu = () => setIsMenuOpen(false);
 
   const navItems = [
+    { href: `/${lang}/apartments`, label: dict.nav.apartments },
     { href: `/${lang}/projects`, label: dict.nav.projects },
     { href: `/${lang}/about`, label: dict.nav.about },
     { href: `/${lang}/contact`, label: dict.nav.contact },
@@ -111,7 +112,10 @@ export function Header({ lang, dict }: HeaderProps) {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-9 lg:flex" aria-label="Main">
+        <nav
+          className="hidden items-center gap-6 lg:flex xl:gap-8"
+          aria-label="Main"
+        >
           {navItems.map((item) => (
             <Link
               key={item.href}

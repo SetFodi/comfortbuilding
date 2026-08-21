@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const LEGACY_PROJECTS = [
   { old: "komfort-hausi", current: "comfort-house" },
+  { old: "Comfort-house", current: "comfort-house" },
   { old: "COMFORT-HOUSE-", current: "comfort-house" },
   { old: "tvinsi-", current: "twins" },
   { old: "TWINS", current: "twins" },
@@ -13,6 +14,8 @@ const LEGACY_PROJECTS = [
   { old: "RED-LINE", current: "red-line" },
   { old: "RED-LINE-", current: "red-line" },
   { old: "dom-na-parnavaza", current: "house-on-parnavaz" },
+  { old: "saxli-farnavazze-", current: "house-on-parnavaz" },
+  { old: "saxli-piacastan-", current: "house-near-piazza" },
 ] as const;
 
 const nextConfig: NextConfig = {
@@ -57,28 +60,33 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       { source: "/contact", destination: "/ka/contact", permanent: true },
-      { source: "/news/:path*", destination: "/ka", permanent: true },
       {
-        source: "/:lang(ka|en|ru)/news/:path*",
+        source: "/public/:lang(ka|en|ru)",
         destination: "/:lang",
         permanent: true,
       },
+      {
+        source: "/public/:lang(ka|en|ru)/company",
+        destination: "/:lang/about",
+        permanent: true,
+      },
+      {
+        source: "/public/:lang(ka|en|ru)/projects",
+        destination: "/:lang/projects",
+        permanent: true,
+      },
+      {
+        source:
+          "/public/:lang(ka|en|ru)/projects/:status(ongoing|completed|future)",
+        destination: "/:lang/projects",
+        permanent: true,
+      },
+      {
+        source: "/public/:lang(ka|en|ru)/contact",
+        destination: "/:lang/contact",
+        permanent: true,
+      },
       ...projectRedirects,
-      {
-        source: "/public/:lang(ka|en|ru)/project/:path*",
-        destination: "/:lang/projects",
-        permanent: true,
-      },
-      {
-        source: "/:lang(ka|en|ru)/project/:path*",
-        destination: "/:lang/projects",
-        permanent: true,
-      },
-      {
-        source: "/project/:path*",
-        destination: "/ka/projects",
-        permanent: true,
-      },
     ];
   },
 };

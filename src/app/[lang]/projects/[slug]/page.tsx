@@ -55,6 +55,16 @@ const APARTMENTS_AND_PRICING: Localized = {
 };
 
 function projectMetaTitle(project: Project, lang: Lang): string {
+  if (project.inventory) {
+    if (lang === "ka") {
+      return `${project.name.ka} | ბინები ბათუმში, ფასები და გეგმები`;
+    }
+    if (lang === "ru") {
+      return `${project.name.ru} | квартиры в Батуми, цены и планировки`;
+    }
+    return `${project.name.en} Batumi apartments | Prices and floor plans`;
+  }
+
   if (lang === "ka") {
     const city = project.city.ka === "ბათუმი" ? "ბათუმში" : "თბილისში";
     return `${project.name.ka} — საცხოვრებელი პროექტი ${city}`;
@@ -339,10 +349,18 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             className="draft-grid bg-ink py-24 md:py-32"
           >
             <div className="wrap">
-              <SectionHeading
-                eyebrow={AVAILABILITY_2026[lang]}
-                title={APARTMENTS_AND_PRICING[lang]}
-              />
+              <div className="flex flex-wrap items-end justify-between gap-8">
+                <SectionHeading
+                  eyebrow={AVAILABILITY_2026[lang]}
+                  title={APARTMENTS_AND_PRICING[lang]}
+                />
+                <Link
+                  href={`/${lang}/apartments`}
+                  className="inline-flex min-h-12 items-center bg-brass px-6 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright"
+                >
+                  {dict.cta.availableApartments} <span aria-hidden>→</span>
+                </Link>
+              </div>
               <div className="mt-12">
                 <UnitInventory inventory={project.inventory} lang={lang} />
               </div>

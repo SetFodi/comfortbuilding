@@ -32,8 +32,8 @@ export function Preloader({ lang }: { readonly lang: Lang }) {
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       releasePage();
-      setPhase("done");
-      return;
+      const reducedMotionFrame = requestAnimationFrame(() => setPhase("done"));
+      return () => cancelAnimationFrame(reducedMotionFrame);
     }
 
     const start = performance.now();

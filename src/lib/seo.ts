@@ -4,7 +4,7 @@ import { CONTACT, COMPANY_NAME } from "./site";
 import { LANGS, type Lang, type Localized } from "./types";
 
 export const SITE_URL = "https://www.comfortbuilding.ge";
-export const SITE_UPDATED_AT = new Date("2026-07-14T00:00:00+04:00");
+export const SITE_UPDATED_AT = new Date("2026-08-21T00:00:00+04:00");
 
 export const HOME_DESCRIPTIONS: Localized = {
   ka: "კომფორტ ბილდინგი — სამშენებლო კომპანია ბათუმში. გაეცანით მიმდინარე და დასრულებულ საცხოვრებელ პროექტებს, ბინების გეგმებს, ფასებს, ხელმისაწვდომობასა და პირდაპირ საკონტაქტო ინფორმაციას.",

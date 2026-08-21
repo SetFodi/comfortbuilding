@@ -32,6 +32,21 @@ const STATIC_ROUTES = [
     ),
   },
   {
+    suffix: "/apartments",
+    changeFrequency: "weekly" as const,
+    priority: 0.95,
+    images: [
+      absoluteUrl(
+        (
+          PROJECTS[0].heroImage ??
+          PROJECTS[0].listingImage ??
+          PROJECTS[0].cover
+        ).src,
+      ),
+      absoluteUrl("/images/projects/comfort-house/plans-2026/level-09.png"),
+    ],
+  },
+  {
     suffix: "/about",
     changeFrequency: "monthly" as const,
     priority: 0.7,
