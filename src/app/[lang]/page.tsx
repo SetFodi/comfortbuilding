@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AboutTeaser } from "@/components/about-teaser";
+import { AvailableApartmentsSpotlight } from "@/components/available-apartments-spotlight";
 import { ContactBand } from "@/components/contact-band";
 import { Hero } from "@/components/hero";
 import { JsonLd } from "@/components/json-ld";
@@ -95,6 +96,7 @@ export default async function HomePage({ params }: HomePageProps) {
       />
       <Hero lang={lang} dict={dict} projects={PROJECTS} />
       <StatBand lang={lang} />
+      <AvailableApartmentsSpotlight lang={lang} />
 
       <section className="draft-grid bg-basalt py-24 md:py-32">
         <div className="wrap">

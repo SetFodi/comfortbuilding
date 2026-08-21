@@ -135,6 +135,24 @@ for (const [language, heading] of [
   );
 }
 
+for (const language of languages) {
+  const response = await get(`/${language}`);
+  const html = await response.text();
+  assert.equal(
+    html.match(/data-home-apartment="[^"]+"/g)?.length,
+    3,
+    `/${language} must feature three available apartments on the homepage`,
+  );
+  for (const number of ["802", "905", "703"]) {
+    assert.ok(
+      html.includes(
+        `href="/${language}/apartments#apartment-${number}"`,
+      ),
+      `/${language} must link apartment ${number} to its sales-page entry`,
+    );
+  }
+}
+
 const redirects = [
   ["/", "/ka"],
   ["/en/project/Comfort-house", "/en/projects/comfort-house"],
