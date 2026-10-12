@@ -27,21 +27,21 @@ import {
 } from "@/lib/types";
 
 const TITLE: Localized = {
-  ka: "ბინები და საცხოვრებელი პროექტები ბათუმში",
-  en: "Apartments and residential projects in Batumi",
-  ru: "Квартиры и жилые проекты в Батуми",
+  ka: "საცხოვრებელი პროექტები ბათუმსა და თბილისში",
+  en: "Residential projects in Batumi and Tbilisi",
+  ru: "Жилые проекты в Батуми и Тбилиси",
 };
 
 const LEDE: Localized = {
-  ka: "Comfort Building-ის ექვსი მიმდინარე და დასრულებული პროექტი ბათუმსა და თბილისში. შეადარეთ მდებარეობა, სტატუსი, სართულიანობა და გამოქვეყნებული მონაცემები.",
-  en: "Six current and completed Comfort Building projects in Batumi and Tbilisi. Compare location, status, floors, and published details.",
-  ru: "Шесть текущих и завершённых проектов Comfort Building в Батуми и Тбилиси. Сравните расположение, статус, этажность и опубликованные данные.",
+  ka: "Comfort Building-ის მიმდინარე და დასრულებული პროექტები ბათუმსა და თბილისში. შეადარეთ მდებარეობა, სტატუსი, სართულიანობა და პროექტების მონაცემები.",
+  en: "Current and completed Comfort Building projects in Batumi and Tbilisi. Compare location, status, floors, and project details.",
+  ru: "Текущие и завершённые проекты Comfort Building в Батуми и Тбилиси. Сравните расположение, статус, этажность и характеристики домов.",
 };
 
 const META_TITLE: Localized = {
-  ka: "ბინები ბათუმში და საცხოვრებელი პროექტები",
-  en: "New-build apartments and projects in Batumi",
-  ru: "Новостройки и квартиры в Батуми от застройщика",
+  ka: "საცხოვრებელი პროექტები ბათუმსა და თბილისში",
+  en: "Residential projects in Batumi and Tbilisi",
+  ru: "Жилые проекты в Батуми и Тбилиси",
 };
 
 const BUYING_TITLE: Localized = {
@@ -157,7 +157,7 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
         lede={LEDE[lang]}
         image={HERO_IMAGE.src}
         imageAlt={IMAGE_ALT[lang]}
-        annotation="ARCHIVE / 06 PROJECTS / 02 CITIES"
+        annotation={`ARCHIVE / ${String(PROJECTS.length).padStart(2, "0")} PROJECTS / 02 CITIES`}
       />
 
       <section className="draft-grid bg-ink py-20 md:py-28">

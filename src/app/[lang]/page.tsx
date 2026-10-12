@@ -15,26 +15,25 @@ import { ServicesSection } from "@/components/services-section";
 import { StatBand } from "@/components/stat-band";
 import { getDict } from "@/lib/dictionary";
 import { PROJECTS } from "@/lib/projects";
+import { COMPANY_NAME } from "@/lib/site";
 import {
   HOME_DESCRIPTIONS,
   jsonLdGraph,
-  organizationJsonLd,
   pageMetadata,
   webPageJsonLd,
-  websiteJsonLd,
 } from "@/lib/seo";
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const PAGE_TITLE: Localized = {
-  ka: "კომფორტ ბილდინგი — სამშენებლო კომპანია ბათუმში",
-  en: "Comfort Building — construction company in Batumi",
-  ru: "Comfort Building — строительная компания в Батуми",
+  ka: "სამშენებლო კომპანია ბათუმში",
+  en: "Construction company in Batumi",
+  ru: "Строительная компания в Батуми",
 };
 
 const REGISTER_TITLE: Localized = {
-  ka: "ექვსი პროექტი. ერთი პასუხისმგებლობა.",
-  en: "Six projects. One responsibility.",
-  ru: "Шесть проектов. Одна ответственность.",
+  ka: "საცხოვრებელი პროექტები ბათუმსა და თბილისში",
+  en: "Residential projects in Batumi and Tbilisi",
+  ru: "Жилые проекты в Батуми и Тбилиси",
 };
 
 interface HomePageProps {
@@ -55,7 +54,7 @@ export async function generateMetadata({
     PROJECTS[0].heroImage ?? PROJECTS[0].listingImage ?? PROJECTS[0].cover;
   return pageMetadata({
     lang,
-    title: PAGE_TITLE[lang],
+    title: `${PAGE_TITLE[lang]} — ${COMPANY_NAME[lang]}`,
     description: HOME_DESCRIPTIONS[lang],
     image,
   });
@@ -89,8 +88,6 @@ export default async function HomePage({ params }: HomePageProps) {
     <>
       <JsonLd
         data={jsonLdGraph([
-          organizationJsonLd(lang),
-          websiteJsonLd(lang),
           webPageJsonLd(lang, "", PAGE_TITLE[lang], HOME_DESCRIPTIONS[lang]),
         ])}
       />

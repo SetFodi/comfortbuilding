@@ -17,6 +17,7 @@ import {
   webPageJsonLd,
 } from "@/lib/seo";
 import { CONTACT } from "@/lib/site";
+import { inquiryHref } from "@/lib/inquiry-context";
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const COMFORT_HOUSE = PROJECTS.find(
@@ -60,7 +61,7 @@ const DESCRIPTION: Localized = {
 const COPY = {
   ka: {
     eyebrow: "ბინები დეველოპერისგან",
-    annotation: "11 ბინა / 38.5–142.2 მ² / ბათუმი",
+    annotation: "ბინა",
     stats: {
       available: "გამოქვეყნებული თავისუფალი ბინა",
       area: "ხელმისაწვდომი ფართობი",
@@ -77,7 +78,7 @@ const COPY = {
     sourceLink: "წყარო PDF-ის ნახვა",
     guideLink: "ბინის ყიდვის გზამკვლევი",
     inventoryEyebrow: "ფასები და ხელმისაწვდომობა",
-    inventoryTitle: "შეადარეთ 11 გასაყიდი ბინა",
+    inventoryTitle: `შეადარეთ ${AVAILABLE_APARTMENTS.length} გასაყიდი ბინა`,
     inventoryLede:
       "აირჩიეთ ფართობი და სართული. საბოლოო ფასი და ხელმისაწვდომობა გაყიდვების გუნდთან გადაამოწმეთ.",
     apartment: "ბინა",
@@ -118,7 +119,7 @@ const COPY = {
   },
   en: {
     eyebrow: "Direct from the developer",
-    annotation: "11 apartments / 38.5–142.2 m² / Batumi",
+    annotation: "apartments",
     stats: {
       available: "Published available apartments",
       area: "Available apartment sizes",
@@ -135,7 +136,7 @@ const COPY = {
     sourceLink: "View the source PDF",
     guideLink: "Apartment buyer guide",
     inventoryEyebrow: "Prices and availability",
-    inventoryTitle: "Compare 11 apartments for sale",
+    inventoryTitle: `Compare ${AVAILABLE_APARTMENTS.length} apartments for sale`,
     inventoryLede:
       "Choose an area and floor, then confirm the final price and current availability with the sales team.",
     apartment: "Apartment",
@@ -176,7 +177,7 @@ const COPY = {
   },
   ru: {
     eyebrow: "Квартиры от застройщика",
-    annotation: "11 квартир / 38,5–142,2 м² / Батуми",
+    annotation: "квартир",
     stats: {
       available: "Опубликованные свободные квартиры",
       area: "Площадь доступных квартир",
@@ -193,7 +194,7 @@ const COPY = {
     sourceLink: "Открыть исходный PDF",
     guideLink: "Как купить квартиру",
     inventoryEyebrow: "Цены и наличие",
-    inventoryTitle: "Сравните 11 квартир в продаже",
+    inventoryTitle: `Квартиры в продаже: ${AVAILABLE_APARTMENTS.length}`,
     inventoryLede:
       "Выберите площадь и этаж. Итоговую цену и текущее наличие уточните у отдела продаж.",
     apartment: "Квартира",
@@ -362,8 +363,12 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
   const rates = AVAILABLE_APARTMENTS.flatMap(({ unit }) =>
     unit.pricePerSqm ? [unit.pricePerSqm] : [],
   );
-  const areaRange = `${formatArea(Math.min(...areas), lang)}–${formatArea(Math.max(...areas), lang)} m²`;
-  const rateRange = `${formatMoney(Math.min(...rates))}–${formatMoney(Math.max(...rates))}`;
+  const areaRange = areas.length > 0
+    ? `${formatArea(Math.min(...areas), lang)}–${formatArea(Math.max(...areas), lang)} m²`
+    : "—";
+  const rateRange = rates.length > 0
+    ? `${formatMoney(Math.min(...rates))}–${formatMoney(Math.max(...rates))}`
+    : "—";
 
   return (
     <>
@@ -374,7 +379,7 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
         lede={DESCRIPTION[lang]}
         image={HERO_IMAGE.src}
         imageAlt={HERO_IMAGE.alt[lang]}
-        annotation={copy.annotation}
+        annotation={`${AVAILABLE_APARTMENTS.length} ${copy.annotation} / ${areaRange} / ${COMFORT_HOUSE.city[lang]}`}
       />
 
       <section className="border-y border-cream/10 bg-basalt">
@@ -472,6 +477,8 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
             <div className="lg:col-span-4 lg:text-right">
               <a
                 href={CONTACT.phoneHref}
+                data-project-slug={COMFORT_HOUSE.slug}
+                data-contact-action="apartments-call"
                 className="inline-flex min-h-12 items-center bg-brass px-6 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright"
               >
                 {dict.cta.call} · {CONTACT.phoneDisplay}
@@ -563,7 +570,7 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
 
                   <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
                     <Link
-                      href={`/${lang}/contact?interest=apartment-${number}#inquiry`}
+                      href={inquiryHref(lang, COMFORT_HOUSE.slug, number)}
                       data-contact-action="apartment-inquiry"
                       className="inline-flex min-h-11 items-center bg-brass px-4 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright"
                     >
@@ -616,7 +623,7 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
         </div>
       </section>
 
-      <ContactBand lang={lang} dict={dict} />
+      <ContactBand lang={lang} dict={dict} projectSlug={COMFORT_HOUSE.slug} />
     </>
   );
 }

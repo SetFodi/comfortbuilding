@@ -8,17 +8,25 @@ import { notFound } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { ContactDock } from "@/components/contact-dock";
+import { SiteAnalytics } from "@/components/site-analytics";
+import { JsonLd } from "@/components/json-ld";
+import { PROJECTS } from "@/lib/projects";
 import { getDict } from "@/lib/dictionary";
 import {
   absoluteUrl,
   HOME_DESCRIPTIONS,
   languageAlternates,
+  jsonLdGraph,
+  organizationJsonLd,
   pagePath,
   SITE_URL,
+  websiteJsonLd,
 } from "@/lib/seo";
 import { COMPANY_NAME } from "@/lib/site";
 import { isLang, LANGS } from "@/lib/types";
 import "../globals.css";
+
+const PROJECT_SLUGS = PROJECTS.map((project) => project.slug);
 
 const serifGeorgian = Noto_Serif_Georgian({
   variable: "--font-serif-geo",
@@ -29,7 +37,7 @@ const serifGeorgian = Noto_Serif_Georgian({
 
 const serifLatin = Noto_Serif({
   variable: "--font-serif-lat",
-  subsets: ["latin", "cyrillic"],
+  subsets: ["cyrillic"],
   weight: ["400", "500", "600"],
   display: "swap",
 });
@@ -131,15 +139,22 @@ export default async function LocaleRootLayout({
       className={`${serifGeorgian.variable} ${serifLatin.variable} ${sansGeorgian.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col pb-16 lg:pb-0">
+        <JsonLd
+          data={jsonLdGraph([
+            organizationJsonLd(candidate),
+            websiteJsonLd(candidate),
+          ])}
+        />
         <a href="#main-content" className="skip-link">
           {dict.misc.skipContent}
         </a>
-        <Header lang={candidate} dict={dict} />
+        <Header lang={candidate} dict={dict} projectSlugs={PROJECT_SLUGS} />
         <main id="main-content" className="flex-1">
           {children}
         </main>
         <Footer lang={candidate} dict={dict} />
         <ContactDock lang={candidate} dict={dict} />
+        <SiteAnalytics lang={candidate} projectSlugs={PROJECT_SLUGS} />
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ContactBand } from "@/components/contact-band";
 import { JsonLd } from "@/components/json-ld";
@@ -9,10 +10,12 @@ import { SectionHeading } from "@/components/section-heading";
 import { ServicesSection } from "@/components/services-section";
 import { StatBand } from "@/components/stat-band";
 import { getDict } from "@/lib/dictionary";
-import { ADVANTAGES, COMPANY_NAME, COMPANY_STORY } from "@/lib/site";
+import { ADVANTAGES, COMPANY_NAME, COMPANY_STORY, CONTACT } from "@/lib/site";
+import { PROJECTS } from "@/lib/projects";
 import {
   breadcrumbJsonLd,
   jsonLdGraph,
+  LEGAL_NAMES,
   pageMetadata,
   pagePath,
   webPageJsonLd,
@@ -20,16 +23,46 @@ import {
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const TITLE: Localized = {
-  ka: "კომპანია, რომელსაც ენდობიან",
-  en: "A builder people trust",
-  ru: "Компания, которой доверяют",
+  ka: "კომფორტ ბილდინგის შესახებ",
+  en: "About Comfort Building",
+  ru: "О компании Comfort Building",
 };
 
 const LEDE: Localized = {
-  ka: "ხარისხი, პროფესიონალი გუნდი, სწორი სტრატეგია და მშენებლობის პროცესის ეფექტური მართვა — კომპანიის საკუთარი სიტყვებით, ეს მისი სავიზიტო ბარათია.",
-  en: "Quality, a professional team, a sound strategy, and effective management of the construction process — in the company’s own words, these are its calling card.",
-  ru: "Качество, профессиональная команда, верная стратегия и эффективное управление строительством — по словам самой компании, это её визитная карточка.",
+  ka: "კომფორტ ბილდინგი სამშენებლო კომპანიაა ბათუმში. მისი საცხოვრებელი პროექტები მდებარეობს ბათუმსა და თბილისში. აქ შეგიძლიათ გაეცნოთ კომპანიის პორტფოლიოს, ოფისის მისამართსა და პირდაპირ საკონტაქტო ინფორმაციას.",
+  en: "Comfort Building is a construction company based in Batumi, with residential projects in Batumi and Tbilisi. Explore its project portfolio, office address, and direct contact details.",
+  ru: "Comfort Building — строительная компания в Батуми с жилыми проектами в Батуми и Тбилиси. Здесь представлены портфолио, адрес офиса и прямые контакты компании.",
 };
+
+const PROFILE = {
+  ka: {
+    heading: "სამშენებლო კომპანია ბათუმში, კონკრეტული პროექტებით",
+    legalName: "კომპანიის დასახელება",
+    office: "ბათუმის ოფისი",
+    portfolio: "საცხოვრებელი პროექტები",
+    portfolioValue: `${PROJECTS.length} მიმდინარე და დასრულებული პროექტი ბათუმსა და თბილისში`,
+    apartments: "გასაყიდი ბინები ბათუმში",
+    projects: "მიმდინარე და დასრულებული პროექტების ნახვა",
+  },
+  en: {
+    heading: "A Batumi construction company with a documented portfolio",
+    legalName: "Company name",
+    office: "Batumi office",
+    portfolio: "Residential portfolio",
+    portfolioValue: `${PROJECTS.length} current and completed projects in Batumi and Tbilisi`,
+    apartments: "Apartments for sale in Batumi",
+    projects: "Explore current and completed projects",
+  },
+  ru: {
+    heading: "Строительная компания в Батуми с портфолио проектов",
+    legalName: "Название компании",
+    office: "Офис в Батуми",
+    portfolio: "Жилые проекты",
+    portfolioValue: `${PROJECTS.length} текущих и завершённых проектов в Батуми и Тбилиси`,
+    apartments: "Квартиры в продаже в Батуми",
+    projects: "Текущие и завершённые проекты",
+  },
+} as const;
 
 const STORY_TITLE: Localized = {
   ka: "კომფორტი საქმის ნებისმიერ პროცესში",
@@ -88,6 +121,7 @@ export async function generateMetadata({
 export default async function AboutPage({ params }: AboutPageProps) {
   const lang = await resolveLang(params);
   const dict = getDict(lang);
+  const profile = PROFILE[lang];
 
   return (
     <>
@@ -114,6 +148,37 @@ export default async function AboutPage({ params }: AboutPageProps) {
         imageAlt={HERO_ALT[lang]}
         annotation="COMPANY PROFILE / BATUMI / GEORGIA"
       />
+
+      <section className="draft-grid bg-basalt py-16 md:py-24">
+        <div className="wrap grid gap-12 lg:grid-cols-12 lg:gap-20">
+          <div className="lg:col-span-5">
+            <p className="eyebrow">{COMPANY_NAME[lang]}</p>
+            <h2 className="mt-5 font-display text-3xl leading-tight text-cream md:text-4xl">
+              {profile.heading}
+            </h2>
+            <Link href={`/${lang}/apartments`} className="link-slide mt-8 inline-flex min-h-11 items-center gap-3 text-sm text-brass">
+              {profile.apartments} <span aria-hidden>→</span>
+            </Link>
+          </div>
+          <div className="lg:col-span-7">
+            <dl className="border-t border-cream/15">
+              {[
+                [profile.legalName, LEGAL_NAMES[lang]],
+                [profile.office, CONTACT.address[lang]],
+                [profile.portfolio, profile.portfolioValue],
+              ].map(([label, value]) => (
+                <div key={label} className="grid gap-3 border-b border-cream/15 py-6 sm:grid-cols-[10rem_1fr]">
+                  <dt className="font-mono text-xs leading-relaxed text-cream/50">{label}</dt>
+                  <dd className="text-base leading-relaxed text-cream/85">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <Link href={`/${lang}/projects`} className="link-slide mt-5 inline-flex min-h-11 items-center gap-3 text-sm text-brass">
+              {profile.projects} <span aria-hidden>→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section className="draft-grid-light bg-limestone py-24 text-ink md:py-32">
         <div className="wrap grid gap-14 lg:grid-cols-12 lg:gap-20">

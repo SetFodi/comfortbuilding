@@ -30,7 +30,7 @@ const COPY = {
   ka: {
     eyebrow: "ახლავე ხელმისაწვდომია",
     title: "გასაყიდი ბინები Comfort House-ში",
-    lede: "შეადარეთ სამი განსხვავებული ფართობი და ბიუჯეტი. სრულ კატალოგში თავმოყრილია 11 გამოქვეყნებული ბინა ბათუმში, დეველოპერისგან.",
+    lede: "შეადარეთ ბინები ფართობისა და ფასის მიხედვით. სრულ კატალოგში თავმოყრილია ბათუმში გასაყიდად გამოქვეყნებული ბინები, პირდაპირ დეველოპერისგან.",
     count: "გამოქვეყნებული გასაყიდი ბინა",
     available: "გასაყიდია",
     apartment: "ბინა",
@@ -39,7 +39,7 @@ const COPY = {
     estimate: "სავარაუდო სრული ფასი",
     rate: "ფასი მ²-ზე",
     view: "ბინის ნახვა",
-    viewAll: "ყველა 11 ბინის ნახვა",
+    viewAll: `ყველა ${AVAILABLE_APARTMENTS.length} ბინის ნახვა`,
     guide: "როგორ ვიყიდოთ ბინა ბათუმში",
     call: "გაყიდვების გუნდთან დარეკვა",
     note: "სავარაუდო ფასი გამოთვლილია სრული ფართობისა და გამოქვეყნებული მ²-ის ფასის მიხედვით. ხელმისაწვდომობა და საბოლოო ფასი გადაამოწმეთ გაყიდვების გუნდთან.",
@@ -47,7 +47,7 @@ const COPY = {
   en: {
     eyebrow: "Available now",
     title: "Apartments for sale at Comfort House",
-    lede: "Compare three options across different sizes and budgets. The full catalogue lists 11 published apartments offered directly by the developer in Batumi.",
+    lede: "Compare apartment sizes and prices, then explore the full catalogue of published apartments offered directly by the developer in Batumi.",
     count: "published apartments for sale",
     available: "For sale",
     apartment: "Apartment",
@@ -56,7 +56,7 @@ const COPY = {
     estimate: "Estimated total",
     rate: "Price per m²",
     view: "View apartment",
-    viewAll: "View all 11 apartments",
+    viewAll: `View all ${AVAILABLE_APARTMENTS.length} apartments`,
     guide: "How to buy an apartment in Batumi",
     call: "Call the sales team",
     note: "The estimate is the published rate per m² multiplied by total area. Confirm current availability and the final price with the sales team.",
@@ -64,7 +64,7 @@ const COPY = {
   ru: {
     eyebrow: "Доступно сейчас",
     title: "Квартиры в продаже в Comfort House",
-    lede: "Сравните три варианта разной площади и стоимости. В полном каталоге опубликовано 11 квартир от застройщика в Батуми.",
+    lede: "Сравните площадь и стоимость квартир, затем откройте полный каталог опубликованных предложений от застройщика в Батуми.",
     count: "опубликованных квартир в продаже",
     available: "В продаже",
     apartment: "Квартира",
@@ -73,7 +73,7 @@ const COPY = {
     estimate: "Расчётная стоимость",
     rate: "Цена за м²",
     view: "Смотреть квартиру",
-    viewAll: "Смотреть все 11 квартир",
+    viewAll: `Смотреть все квартиры (${AVAILABLE_APARTMENTS.length})`,
     guide: "Как купить квартиру в Батуми",
     call: "Позвонить в отдел продаж",
     note: "Расчётная стоимость равна общей площади, умноженной на опубликованную цену за м². Уточните наличие и итоговую цену в отделе продаж.",
@@ -99,6 +99,7 @@ export function AvailableApartmentsSpotlight({
   return (
     <section
       id="available-apartments"
+      data-project-slug="comfort-house"
       className="draft-grid-light relative overflow-hidden bg-limestone py-24 text-ink md:py-32"
     >
       <div

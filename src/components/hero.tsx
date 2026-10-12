@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 import type { Dict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
 import type { Lang, Project } from "@/lib/types";
@@ -29,17 +29,20 @@ function MaskedWords({ text, className, baseDelayS }: MaskedWordsProps) {
   return (
     <span className={`inline-flex flex-wrap gap-x-[0.28em] ${className}`}>
       {text.split(" ").map((word, index) => (
-        <span key={word + index} className="word-mask">
-          <span
-            style={
-              {
-                "--word-delay": `${baseDelayS + index * WORD_STAGGER_S}s`,
-              } as CSSProperties
-            }
-          >
-            {word}
+        <Fragment key={word + index}>
+          {index > 0 ? " " : null}
+          <span className="word-mask">
+            <span
+              style={
+                {
+                  "--word-delay": `${baseDelayS + index * WORD_STAGGER_S}s`,
+                } as CSSProperties
+              }
+            >
+              {word}
+            </span>
           </span>
-        </span>
+        </Fragment>
       ))}
     </span>
   );
@@ -82,6 +85,7 @@ export function Hero({ lang, dict, projects }: HeroProps) {
               baseDelayS={0.15}
               className="font-sans text-[clamp(2.7rem,8.5vw,5.6rem)] leading-[1] font-semibold tracking-tight text-cream/95"
             />
+            {" "}
             <MaskedWords
               text={dict.hero.titleB}
               baseDelayS={0.42}

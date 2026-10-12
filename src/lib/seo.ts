@@ -4,7 +4,10 @@ import { CONTACT, COMPANY_NAME } from "./site";
 import { LANGS, type Lang, type Localized } from "./types";
 
 export const SITE_URL = "https://www.comfortbuilding.ge";
-export const SITE_UPDATED_AT = new Date("2026-08-21T00:00:00+04:00");
+// Manually maintained: the shared business/project graph changed on this date.
+// Do not replace this with the build date or imply refreshed inventory.
+export const SITE_UPDATED_AT = new Date("2026-10-12T00:00:00+04:00");
+export const BUYING_GUIDE_PUBLISHED_AT = new Date("2026-08-21T00:00:00+04:00");
 
 export const HOME_DESCRIPTIONS: Localized = {
   ka: "კომფორტ ბილდინგი — სამშენებლო კომპანია ბათუმში. გაეცანით მიმდინარე და დასრულებულ საცხოვრებელ პროექტებს, ბინების გეგმებს, ფასებს, ხელმისაწვდომობასა და პირდაპირ საკონტაქტო ინფორმაციას.",
@@ -18,7 +21,7 @@ const OG_LOCALES: Record<Lang, string> = {
   ru: "ru_RU",
 };
 
-const LEGAL_NAMES: Localized = {
+export const LEGAL_NAMES: Localized = {
   ka: "შპს „კომფორტ ბილდინგი“",
   en: "LLC Comfort Building",
   ru: "ООО «Комфорт Билдинг»",
@@ -109,7 +112,7 @@ export function pageMetadata({
 
 export function organizationJsonLd(lang: Lang) {
   return {
-    "@type": "GeneralContractor",
+    "@type": ["Organization", "GeneralContractor"],
     "@id": `${SITE_URL}/#organization`,
     name: COMPANY_NAME[lang],
     alternateName: ["Comfort Building", "კომფორტ ბილდინგი"],
@@ -156,7 +159,7 @@ export function websiteJsonLd(lang: Lang) {
     url: SITE_URL,
     name: "Comfort Building",
     alternateName: COMPANY_NAME[lang],
-    inLanguage: lang,
+    inLanguage: LANGS,
     publisher: { "@id": `${SITE_URL}/#organization` },
   };
 }

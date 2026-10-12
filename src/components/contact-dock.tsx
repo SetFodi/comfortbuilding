@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Dict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
+import { inquiryHref } from "@/lib/inquiry-context";
 import type { Lang, Localized } from "@/lib/types";
 
 interface ContactDockProps {
@@ -20,6 +21,7 @@ const INQUIRY_LABEL: Localized = {
 export function ContactDock({ lang, dict }: ContactDockProps) {
   const pathname = usePathname();
   const onContactPage = pathname === `/${lang}/contact`;
+  const projectSlug = pathname.match(/^\/(?:ka|en|ru)\/projects\/([^/]+)\/?$/)?.[1];
 
   return (
     <aside
@@ -43,15 +45,15 @@ export function ContactDock({ lang, dict }: ContactDockProps) {
       </a>
       {onContactPage ? (
         <a
-          href={`mailto:${CONTACT.email}`}
-          data-contact-action="mobile-dock-email"
+          href="#inquiry"
+          data-contact-action="mobile-dock-inquiry"
           className="flex min-w-0 items-center justify-center bg-brass px-3 text-center text-sm font-semibold text-ink"
         >
           {dict.cta.write}
         </a>
       ) : (
         <Link
-          href={`/${lang}/contact?interest=apartments#inquiry`}
+          href={inquiryHref(lang, projectSlug)}
           data-contact-action="mobile-dock-inquiry"
           className="flex min-w-0 items-center justify-center bg-brass px-3 text-center text-sm font-semibold text-ink"
         >

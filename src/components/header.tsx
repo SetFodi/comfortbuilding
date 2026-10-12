@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Dict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
+import { INQUIRY_CONTEXT_EVENT, projectFromLocation } from "@/lib/inquiry-context";
 import { LANGS, type Lang } from "@/lib/types";
 
 interface HeaderProps {
   readonly lang: Lang;
   readonly dict: Dict;
+  readonly projectSlugs: readonly string[];
 }
 
 const SCROLL_SOLID_THRESHOLD = 24;
@@ -22,12 +24,37 @@ function pathInLang(pathname: string, target: Lang): string {
   return rest ? `/${target}/${rest}` : `/${target}`;
 }
 
-export function Header({ lang, dict }: HeaderProps) {
+export function Header({ lang, dict, projectSlugs }: HeaderProps) {
   const pathname = usePathname();
   const [isSolid, setIsSolid] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [inquiryQuery, setInquiryQuery] = useState("");
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstMobileLinkRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    const updateContext = () => {
+      if (pathname !== `/${lang}/contact`) {
+        setInquiryQuery("");
+        return;
+      }
+      const current = new URLSearchParams(window.location.search);
+      const query = new URLSearchParams();
+      const project = projectFromLocation(pathname, window.location.search, projectSlugs);
+      if (project !== "general") query.set("project", project);
+      const interest = current.get("interest");
+      if (interest && /^(?:general|apartments|apartment-\d+)$/.test(interest)) {
+        query.set("interest", interest);
+      }
+      setInquiryQuery(query.size ? `?${query}${window.location.hash === "#inquiry" ? "#inquiry" : ""}` : "");
+    };
+    const frame = requestAnimationFrame(updateContext);
+    window.addEventListener(INQUIRY_CONTEXT_EVENT, updateContext);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener(INQUIRY_CONTEXT_EVENT, updateContext);
+    };
+  }, [pathname, lang, projectSlugs]);
 
   useEffect(() => {
     const onScroll = () => setIsSolid(window.scrollY > SCROLL_SOLID_THRESHOLD);
@@ -41,7 +68,7 @@ export function Header({ lang, dict }: HeaderProps) {
 
     const previousOverflow = document.body.style.overflow;
     const inertTargets = Array.from(
-      document.querySelectorAll<HTMLElement>("main, footer, .skip-link"),
+      document.querySelectorAll<HTMLElement>("main, footer, .skip-link, [data-analytics-preferences]"),
     );
     const previousInert = inertTargets.map((element) => element.inert);
     const focusFrame = window.requestAnimationFrame(() => {
@@ -137,7 +164,7 @@ export function Header({ lang, dict }: HeaderProps) {
             {LANGS.map((code) => (
               <Link
                 key={code}
-                href={pathInLang(pathname, code)}
+                href={`${pathInLang(pathname, code)}${pathname === `/${lang}/contact` ? inquiryQuery : ""}`}
                 onClick={closeMobileMenu}
                 aria-current={code === lang ? "page" : undefined}
                 className={`inline-flex size-11 items-center justify-center transition-colors ${

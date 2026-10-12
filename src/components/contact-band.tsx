@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Dict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
+import { inquiryHref } from "@/lib/inquiry-context";
 import type { Lang, Localized } from "@/lib/types";
 import { Reveal } from "./reveal";
 
@@ -13,9 +14,10 @@ const PHONE_LABEL: Localized = {
 interface ContactBandProps {
   readonly lang: Lang;
   readonly dict: Dict;
+  readonly projectSlug?: string;
 }
 
-export function ContactBand({ lang, dict }: ContactBandProps) {
+export function ContactBand({ lang, dict, projectSlug }: ContactBandProps) {
   const rows = [
     {
       label: dict.titleBlock.location,
@@ -69,7 +71,7 @@ export function ContactBand({ lang, dict }: ContactBandProps) {
   ];
 
   return (
-    <section className="bg-ink py-24 md:py-32">
+    <section data-project-slug={projectSlug} className="bg-ink py-24 md:py-32">
       <div className="wrap grid gap-14 lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
           <p className="eyebrow">{dict.sections.contact}</p>
@@ -87,7 +89,7 @@ export function ContactBand({ lang, dict }: ContactBandProps) {
               {dict.cta.call}
             </a>
             <Link
-              href={`/${lang}/contact?interest=apartments#inquiry`}
+              href={inquiryHref(lang, projectSlug)}
               data-contact-action="contact-band-inquiry"
               className="inline-flex h-12 items-center gap-3 border border-cream/30 px-7 text-sm font-medium tracking-wide text-cream transition-colors hover:border-brass hover:text-brass"
             >

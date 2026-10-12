@@ -10,7 +10,6 @@ import { CONTACT } from "@/lib/site";
 import {
   breadcrumbJsonLd,
   jsonLdGraph,
-  organizationJsonLd,
   pageMetadata,
   pagePath,
   SITE_URL,
@@ -85,14 +84,13 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const dict = getDict(lang);
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT.mapQuery)}`;
   const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(CONTACT.mapQuery)}&output=embed`;
-  const apartmentNumbers = PROJECTS.flatMap(
-    (project) => project.inventory?.floors ?? [],
-  )
-    .flatMap((floor) => floor.units)
-    .filter(
-      (unit) => unit.kind === "apartment" && unit.status === "available",
-    )
-    .flatMap((unit) => (unit.number ? [unit.number] : []));
+  const inquiryProjects = PROJECTS.map((project) => ({
+    slug: project.slug,
+    name: project.name[lang],
+    apartments: (project.inventory?.floors ?? []).flatMap((floor) => floor.units)
+      .filter((unit) => unit.kind === "apartment" && unit.status === "available" && unit.number)
+      .map((unit) => ({ id: unit.id, number: unit.number! })),
+  }));
 
   const details = [
     {
@@ -116,7 +114,6 @@ export default async function ContactPage({ params }: ContactPageProps) {
     <>
       <JsonLd
         data={jsonLdGraph([
-          organizationJsonLd(lang),
           {
             ...webPageJsonLd(
               lang,
@@ -144,7 +141,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
 
       <LeadInquiryForm
         lang={lang}
-        apartmentNumbers={apartmentNumbers}
+        projects={inquiryProjects}
       />
 
       <section className="draft-grid-light bg-limestone py-24 text-ink md:py-32">

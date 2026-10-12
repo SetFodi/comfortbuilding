@@ -6,14 +6,16 @@ import { JsonLd } from "@/components/json-ld";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { getDict } from "@/lib/dictionary";
+import { inquiryHref } from "@/lib/inquiry-context";
 import { PROJECTS } from "@/lib/projects";
+import { COMPANY_NAME } from "@/lib/site";
 import {
   absoluteUrl,
   breadcrumbJsonLd,
+  BUYING_GUIDE_PUBLISHED_AT,
   jsonLdGraph,
   pageMetadata,
   pagePath,
-  SITE_UPDATED_AT,
   SITE_URL,
   webPageJsonLd,
 } from "@/lib/seo";
@@ -389,7 +391,7 @@ function actionHref(action: StepAction, lang: Lang) {
   if (action === "apartments") return `/${lang}/apartments`;
   if (action === "projects") return `/${lang}/projects`;
   if (action === "registry") return REGISTRY_URL[lang];
-  return `/${lang}/contact?interest=apartments`;
+  return inquiryHref(lang);
 }
 
 function guideJsonLd(lang: Lang) {
@@ -412,8 +414,8 @@ function guideJsonLd(lang: Lang) {
       headline: copy.title,
       description: META_DESCRIPTION[lang],
       image: absoluteUrl(HERO_IMAGE.src),
-      datePublished: SITE_UPDATED_AT.toISOString(),
-      dateModified: SITE_UPDATED_AT.toISOString(),
+      datePublished: BUYING_GUIDE_PUBLISHED_AT.toISOString(),
+      dateModified: BUYING_GUIDE_PUBLISHED_AT.toISOString(),
       inLanguage: lang,
       mainEntityOfPage: { "@id": `${url}#webpage` },
       author: { "@id": `${SITE_URL}/#organization` },
@@ -485,6 +487,18 @@ export default async function BuyingGuidePage({
 
       <article className="draft-grid-light bg-limestone py-24 text-ink md:py-32">
         <div className="wrap">
+          <div className="mb-12 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink/15 pb-5 text-sm text-ink/60">
+            <Link href={`/${lang}/about`} className="text-bronze hover:underline">
+              {COMPANY_NAME[lang]}
+            </Link>
+            <span aria-hidden>·</span>
+            <time dateTime={BUYING_GUIDE_PUBLISHED_AT.toISOString()}>
+              {new Intl.DateTimeFormat(lang === "ka" ? "ka-GE" : lang === "ru" ? "ru-RU" : "en-GB", {
+                dateStyle: "long",
+                timeZone: "Asia/Tbilisi",
+              }).format(BUYING_GUIDE_PUBLISHED_AT)}
+            </time>
+          </div>
           <div className="grid gap-14 lg:grid-cols-12 lg:gap-20">
             <Reveal className="lg:col-span-7">
               <p className="eyebrow eyebrow-on-light">{copy.eyebrow}</p>
@@ -574,7 +588,7 @@ export default async function BuyingGuidePage({
           </div>
           <div className="flex flex-wrap gap-4 lg:col-span-5 lg:justify-end">
             <Link
-              href={`/${lang}/contact?interest=apartments`}
+              href={inquiryHref(lang)}
               className="inline-flex min-h-12 items-center bg-brass px-6 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright"
             >
               {copy.ctaPrimary}

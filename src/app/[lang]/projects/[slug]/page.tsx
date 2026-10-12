@@ -14,6 +14,7 @@ import { UnitInventory } from "@/components/unit-inventory";
 import { getDict } from "@/lib/dictionary";
 import { getProject, PROJECTS } from "@/lib/projects";
 import {
+  absoluteUrl,
   breadcrumbJsonLd,
   jsonLdGraph,
   pageMetadata,
@@ -130,6 +131,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     alt: heroImage.alt[lang],
     sizes: "100vw",
     quality: 90,
+    loading: "eager" as const,
     fetchPriority: "high" as const,
   };
   const {
@@ -175,12 +177,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     <>
       <JsonLd
         data={jsonLdGraph([
-          webPageJsonLd(
-            lang,
-            `/projects/${project.slug}`,
-            projectMetaTitle(project, lang),
-            projectMetaDescription(project, lang),
-          ),
+          {
+            ...webPageJsonLd(
+              lang,
+              `/projects/${project.slug}`,
+              projectMetaTitle(project, lang),
+              projectMetaDescription(project, lang),
+            ),
+            mainEntity: {
+              "@id": `${absoluteUrl(pagePath(lang, `/projects/${project.slug}`))}#project`,
+            },
+          },
           projectJsonLd(project, lang),
           breadcrumbJsonLd([
             { name: dict.nav.home, path: pagePath(lang) },
@@ -500,7 +507,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </section>
       </article>
 
-      <ContactBand lang={lang} dict={dict} />
+      <ContactBand lang={lang} dict={dict} projectSlug={project.slug} />
     </>
   );
 }

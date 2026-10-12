@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   useEffect,
+  useReducer,
   useRef,
   useState,
   type CSSProperties,
@@ -40,18 +41,102 @@ function wrapIndex(index: number, length: number) {
   return (index + length) % length;
 }
 
+interface CarouselLoadingState {
+  readonly activeIndex: number;
+  readonly requestedIndex: number;
+  readonly mountedIndices: readonly number[];
+  readonly readyIndices: readonly number[];
+}
+
+type CarouselLoadingAction =
+  | { readonly type: "move"; readonly step: number; readonly length: number }
+  | { readonly type: "stage"; readonly index: number }
+  | { readonly type: "ready"; readonly index: number }
+  | { readonly type: "failed"; readonly index: number };
+
+function carouselLoadingReducer(
+  state: CarouselLoadingState,
+  action: CarouselLoadingAction,
+): CarouselLoadingState {
+  if (action.type === "move") {
+    if (action.length < 2) return state;
+    const requestedIndex = wrapIndex(
+      state.requestedIndex + action.step,
+      action.length,
+    );
+
+    return {
+      ...state,
+      requestedIndex,
+      activeIndex: state.readyIndices.includes(requestedIndex)
+        ? requestedIndex
+        : state.activeIndex,
+      mountedIndices: state.mountedIndices.includes(requestedIndex)
+        ? state.mountedIndices
+        : [...state.mountedIndices, requestedIndex],
+    };
+  }
+
+  if (action.type === "stage") {
+    return state.mountedIndices.includes(action.index)
+      ? state
+      : { ...state, mountedIndices: [...state.mountedIndices, action.index] };
+  }
+
+  if (action.type === "ready") {
+    return {
+      ...state,
+      activeIndex:
+        action.index === state.requestedIndex ? action.index : state.activeIndex,
+      readyIndices: state.readyIndices.includes(action.index)
+        ? state.readyIndices
+        : [...state.readyIndices, action.index],
+    };
+  }
+
+  // Keep the last good photograph visible. A later navigation can retry the
+  // failed image rather than switching to a blank slide.
+  return {
+    ...state,
+    requestedIndex:
+      action.index === state.requestedIndex
+        ? state.activeIndex
+        : state.requestedIndex,
+    mountedIndices:
+      action.index === state.activeIndex
+        ? state.mountedIndices
+        : state.mountedIndices.filter((index) => index !== action.index),
+  };
+}
+
 /** A looping, swipeable project stage with a quiet architectural crossfade. */
 export function HeroProjectCarousel({
   projects,
   labels,
 }: HeroProjectCarouselProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [loading, dispatchLoading] = useReducer(carouselLoadingReducer, {
+    activeIndex: 0,
+    requestedIndex: 0,
+    mountedIndices: [0],
+    readyIndices: [],
+  });
   const [isPaused, setIsPaused] = useState(false);
   const pointerStartX = useRef<number | null>(null);
   const didSwipe = useRef(false);
+  const activeIndex = loading.activeIndex;
+  const activeReady = loading.readyIndices.includes(activeIndex);
+  const isPending = loading.requestedIndex !== activeIndex;
 
   useEffect(() => {
-    if (isPaused || projects.length < 2) return;
+    if (!activeReady || projects.length < 2) return;
+    dispatchLoading({
+      type: "stage",
+      index: wrapIndex(activeIndex + 1, projects.length),
+    });
+  }, [activeIndex, activeReady, projects.length]);
+
+  useEffect(() => {
+    if (isPaused || isPending || !activeReady || projects.length < 2) return;
 
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let timer = 0;
@@ -60,7 +145,7 @@ export function HeroProjectCarousel({
       window.clearTimeout(timer);
       if (motionQuery.matches || document.hidden) return;
       timer = window.setTimeout(() => {
-        setActiveIndex((current) => wrapIndex(current + 1, projects.length));
+        dispatchLoading({ type: "move", step: 1, length: projects.length });
       }, AUTOPLAY_MS);
     };
 
@@ -73,12 +158,12 @@ export function HeroProjectCarousel({
       motionQuery.removeEventListener("change", schedule);
       document.removeEventListener("visibilitychange", schedule);
     };
-  }, [activeIndex, isPaused, projects.length]);
+  }, [activeIndex, activeReady, isPaused, isPending, projects.length]);
 
   if (projects.length === 0) return null;
 
   const move = (step: number) => {
-    setActiveIndex((current) => wrapIndex(current + step, projects.length));
+    dispatchLoading({ type: "move", step, length: projects.length });
   };
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -105,7 +190,8 @@ export function HeroProjectCarousel({
       role="region"
       aria-label={labels.projects}
       aria-roledescription="carousel"
-      data-paused={isPaused}
+      aria-busy={isPending}
+      data-paused={isPaused || isPending || !activeReady}
       className="group hero-aperture relative h-[52svh] min-h-[30rem] touch-pan-y overflow-hidden rounded-[2rem] bg-basalt lg:h-[72svh] lg:min-h-[36rem]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -149,16 +235,23 @@ export function HeroProjectCarousel({
               }}
               className="absolute inset-0 block"
             >
-              <Image
-                src={project.image.src}
-                alt={project.image.alt}
-                fill
-                sizes="(min-width: 1440px) 520px, (min-width: 1024px) 42vw, 100vw"
-                quality={90}
-                preload={index === 0}
-                loading={index === 0 ? undefined : "eager"}
-                className="hero-carousel-image object-cover transition-transform duration-[5600ms] ease-out group-hover:scale-[1.035] motion-reduce:transition-none"
-              />
+              {loading.mountedIndices.includes(index) && (
+                <Image
+                  src={project.image.src}
+                  alt={project.image.alt}
+                  fill
+                  sizes="(min-width: 1440px) 520px, (min-width: 1024px) 42vw, 100vw"
+                  quality={90}
+                  preload={index === 0}
+                  loading={index === 0 ? undefined : "eager"}
+                  onLoad={() => {
+                    // Next Image calls onLoad after its decode promise settles.
+                    dispatchLoading({ type: "ready", index });
+                  }}
+                  onError={() => dispatchLoading({ type: "failed", index })}
+                  className="hero-carousel-image object-cover transition-transform duration-[5600ms] ease-out group-hover:scale-[1.035] motion-reduce:transition-none"
+                />
+              )}
               <span
                 aria-hidden
                 className="absolute inset-0 bg-[linear-gradient(to_top,rgba(11,13,15,.9)_0%,rgba(11,13,15,.2)_44%,rgba(11,13,15,.12)_100%)]"

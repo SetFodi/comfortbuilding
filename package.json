@@ -7,12 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:seo": "node scripts/verify-seo.mjs"
+    "check:seo": "node scripts/verify-seo.mjs",
+    "check:search-content": "node scripts/verify-search-content.mjs",
+    "check:carousel": "node --test tests/carousel-loading.test.mjs",
+    "check:analytics": "node --experimental-strip-types --test tests/analytics.test.mjs",
+    "check:inquiries": "node --experimental-strip-types --test tests/inquiries.test.mjs",
+    "check:inquiry-endpoint": "node scripts/verify-inquiry-endpoint.mjs"
   },
   "dependencies": {
-    "next": "16.2.10",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "resend": "^6.32.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -20,7 +26,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
