@@ -39,12 +39,10 @@ export interface ProjectInventoryUnit {
 export interface ProjectInventoryFloor {
   readonly id: string;
   readonly label: Localized;
-  readonly image: SiteImage;
   readonly units: readonly ProjectInventoryUnit[];
 }
 
 export interface ProjectInventory {
-  readonly planRevision: string;
   readonly floors: readonly ProjectInventoryFloor[];
 }
 

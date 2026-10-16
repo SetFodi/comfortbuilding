@@ -42,9 +42,9 @@ const AVAILABLE_APARTMENTS = INVENTORY.floors.flatMap((floor) =>
 );
 
 const META_TITLE: Localized = {
-  ka: "ბინები ბათუმში დეველოპერისგან | გეგმები და ხელმისაწვდომობა",
-  en: "Apartments for sale in Batumi | Floor plans and availability",
-  ru: "Квартиры в Батуми от застройщика | Планы и наличие",
+  ka: "ბინები ბათუმში დეველოპერისგან | ხელმისაწვდომობა",
+  en: "Apartments for sale in Batumi | Direct from the developer",
+  ru: "Квартиры в Батуми от застройщика | Наличие",
 };
 
 const TITLE: Localized = {
@@ -54,9 +54,9 @@ const TITLE: Localized = {
 };
 
 const DESCRIPTION: Localized = {
-  ka: "Comfort House-ში გასაყიდად გამოქვეყნებული ბინები ბათუმში. შეადარეთ ფართობები, სართულები და გეგმები, ფასისთვის კი დაუკავშირდით გაყიდვების გუნდს.",
-  en: "Published apartments for sale in Comfort House, Batumi. Compare areas, floors, and plans, then call or email the sales team for prices.",
-  ru: "Опубликованные квартиры в продаже в Comfort House, Батуми. Сравните площадь, этаж и планировку, а цену уточните в отделе продаж.",
+  ka: "Comfort House-ში გასაყიდად გამოქვეყნებული ბინები ბათუმში. შეადარეთ ფართობები და სართულები, ფასისთვის კი დაუკავშირდით გაყიდვების გუნდს.",
+  en: "Published apartments for sale in Comfort House, Batumi. Compare areas and floors, then call or email the sales team for prices.",
+  ru: "Опубликованные квартиры в продаже в Comfort House, Батуми. Сравните площадь и этаж, а цену уточните в отделе продаж.",
 };
 
 const COPY = {
@@ -73,7 +73,7 @@ const COPY = {
     introTitle: "ბინის ყიდვა ბათუმში, კონკრეტული მონაცემებით",
     intro: [
       "ეს გვერდი აერთიანებს Comfort House-ში გასაყიდად გამოქვეყნებულ ბინებს. კომპლექსი მდებარეობს ბათუმში, ვ. გორგასლის ქუჩის №104 და №106 მისამართებზე, 6 მაისის პარკთან ახლოს.",
-      "თითოეულ ვარიანტზე ნაჩვენებია შიდა ფართობი, აივანი, სრული ფართობი და სართულის გეგმა. ფასისა და დეტალებისთვის დაგვირეკეთ ან მოგვწერეთ ელფოსტაზე.",
+      "თითოეულ ვარიანტზე ნაჩვენებია შიდა ფართობი, აივანი და სრული ფართობი. ფასისა და დეტალებისთვის დაგვირეკეთ ან მოგვწერეთ ელფოსტაზე.",
     ],
     projectLink: "Comfort House-ის სრული გვერდი",
     guideLink: "ბინის ყიდვის გზამკვლევი",
@@ -87,10 +87,10 @@ const COPY = {
     balcony: "აივანი",
     total: "სრული ფართობი",
     available: "თავისუფალია",
-    plan: "გეგმის ნახვა",
+    plan: "ფასადზე ნახვა",
     inquire: "იკითხეთ ამ ბინაზე",
     sourceNote:
-      "გეგმის თარიღი: 15.01.2024. ხელმისაწვდომობა შეიძლება შეიცვალოს.",
+      "ხელმისაწვდომობა შეიძლება შეიცვალოს.",
     faqEyebrow: "ხშირი კითხვები",
     faqTitle: "რას ამოწმებს მყიდველი ბინის არჩევამდე",
     faqs: [
@@ -127,7 +127,7 @@ const COPY = {
     introTitle: "Choose a Batumi apartment using concrete figures",
     intro: [
       "This page collects the apartments published for sale in Comfort House. The building is at 104 and 106 V. Gorgasali Street in Batumi, close to May 6 Park.",
-      "Each option shows its interior area, balcony, total area, and floor plan. For prices and more details, call or email the sales team.",
+      "Each option shows its interior area, balcony, and total area. For prices and more details, call or email the sales team.",
     ],
     projectLink: "Full Comfort House project page",
     guideLink: "Apartment buyer guide",
@@ -141,10 +141,10 @@ const COPY = {
     balcony: "Balcony",
     total: "Total area",
     available: "Available",
-    plan: "View floor plan",
+    plan: "View on the facade",
     inquire: "Ask about this apartment",
     sourceNote:
-      "Plan revision: 15.01.2024. Availability may change.",
+      "Availability may change.",
     faqEyebrow: "Buyer questions",
     faqTitle: "What to check before choosing an apartment",
     faqs: [
@@ -181,7 +181,7 @@ const COPY = {
     introTitle: "Покупка квартиры в Батуми с конкретными цифрами",
     intro: [
       "На этой странице собраны квартиры, опубликованные для продажи в Comfort House. Дом находится в Батуми по адресам ул. В. Горгасали №104 и №106, рядом с парком 6 Мая.",
-      "Для каждого варианта указаны внутренняя площадь, балкон, общая площадь и план этажа. Цену и подробности уточняйте по телефону или электронной почте.",
+      "Для каждого варианта указаны внутренняя площадь, балкон и общая площадь. Цену и подробности уточняйте по телефону или электронной почте.",
     ],
     projectLink: "Полная страница Comfort House",
     guideLink: "Как купить квартиру",
@@ -195,10 +195,10 @@ const COPY = {
     balcony: "Балкон",
     total: "Общая площадь",
     available: "Свободно",
-    plan: "Смотреть план этажа",
+    plan: "Смотреть на фасаде",
     inquire: "Спросить об этой квартире",
     sourceNote:
-      "Дата плана: 15.01.2024. Наличие может измениться.",
+      "Наличие может измениться.",
     faqEyebrow: "Вопросы покупателей",
     faqTitle: "Что проверить перед выбором квартиры",
     faqs: [

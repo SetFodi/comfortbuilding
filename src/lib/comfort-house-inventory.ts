@@ -1,13 +1,10 @@
 import type { ProjectInventory } from "./types";
 
-const PLAN_SIZE = { width: 1684, height: 1191 } as const;
-
 /**
  * Statuses and areas are transcribed from Comfort house-2026.pdf.
  * Prices are intentionally not published; buyers contact the sales team.
  */
 export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
-  planRevision: "15.01.2024",
   floors: [
     {
       id: "level-01",
@@ -15,15 +12,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ka: "I სართული · კომერციული ფართები",
         en: "Level I · commercial spaces",
         ru: "I этаж · коммерческие площади",
-      },
-      image: {
-        src: "/images/projects/comfort-house/floor-plans/level-01.png",
-        ...PLAN_SIZE,
-        alt: {
-          ka: "კომფორტ ჰაუსის პირველი სართულის გეგმა — კომერციული ფართები და ავტოსადგომი",
-          en: "Comfort House level I plan — commercial spaces and parking",
-          ru: "План I этажа Comfort House — коммерческие площади и парковка",
-        },
       },
       units: [
         {
@@ -67,15 +55,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ka: "VIII სართული · 701–706",
         en: "Level VIII · 701–706",
         ru: "VIII этаж · 701–706",
-      },
-      image: {
-        src: "/images/projects/comfort-house/floor-plans/level-08.png",
-        ...PLAN_SIZE,
-        alt: {
-          ka: "კომფორტ ჰაუსის VIII სართულის გეგმა — ბინები 701–706",
-          en: "Comfort House level VIII plan — apartments 701–706",
-          ru: "План VIII этажа Comfort House — квартиры 701–706",
-        },
       },
       units: [
         {
@@ -132,15 +111,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         en: "Level IX · 801–806",
         ru: "IX этаж · 801–806",
       },
-      image: {
-        src: "/images/projects/comfort-house/floor-plans/level-09.png",
-        ...PLAN_SIZE,
-        alt: {
-          ka: "კომფორტ ჰაუსის IX სართულის გეგმა — ბინები 801–806",
-          en: "Comfort House level IX plan — apartments 801–806",
-          ru: "План IX этажа Comfort House — квартиры 801–806",
-        },
-      },
       units: [
         {
           id: "801",
@@ -195,15 +165,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ka: "X სართული · 901–906",
         en: "Level X · 901–906",
         ru: "X этаж · 901–906",
-      },
-      image: {
-        src: "/images/projects/comfort-house/floor-plans/level-10.png",
-        ...PLAN_SIZE,
-        alt: {
-          ka: "კომფორტ ჰაუსის X სართულის გეგმა — ბინები 901–906",
-          en: "Comfort House level X plan — apartments 901–906",
-          ru: "План X этажа Comfort House — квартиры 901–906",
-        },
       },
       units: [
         {
@@ -269,15 +230,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         en: "Level XI · 1001–1006",
         ru: "XI этаж · 1001–1006",
       },
-      image: {
-        src: "/images/projects/comfort-house/floor-plans/level-11.png",
-        ...PLAN_SIZE,
-        alt: {
-          ka: "კომფორტ ჰაუსის XI სართულის გეგმა — ბინები 1001–1006",
-          en: "Comfort House level XI plan — apartments 1001–1006",
-          ru: "План XI этажа Comfort House — квартиры 1001–1006",
-        },
-      },
       units: [
         {
           id: "1001",
@@ -341,15 +293,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ka: "ტერასა",
         en: "Terrace",
         ru: "Терраса",
-      },
-      image: {
-        src: "/images/projects/comfort-house/floor-plans/terrace.png",
-        ...PLAN_SIZE,
-        alt: {
-          ka: "კომფორტ ჰაუსის ტერასის გეგმა — 382.1 მ²",
-          en: "Comfort House terrace plan — 382.1 m²",
-          ru: "План террасы Comfort House — 382,1 м²",
-        },
       },
       units: [
         {

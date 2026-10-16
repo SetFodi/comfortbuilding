@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { BuildingFloorSelector } from "@/components/building-floor-selector";
 import { PriceContact } from "@/components/price-contact";
@@ -15,7 +14,7 @@ interface UnitInventoryProps {
 const COPY = {
   ka: {
     availableApartments: "თავისუფალი ბინა",
-    apartmentsShown: "ბინა გეგმებზე",
+    apartmentsShown: "გამოქვეყნებული ბინა",
     price: "ფასი",
     terrace: "თავისუფალი ტერასა",
     available: "თავისუფალია",
@@ -24,12 +23,11 @@ const COPY = {
     interior: "ბინის ფართობი",
     balcony: "აივანი",
     totalArea: "სრული ფართობი",
-    revision: "გეგმის თარიღი",
     note: "ხელმისაწვდომობა შეიძლება შეიცვალოს. ფასისა და მიმდინარე მონაცემებისთვის დაუკავშირდით გაყიდვების გუნდს.",
   },
   en: {
     availableApartments: "Available apartments",
-    apartmentsShown: "Apartments in plans",
+    apartmentsShown: "Published apartments",
     price: "Price",
     terrace: "Available terrace",
     available: "Available",
@@ -38,12 +36,11 @@ const COPY = {
     interior: "Interior area",
     balcony: "Balcony",
     totalArea: "Total area",
-    revision: "Plan revision",
     note: "Availability may change. Contact the sales team for prices and current details.",
   },
   ru: {
     availableApartments: "Свободные квартиры",
-    apartmentsShown: "Квартиры на планах",
+    apartmentsShown: "Опубликованные квартиры",
     price: "Цена",
     terrace: "Свободная терраса",
     available: "Свободно",
@@ -52,7 +49,6 @@ const COPY = {
     interior: "Площадь квартиры",
     balcony: "Балкон",
     totalArea: "Общая площадь",
-    revision: "Дата плана",
     note: "Наличие может измениться. Цены и актуальные данные уточняйте в отделе продаж.",
   },
 } as const;
@@ -101,6 +97,9 @@ export function UnitInventory({
   const availableApartments = apartments.filter(
     (unit) => unit.status === "available",
   );
+  const activeAvailable = activeFloor.units.filter(
+    (unit) => unit.status === "available",
+  ).length;
   const availableTerrace = units.find(
     (unit) => unit.kind === "terrace" && unit.status === "available",
   );
@@ -205,111 +204,95 @@ export function UnitInventory({
         })}
       </div>
 
-      <div className="grid xl:grid-cols-[minmax(0,1.65fr)_minmax(22rem,.75fr)]">
-        <div className="draft-grid-light flex min-h-80 items-center overflow-hidden bg-paper p-2 sm:p-5 xl:min-h-[46rem] xl:border-r xl:border-cream/15">
-          <Image
-            key={activeFloor.image.src}
-            src={activeFloor.image.src}
-            alt={activeFloor.image.alt[lang]}
-            width={activeFloor.image.width}
-            height={activeFloor.image.height}
-            sizes="(min-width: 1280px) 66vw, 100vw"
-            quality={90}
-            className="h-auto w-full bg-white object-contain"
-          />
+      <div className="bg-ink p-5 md:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <p className="eyebrow">{activeFloor.label[lang]}</p>
+          <p className="font-mono text-[10px] tracking-[0.14em] text-cream/50 uppercase">
+            {String(activeAvailable).padStart(2, "0")} {copy.available} /{" "}
+            {String(activeFloor.units.length).padStart(2, "0")}
+          </p>
         </div>
 
-        <div className="bg-ink">
-          <div className="border-b border-cream/15 p-5 md:p-6">
-            <p className="eyebrow">{activeFloor.label[lang]}</p>
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-cream/55">
-              {activeFloor.image.alt[lang]}
-            </p>
-          </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {activeFloor.units.map((unit) => {
+            const isAvailable = unit.status === "available";
 
-          <div className="divide-y divide-cream/12">
-            {activeFloor.units.map((unit) => {
-              const isAvailable = unit.status === "available";
-
-              return (
-                <article
-                  key={unit.id}
-                  className={`relative p-5 transition-colors md:p-6 ${
-                    isAvailable
-                      ? "hover:bg-cream/[0.045]"
-                      : "bg-cream/[0.018] text-cream/45"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-display text-2xl text-cream">
-                      {unitName(unit, lang)}
-                    </h3>
+            return (
+              <article
+                key={unit.id}
+                className={`flex flex-col border p-5 transition-colors md:p-6 ${
+                  isAvailable
+                    ? "border-cream/15 bg-basalt hover:border-brass/40"
+                    : "border-cream/10 bg-cream/[0.018] text-cream/45"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="font-display text-2xl text-cream">
+                    {unitName(unit, lang)}
+                  </h3>
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-2 border px-2.5 py-1 font-mono text-[9px] tracking-[0.13em] uppercase ${
+                      isAvailable
+                        ? "border-brass/50 bg-brass/10 text-brass-bright"
+                        : "border-cream/15 text-cream/40"
+                    }`}
+                  >
                     <span
-                      className={`inline-flex shrink-0 items-center gap-2 border px-2.5 py-1 font-mono text-[9px] tracking-[0.13em] uppercase ${
-                        isAvailable
-                          ? "border-brass/50 bg-brass/10 text-brass-bright"
-                          : "border-cream/15 text-cream/40"
-                      }`}
-                    >
-                      <span
-                        className={`size-1.5 ${isAvailable ? "bg-brass" : "bg-cream/25"}`}
-                        aria-hidden
-                      />
-                      {isAvailable ? copy.available : copy.sold}
-                    </span>
-                  </div>
+                      className={`size-1.5 ${isAvailable ? "bg-brass" : "bg-cream/25"}`}
+                      aria-hidden
+                    />
+                    {isAvailable ? copy.available : copy.sold}
+                  </span>
+                </div>
 
-                  <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-cream/10 pt-4 text-sm">
-                    {unit.interiorArea !== undefined && (
-                      <div>
-                        <dt className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
-                          {copy.interior}
-                        </dt>
-                        <dd className="mt-1 text-cream/75">
-                          {formatArea(unit.interiorArea, lang)} m²
-                        </dd>
-                      </div>
-                    )}
-                    {unit.balconyArea !== undefined && (
-                      <div>
-                        <dt className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
-                          {copy.balcony}
-                        </dt>
-                        <dd className="mt-1 text-cream/75">
-                          {formatArea(unit.balconyArea, lang)} m²
-                        </dd>
-                      </div>
-                    )}
+                <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-cream/10 pt-4 text-sm">
+                  {unit.interiorArea !== undefined && (
                     <div>
                       <dt className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
-                        {copy.totalArea}
+                        {copy.interior}
                       </dt>
                       <dd className="mt-1 text-cream/75">
-                        {formatArea(unit.totalArea, lang)} m²
+                        {formatArea(unit.interiorArea, lang)} m²
                       </dd>
                     </div>
-                  </dl>
-
-                  {isAvailable && (
-                    <PriceContact
-                      lang={lang}
-                      projectSlug={projectSlug}
-                      placement="inventory-unit"
-                      topic={unitName(unit, lang)}
-                      className="mt-4 border-t border-cream/10 pt-4"
-                    />
                   )}
-                </article>
-              );
-            })}
-          </div>
+                  {unit.balconyArea !== undefined && (
+                    <div>
+                      <dt className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
+                        {copy.balcony}
+                      </dt>
+                      <dd className="mt-1 text-cream/75">
+                        {formatArea(unit.balconyArea, lang)} m²
+                      </dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
+                      {copy.totalArea}
+                    </dt>
+                    <dd className="mt-1 text-cream/75">
+                      {formatArea(unit.totalArea, lang)} m²
+                    </dd>
+                  </div>
+                </dl>
+
+                {isAvailable && (
+                  <PriceContact
+                    lang={lang}
+                    projectSlug={projectSlug}
+                    placement="inventory-unit"
+                    topic={unitName(unit, lang)}
+                    className="mt-4 border-t border-cream/10 pt-4"
+                  />
+                )}
+              </article>
+            );
+          })}
         </div>
       </div>
 
       <div className="border-t border-cream/15 px-5 py-5 text-xs text-cream/50 md:px-6">
-        <p className="leading-relaxed">
-          {copy.revision}: {inventory.planRevision}. {copy.note}
-        </p>
+        <p className="leading-relaxed">{copy.note}</p>
       </div>
     </div>
   );

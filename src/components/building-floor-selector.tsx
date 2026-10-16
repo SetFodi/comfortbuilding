@@ -29,7 +29,7 @@ const COPY = {
     soldNote: "ამ სართულზე თავისუფალი ბინა აღარ არის.",
     publishedUnits: "გამოქვეყნებული ობიექტი",
     price: "ფასი",
-    viewPlan: "სართულის გეგმის ნახვა",
+    viewUnits: "ამ სართულის ბინების ნახვა",
     terrace: "ტერასა",
     terraceAvailable: "თავისუფალი ტერასა · 382.1 მ²",
     legendAvailable: "თავისუფალი ფართებია",
@@ -47,7 +47,7 @@ const COPY = {
     soldNote: "No apartments are available on this floor.",
     publishedUnits: "published unit",
     price: "Price",
-    viewPlan: "View floor plan",
+    viewUnits: "View apartments on this floor",
     terrace: "Terrace",
     terraceAvailable: "Available terrace · 382.1 m²",
     legendAvailable: "Availability published",
@@ -65,7 +65,7 @@ const COPY = {
     soldNote: "На этом этаже нет свободных квартир.",
     publishedUnits: "опубликованный объект",
     price: "Цена",
-    viewPlan: "Посмотреть план этажа",
+    viewUnits: "Квартиры на этом этаже",
     terrace: "Терраса",
     terraceAvailable: "Свободная терраса · 382,1 м²",
     legendAvailable: "Есть свободные объекты",
@@ -75,26 +75,35 @@ const COPY = {
 } as const;
 
 type FloorState = "available" | "sold";
+type Point = readonly [number, number];
 
-interface FloorBand {
+const FACADE = { width: 1920, height: 1824 } as const;
+
+/**
+ * Floor outlines in facade.jpg pixels, top-left, top-right, bottom-right,
+ * bottom-left. Upper floors follow the render's balcony slab lines, which
+ * converge on a vanishing point to the right; the ground floor runs from the
+ * canopy to the pavement.
+ */
+const FACADE_FLOORS: readonly {
   readonly number: number;
-  readonly top: number;
-  readonly bottom: number;
-}
+  readonly points: readonly [Point, Point, Point, Point];
+}[] = [
+  { number: 11, points: [[520, 40], [1209, 319], [1231, 380], [507, 98]] },
+  { number: 10, points: [[507, 98], [1231, 380], [1256, 447], [493, 163]] },
+  { number: 9, points: [[493, 163], [1256, 447], [1282, 521], [477, 237]] },
+  { number: 8, points: [[477, 237], [1282, 521], [1312, 603], [459, 320]] },
+  { number: 7, points: [[459, 320], [1312, 603], [1345, 695], [438, 416]] },
+  { number: 6, points: [[438, 416], [1345, 695], [1383, 797], [414, 527]] },
+  { number: 5, points: [[414, 527], [1383, 797], [1425, 913], [386, 658]] },
+  { number: 4, points: [[386, 658], [1425, 913], [1473, 1045], [352, 813]] },
+  { number: 3, points: [[352, 813], [1473, 1045], [1528, 1197], [311, 1001]] },
+  { number: 2, points: [[311, 1001], [1528, 1197], [1592, 1374], [261, 1233]] },
+  { number: 1, points: [[261, 1233], [1660, 1381], [1690, 1718], [152, 1734]] },
+];
 
-const FLOOR_BANDS: readonly FloorBand[] = [
-  { number: 11, top: 4, bottom: 12 },
-  { number: 10, top: 12, bottom: 20 },
-  { number: 9, top: 20, bottom: 28 },
-  { number: 8, top: 28, bottom: 36 },
-  { number: 7, top: 36, bottom: 44 },
-  { number: 6, top: 44, bottom: 52 },
-  { number: 5, top: 52, bottom: 60 },
-  { number: 4, top: 60, bottom: 68 },
-  { number: 3, top: 68, bottom: 76 },
-  { number: 2, top: 76, bottom: 84 },
-  { number: 1, top: 84, bottom: 96 },
-] as const;
+/** Past this share of the width the marker points left so it stays visible. */
+const MARKER_FLIP_AT = 0.84;
 
 function floorId(number: number) {
   return `level-${String(number).padStart(2, "0")}`;
@@ -105,23 +114,20 @@ function floorNumber(id: string) {
   return match ? Number(match[1]) : undefined;
 }
 
-function leftEdge(y: number) {
-  return 24.6 - y * 0.108;
-}
-
-function rightEdge(y: number) {
-  return 70 + y * 0.146;
-}
-
-function bandPolygon({ top, bottom }: FloorBand) {
-  return `polygon(${leftEdge(top)}% ${top}%, ${rightEdge(top)}% ${top}%, ${rightEdge(bottom)}% ${bottom}%, ${leftEdge(bottom)}% ${bottom}%)`;
-}
-
 function floorState(floor: ProjectInventoryFloor | undefined): FloorState {
   if (!floor) return "sold";
   return floor.units.some((unit) => unit.status === "available")
     ? "available"
     : "sold";
+}
+
+/** Midpoint of a floor's right-hand edge, as a share of the facade. */
+function markerAnchor(points: readonly Point[]) {
+  const [, topRight, bottomRight] = points;
+  return {
+    x: (topRight[0] + bottomRight[0]) / 2 / FACADE.width,
+    y: (topRight[1] + bottomRight[1]) / 2 / FACADE.height,
+  };
 }
 
 export function BuildingFloorSelector({
@@ -142,21 +148,26 @@ export function BuildingFloorSelector({
   );
   const previewFloor = floorById.get(floorId(previewNumber));
   const previewState = floorState(previewFloor);
-  const previewBand = FLOOR_BANDS.find(
-    (band) => band.number === previewNumber,
+  const previewShape = FACADE_FLOORS.find(
+    (shape) => shape.number === previewNumber,
   );
   const previewUnits = previewFloor?.units ?? [];
   const availableUnits = previewUnits.filter(
     (unit) => unit.status === "available",
   );
   const terrace = inventory.floors.find((floor) => floor.id === "terrace");
+  const anchor = previewShape ? markerAnchor(previewShape.points) : null;
+  const markerFlipped = anchor ? anchor.x > MARKER_FLIP_AT : false;
 
   const stateLabel =
     previewState === "available" ? copy.available : copy.sold;
 
   return (
     <div className="grid overflow-hidden border-b border-cream/15 bg-ink lg:grid-cols-[minmax(0,1.55fr)_minmax(22rem,.75fr)]">
-      <div className="relative aspect-[1920/1824] overflow-hidden bg-basalt">
+      <div
+        className="relative aspect-[1920/1824] overflow-hidden bg-basalt"
+        onPointerLeave={() => setHoveredFloor(null)}
+      >
         <Image
           src="/images/projects/comfort-house/facade.jpg"
           alt={copy.imageAlt}
@@ -170,51 +181,71 @@ export function BuildingFloorSelector({
           aria-hidden
         />
 
-        {FLOOR_BANDS.map((band) => {
-          const floor = floorById.get(floorId(band.number));
-          const state = floorState(floor);
-          const status = state === "available" ? copy.available : copy.sold;
+        {/* Keyboard and screen-reader users pick floors from the panel grid. */}
+        <svg
+          viewBox={`0 0 ${FACADE.width} ${FACADE.height}`}
+          className="absolute inset-0 z-10 h-full w-full"
+          aria-hidden
+        >
+          {FACADE_FLOORS.map((shape) => {
+            const state = floorState(floorById.get(floorId(shape.number)));
+            const isSelected = selectedFloor === shape.number;
+            const isHovered = hoveredFloor === shape.number && !isSelected;
+            const tone =
+              state === "available"
+                ? isSelected
+                  ? "fill-brass/25 stroke-brass-bright"
+                  : isHovered
+                    ? "fill-brass/12 stroke-brass/70"
+                    : "fill-transparent stroke-transparent"
+                : isSelected
+                  ? "fill-cream/15 stroke-cream/85"
+                  : isHovered
+                    ? "fill-cream/8 stroke-cream/50"
+                    : "fill-transparent stroke-transparent";
 
-          return (
-            <button
-              key={band.number}
-              type="button"
-              aria-label={`${copy.floor} ${band.number} — ${status}`}
-              aria-pressed={selectedFloor === band.number}
-              onPointerEnter={() => setHoveredFloor(band.number)}
-              onPointerLeave={() => setHoveredFloor(null)}
-              onFocus={() => setHoveredFloor(band.number)}
-              onBlur={() => setHoveredFloor(null)}
-              onClick={() => setSelectedFloor(band.number)}
-              className="absolute inset-0 z-10 cursor-pointer bg-transparent focus-visible:outline-none"
-              style={{ clipPath: bandPolygon(band) }}
-            />
-          );
-        })}
+            return (
+              <polygon
+                key={shape.number}
+                points={shape.points.map((point) => point.join(",")).join(" ")}
+                vectorEffect="non-scaling-stroke"
+                strokeWidth={isSelected ? 2.5 : 1.5}
+                strokeLinejoin="round"
+                pointerEvents="all"
+                onPointerEnter={() => setHoveredFloor(shape.number)}
+                onClick={() => setSelectedFloor(shape.number)}
+                className={`cursor-pointer transition-[fill,stroke] duration-300 ease-out motion-reduce:transition-none ${tone}`}
+              />
+            );
+          })}
+        </svg>
 
-        {previewBand && (
+        {anchor && (
           <div
-            className="pointer-events-none absolute z-20 flex -translate-y-1/2 items-center"
-            style={{
-              top: `${(previewBand.top + previewBand.bottom) / 2}%`,
-              left: `${rightEdge((previewBand.top + previewBand.bottom) / 2)}%`,
-            }}
+            className="pointer-events-none absolute z-20 transition-[left,top] duration-300 ease-out motion-reduce:transition-none"
+            style={{ left: `${anchor.x * 100}%`, top: `${anchor.y * 100}%` }}
             aria-hidden
           >
-            <span
-              className={`h-px w-8 sm:w-12 ${
-                previewState === "available" ? "bg-brass" : "bg-cream/55"
-              }`}
-            />
-            <span
-              className={`flex size-7 items-center justify-center rounded-full font-mono text-[9px] shadow-xl backdrop-blur-md sm:size-8 ${
-                previewState === "available"
-                  ? "bg-brass text-ink"
-                  : "bg-ink/90 text-cream/75"
+            <div
+              className={`flex -translate-y-1/2 items-center ${
+                markerFlipped ? "-translate-x-full flex-row-reverse" : ""
               }`}
             >
-              {String(previewNumber).padStart(2, "0")}
-            </span>
+              <span
+                className={`h-px w-6 transition-colors duration-300 sm:w-10 ${
+                  previewState === "available" ? "bg-brass" : "bg-cream/60"
+                }`}
+              />
+              <span
+                className={`flex size-7 items-center justify-center rounded-full font-mono text-[10px] shadow-xl backdrop-blur-md transition-colors duration-300 sm:size-9 sm:text-xs ${
+                  previewState === "available"
+                    ? "bg-brass text-ink"
+                    : "bg-ink/90 text-cream/80 ring-1 ring-cream/30"
+                }`}
+              >
+                {String(previewNumber).padStart(2, "0")}
+              </span>
+            </div>
           </div>
         )}
 
@@ -250,20 +281,19 @@ export function BuildingFloorSelector({
         </div>
 
         <div className="mt-7 grid grid-cols-6 gap-1.5 border-y border-cream/15 py-5">
-          {FLOOR_BANDS.map((band) => {
-            const floor = floorById.get(floorId(band.number));
-            const state = floorState(floor);
-            const isSelected = selectedFloor === band.number;
+          {FACADE_FLOORS.map(({ number }) => {
+            const state = floorState(floorById.get(floorId(number)));
+            const isSelected = selectedFloor === number;
             return (
               <button
-                key={band.number}
+                key={number}
                 type="button"
-                onPointerEnter={() => setHoveredFloor(band.number)}
+                onPointerEnter={() => setHoveredFloor(number)}
                 onPointerLeave={() => setHoveredFloor(null)}
-                onFocus={() => setHoveredFloor(band.number)}
+                onFocus={() => setHoveredFloor(number)}
                 onBlur={() => setHoveredFloor(null)}
-                onClick={() => setSelectedFloor(band.number)}
-                aria-label={`${copy.floor} ${band.number}`}
+                onClick={() => setSelectedFloor(number)}
+                aria-label={`${copy.floor} ${number} — ${state === "available" ? copy.available : copy.sold}`}
                 aria-pressed={isSelected}
                 className={`relative flex aspect-square min-h-11 items-center justify-center rounded-sm font-mono text-sm transition-colors motion-reduce:transition-none ${
                   isSelected
@@ -271,7 +301,7 @@ export function BuildingFloorSelector({
                     : "bg-cream/[0.035] text-cream/60 hover:bg-cream/[0.09] hover:text-cream"
                 }`}
               >
-                {band.number}
+                {number}
                 <span
                   className={`absolute right-1.5 bottom-1.5 size-1 rounded-full ${
                     state === "available" ? "bg-brass" : "bg-cream/25"
@@ -352,7 +382,7 @@ export function BuildingFloorSelector({
                 onClick={() => onSelectFloor(previewFloor.id)}
                 className="inline-flex min-h-12 items-center justify-between bg-brass px-5 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright"
               >
-                {copy.viewPlan} <span aria-hidden>↓</span>
+                {copy.viewUnits} <span aria-hidden>↓</span>
               </button>
             )}
 

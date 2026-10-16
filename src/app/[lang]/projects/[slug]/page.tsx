@@ -50,10 +50,10 @@ const AVAILABILITY_2026: Localized = {
   ru: "Наличие на 2026 год",
 };
 
-const APARTMENTS_AND_PLANS: Localized = {
-  ka: "ბინები, გეგმები და ხელმისაწვდომობა",
-  en: "Apartments, plans & availability",
-  ru: "Квартиры, планы и наличие",
+const APARTMENTS_AND_AVAILABILITY: Localized = {
+  ka: "ბინები და ხელმისაწვდომობა",
+  en: "Apartments & availability",
+  ru: "Квартиры и наличие",
 };
 
 const PRICE_ON_REQUEST: Localized = {
@@ -65,12 +65,12 @@ const PRICE_ON_REQUEST: Localized = {
 function projectMetaTitle(project: Project, lang: Lang): string {
   if (project.inventory) {
     if (lang === "ka") {
-      return `${project.name.ka} | ბინები ბათუმში, გეგმები და ხელმისაწვდომობა`;
+      return `${project.name.ka} | ბინები ბათუმში და ხელმისაწვდომობა`;
     }
     if (lang === "ru") {
-      return `${project.name.ru} | квартиры в Батуми, планировки и наличие`;
+      return `${project.name.ru} | квартиры в Батуми и наличие`;
     }
-    return `${project.name.en} Batumi apartments | Floor plans and availability`;
+    return `${project.name.en} Batumi apartments | Availability and sales contact`;
   }
 
   if (lang === "ka") {
@@ -87,12 +87,12 @@ function projectMetaDescription(project: Project, lang: Lang): string {
   const hasInventory = Boolean(project.inventory);
   if (lang === "ka") {
     const city = project.city.ka === "ბათუმი" ? "ბათუმში" : "თბილისში";
-    return `${project.name.ka} — საცხოვრებელი პროექტი ${city}, ${project.address.ka}. იხილეთ ფოტოები, მახასიათებლები, მდებარეობა${hasInventory ? ", ბინების გეგმები და ხელმისაწვდომობა" : " და გამოქვეყნებული მონაცემები"}.`;
+    return `${project.name.ka} — საცხოვრებელი პროექტი ${city}, ${project.address.ka}. იხილეთ ფოტოები, მახასიათებლები, მდებარეობა${hasInventory ? " და ბინების ხელმისაწვდომობა" : " და გამოქვეყნებული მონაცემები"}.`;
   }
   if (lang === "ru") {
-    return `${project.name.ru} — жилой проект в ${project.city.ru}, ${project.address.ru}. Фото, характеристики, расположение${hasInventory ? ", планировки и наличие квартир" : " и опубликованные данные"}.`;
+    return `${project.name.ru} — жилой проект в ${project.city.ru}, ${project.address.ru}. Фото, характеристики, расположение${hasInventory ? " и наличие квартир" : " и опубликованные данные"}.`;
   }
-  return `${project.name.en} is a residential project in ${project.city.en} at ${project.address.en}. View photos, specifications, location${hasInventory ? ", apartment plans, and availability" : ", and published details"}.`;
+  return `${project.name.en} is a residential project in ${project.city.en} at ${project.address.en}. View photos, specifications, location${hasInventory ? ", and apartment availability" : ", and published details"}.`;
 }
 
 interface ProjectPageProps {
@@ -379,7 +379,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               <div className="flex flex-wrap items-end justify-between gap-8">
                 <SectionHeading
                   eyebrow={AVAILABILITY_2026[lang]}
-                  title={APARTMENTS_AND_PLANS[lang]}
+                  title={APARTMENTS_AND_AVAILABILITY[lang]}
                 />
                 <Link
                   href={`/${lang}/apartments`}

@@ -87,8 +87,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
           new Set([
             (project.heroImage ?? project.listingImage ?? project.cover).src,
             ...project.gallery.map((image) => image.src),
-            ...(project.inventory?.floors.map((floor) => floor.image.src) ??
-              []),
           ]),
         ).map(absoluteUrl);
 

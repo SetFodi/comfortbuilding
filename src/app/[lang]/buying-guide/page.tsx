@@ -151,7 +151,7 @@ const COPY = {
       },
       {
         question: "შემიძლია ბინა დისტანციურად შევარჩიო?",
-        answer: "გეგმებისა და ფართობების შედარება ონლაინ შეგიძლიათ. დისტანციური გარიგების, წარმომადგენლობის, ხელმოწერისა და რეგისტრაციის პირობები დეველოპერთან და დამოუკიდებელ იურისტთან წინასწარ შეათანხმეთ.",
+        answer: "ბინების ფართობებისა და სართულების შედარება ონლაინ შეგიძლიათ. დისტანციური გარიგების, წარმომადგენლობის, ხელმოწერისა და რეგისტრაციის პირობები დეველოპერთან და დამოუკიდებელ იურისტთან წინასწარ შეათანხმეთ.",
       },
     ],
   },
@@ -257,7 +257,7 @@ const COPY = {
       },
       {
         question: "Can I choose an apartment remotely?",
-        answer: "You can compare published plans and areas online. Discuss remote transactions, representation, signing, and registration with the developer and an independent lawyer before proceeding.",
+        answer: "You can compare published apartment areas and floors online. Discuss remote transactions, representation, signing, and registration with the developer and an independent lawyer before proceeding.",
       },
     ],
   },
@@ -363,7 +363,7 @@ const COPY = {
       },
       {
         question: "Можно выбрать квартиру дистанционно?",
-        answer: "Сравнить опубликованные планы и площади можно онлайн. Заранее обсудите с застройщиком и независимым юристом дистанционную сделку, представительство, подписание и регистрацию.",
+        answer: "Сравнить опубликованные площади и этажи квартир можно онлайн. Заранее обсудите с застройщиком и независимым юристом дистанционную сделку, представительство, подписание и регистрацию.",
       },
     ],
   },

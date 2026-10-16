@@ -52,15 +52,15 @@ const BUYING_TITLE: Localized = {
 
 const BUYING_COPY: LocalizedList = {
   ka: [
-    "თუ ეძებთ გასაყიდ ბინას ბათუმში, Comfort House-ის გამოქვეყნებული ხელმისაწვდომობა ერთ გვერდზე აერთიანებს ფართობებს, სართულებსა და გეგმებს.",
+    "თუ ეძებთ გასაყიდ ბინას ბათუმში, Comfort House-ის გამოქვეყნებული ხელმისაწვდომობა ერთ გვერდზე აერთიანებს ბინების ფართობებსა და სართულებს.",
     "დასრულებული პროექტების არქივი გაჩვენებთ Comfort Building-ის მშენებლობებს ბათუმსა და თბილისში, მათ მისამართებს, პერიოდებს, მახასიათებლებსა და ფოტოებს.",
   ],
   en: [
-    "If you are looking for an apartment for sale in Batumi, the published Comfort House inventory puts areas, floors, and plans on one page.",
+    "If you are looking for an apartment for sale in Batumi, the published Comfort House inventory puts apartment areas and floors on one page.",
     "The completed-project archive records Comfort Building developments in Batumi and Tbilisi with their addresses, dates, specifications, and photographs.",
   ],
   ru: [
-    "Если вы ищете квартиру в Батуми от застройщика, опубликованное наличие в Comfort House собрано на одной странице с площадями, этажами и планами.",
+    "Если вы ищете квартиру в Батуми от застройщика, опубликованное наличие в Comfort House собрано на одной странице с площадями и этажами.",
     "Архив завершённых проектов показывает дома Comfort Building в Батуми и Тбилиси, их адреса, сроки, характеристики и фотографии.",
   ],
 };
