@@ -28,11 +28,7 @@ export const PROJECTS: readonly Project[] = [
     endYear: 2024,
     startDate: { ka: "ივლისი 2022", en: "July 2022", ru: "Июль 2022" },
     endDate: { ka: "აგვისტო 2024", en: "August 2024", ru: "Август 2024" },
-    priceFrom: {
-      ka: "1750 $-დან / მ²",
-      en: "from $1,750 / m²",
-      ru: "от $1750 / м²",
-    },
+    priceOnRequest: true,
     areasLabel: {
       ka: "38.5–142.2 მ²",
       en: "38.5–142.2 m²",

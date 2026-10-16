@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PROJECTS } from "@/lib/projects";
 import { CONTACT } from "@/lib/site";
 import type { Lang } from "@/lib/types";
+import { PriceContact } from "./price-contact";
 import { Reveal } from "./reveal";
 
 interface AvailableApartmentsSpotlightProps {
@@ -20,63 +21,63 @@ const AVAILABLE_APARTMENTS = INVENTORY.floors.flatMap((floor) =>
     )
     .map((unit) => ({ floor, unit })),
 );
-const FEATURED_UNIT_IDS = ["802", "905", "703"] as const;
-const FEATURED_APARTMENTS = FEATURED_UNIT_IDS.flatMap((id) => {
+/** Each featured apartment is paired with a building render for its card. */
+const FEATURED_UNITS = [
+  { id: "802", photo: "/images/projects/comfort-house/cover.jpg" },
+  { id: "905", photo: "/images/projects/comfort-house/evening.jpg" },
+  { id: "703", photo: "/images/experimental-ai/comfort-house-golden-hour.png" },
+] as const;
+const FEATURED_APARTMENTS = FEATURED_UNITS.flatMap(({ id, photo }) => {
   const apartment = AVAILABLE_APARTMENTS.find(({ unit }) => unit.id === id);
-  return apartment ? [apartment] : [];
+  const image = COMFORT_HOUSE.gallery.find((item) => item.src === photo);
+  return apartment && image ? [{ ...apartment, image }] : [];
 });
 
 const COPY = {
   ka: {
     eyebrow: "ახლავე ხელმისაწვდომია",
     title: "გასაყიდი ბინები Comfort House-ში",
-    lede: "შეადარეთ ბინები ფართობისა და ფასის მიხედვით. სრულ კატალოგში თავმოყრილია ბათუმში გასაყიდად გამოქვეყნებული ბინები, პირდაპირ დეველოპერისგან.",
+    lede: "შეადარეთ ბინები ფართობისა და სართულის მიხედვით. სრულ კატალოგში თავმოყრილია ბათუმში გასაყიდად გამოქვეყნებული ბინები, პირდაპირ დეველოპერისგან.",
     count: "გამოქვეყნებული გასაყიდი ბინა",
     available: "გასაყიდია",
     apartment: "ბინა",
     floor: "სართული",
     area: "სრული ფართობი",
-    estimate: "სავარაუდო სრული ფასი",
-    rate: "ფასი მ²-ზე",
     view: "ბინის ნახვა",
     viewAll: `ყველა ${AVAILABLE_APARTMENTS.length} ბინის ნახვა`,
     guide: "როგორ ვიყიდოთ ბინა ბათუმში",
     call: "გაყიდვების გუნდთან დარეკვა",
-    note: "სავარაუდო ფასი გამოთვლილია სრული ფართობისა და გამოქვეყნებული მ²-ის ფასის მიხედვით. ხელმისაწვდომობა და საბოლოო ფასი გადაამოწმეთ გაყიდვების გუნდთან.",
+    note: "ფასი მოთხოვნით. მიმდინარე ფასისა და ხელმისაწვდომობისთვის დაუკავშირდით გაყიდვების გუნდს.",
   },
   en: {
     eyebrow: "Available now",
     title: "Apartments for sale at Comfort House",
-    lede: "Compare apartment sizes and prices, then explore the full catalogue of published apartments offered directly by the developer in Batumi.",
+    lede: "Compare apartment sizes and floors, then explore the full catalogue of published apartments offered directly by the developer in Batumi.",
     count: "published apartments for sale",
     available: "For sale",
     apartment: "Apartment",
     floor: "Floor",
     area: "Total area",
-    estimate: "Estimated total",
-    rate: "Price per m²",
     view: "View apartment",
     viewAll: `View all ${AVAILABLE_APARTMENTS.length} apartments`,
     guide: "How to buy an apartment in Batumi",
     call: "Call the sales team",
-    note: "The estimate is the published rate per m² multiplied by total area. Confirm current availability and the final price with the sales team.",
+    note: "Prices are available on request. Contact the sales team for the current price and availability.",
   },
   ru: {
     eyebrow: "Доступно сейчас",
     title: "Квартиры в продаже в Comfort House",
-    lede: "Сравните площадь и стоимость квартир, затем откройте полный каталог опубликованных предложений от застройщика в Батуми.",
+    lede: "Сравните площадь и этажи квартир, затем откройте полный каталог опубликованных предложений от застройщика в Батуми.",
     count: "опубликованных квартир в продаже",
     available: "В продаже",
     apartment: "Квартира",
     floor: "Этаж",
     area: "Общая площадь",
-    estimate: "Расчётная стоимость",
-    rate: "Цена за м²",
     view: "Смотреть квартиру",
     viewAll: `Смотреть все квартиры (${AVAILABLE_APARTMENTS.length})`,
     guide: "Как купить квартиру в Батуми",
     call: "Позвонить в отдел продаж",
-    note: "Расчётная стоимость равна общей площади, умноженной на опубликованную цену за м². Уточните наличие и итоговую цену в отделе продаж.",
+    note: "Цена по запросу. Актуальную цену и наличие уточните в отделе продаж.",
   },
 } as const;
 
@@ -85,10 +86,6 @@ function formatArea(value: number, lang: Lang) {
     lang === "ka" ? "ka-GE" : lang === "ru" ? "ru-RU" : "en-US",
     { maximumFractionDigits: 1 },
   ).format(value);
-}
-
-function formatMoney(value: number) {
-  return `$${new Intl.NumberFormat("en-US").format(value)}`;
 }
 
 export function AvailableApartmentsSpotlight({
@@ -142,11 +139,9 @@ export function AvailableApartmentsSpotlight({
         </div>
 
         <div className="mt-14 grid gap-5 md:grid-cols-3">
-          {FEATURED_APARTMENTS.map(({ floor, unit }, index) => {
+          {FEATURED_APARTMENTS.map(({ floor, unit, image }, index) => {
             const number = unit.number ?? unit.id;
-            const estimatedTotal = unit.pricePerSqm
-              ? Math.round(unit.totalArea * unit.pricePerSqm)
-              : undefined;
+            const apartmentHref = `/${lang}/apartments#apartment-${number}`;
 
             return (
               <Reveal key={unit.id} delayMs={index * 90} className="h-full">
@@ -155,17 +150,17 @@ export function AvailableApartmentsSpotlight({
                   className="group flex h-full flex-col border border-ink/15 bg-paper transition-transform duration-300 hover:-translate-y-1"
                 >
                   <Link
-                    href={`/${lang}/apartments#apartment-${number}`}
-                    className="flex h-full flex-col"
+                    href={apartmentHref}
+                    className="flex flex-col"
                     aria-label={`${copy.view}: ${copy.apartment} ${number}`}
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden border-b border-ink/15 bg-white p-3 md:p-4">
+                    <div className="relative aspect-[16/10] overflow-hidden border-b border-ink/15 bg-limestone">
                       <Image
-                        src={floor.image.src}
-                        alt={floor.image.alt[lang]}
+                        src={image.src}
+                        alt={image.alt[lang]}
                         fill
                         sizes="(min-width: 768px) 33vw, 100vw"
-                        className="object-contain p-3 transition-transform duration-500 group-hover:scale-[1.025] md:p-4"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                       />
                       <span className="absolute top-4 left-4 border border-bronze/30 bg-paper/95 px-2.5 py-1 font-mono text-[9px] tracking-[0.12em] text-bronze uppercase backdrop-blur-sm">
                         {copy.available}
@@ -175,56 +170,47 @@ export function AvailableApartmentsSpotlight({
                       </span>
                     </div>
 
-                    <div className="flex flex-1 flex-col p-6 md:p-7">
-                      <div className="flex items-start justify-between gap-5">
-                        <div>
-                          <p className="font-mono text-[9px] tracking-[0.14em] text-ink/45 uppercase">
-                            Comfort House
-                          </p>
-                          <h3 className="mt-2 font-display text-3xl leading-none">
-                            {copy.apartment} {number}
-                          </h3>
-                        </div>
-                        <p className="font-mono text-sm text-ink/55">
-                          {formatArea(unit.totalArea, lang)} m²
+                    <div className="flex items-start justify-between gap-5 px-6 pt-6 md:px-7 md:pt-7">
+                      <div>
+                        <p className="font-mono text-[9px] tracking-[0.14em] text-ink/45 uppercase">
+                          Comfort House
                         </p>
+                        <h3 className="mt-2 font-display text-3xl leading-none">
+                          {copy.apartment} {number}
+                        </h3>
                       </div>
-
-                      <div className="mt-7 border-y border-ink/12 py-5">
-                        <p className="font-mono text-[9px] tracking-[0.12em] text-ink/45 uppercase">
-                          {copy.estimate}
-                        </p>
-                        <p className="mt-2 font-mono text-3xl text-bronze">
-                          {estimatedTotal ? formatMoney(estimatedTotal) : "—"}
-                        </p>
-                      </div>
-
-                      <dl className="mt-5 grid grid-cols-2 gap-5 text-sm">
-                        <div>
-                          <dt className="font-mono text-[9px] tracking-[0.12em] text-ink/45 uppercase">
-                            {copy.area}
-                          </dt>
-                          <dd className="mt-1 text-ink/75">
-                            {formatArea(unit.totalArea, lang)} m²
-                          </dd>
-                        </div>
-                        <div>
-                          <dt className="font-mono text-[9px] tracking-[0.12em] text-ink/45 uppercase">
-                            {copy.rate}
-                          </dt>
-                          <dd className="mt-1 text-ink/75">
-                            {unit.pricePerSqm
-                              ? `${formatMoney(unit.pricePerSqm)} / m²`
-                              : "—"}
-                          </dd>
-                        </div>
-                      </dl>
-
-                      <span className="link-slide mt-7 inline-flex min-h-11 w-fit items-center gap-3 text-sm font-semibold text-bronze">
-                        {copy.view} <span aria-hidden>→</span>
-                      </span>
+                      <p className="font-mono text-sm text-ink/55">
+                        {formatArea(unit.totalArea, lang)} m²
+                      </p>
                     </div>
                   </Link>
+
+                  <div className="flex flex-1 flex-col px-6 pb-6 md:px-7 md:pb-7">
+                    <PriceContact
+                      lang={lang}
+                      projectSlug={COMFORT_HOUSE.slug}
+                      placement="home-apartment"
+                      topic={`${copy.apartment} №${number}`}
+                      tone="light"
+                      className="mt-7 border-y border-ink/12 py-5"
+                    />
+
+                    <dl className="mt-5 text-sm">
+                      <dt className="font-mono text-[9px] tracking-[0.12em] text-ink/45 uppercase">
+                        {copy.area}
+                      </dt>
+                      <dd className="mt-1 text-ink/75">
+                        {formatArea(unit.totalArea, lang)} m²
+                      </dd>
+                    </dl>
+
+                    <Link
+                      href={apartmentHref}
+                      className="link-slide mt-auto inline-flex min-h-11 w-fit items-center gap-3 pt-7 text-sm font-semibold text-bronze"
+                    >
+                      {copy.view} <span aria-hidden>→</span>
+                    </Link>
+                  </div>
                 </article>
               </Reveal>
             );

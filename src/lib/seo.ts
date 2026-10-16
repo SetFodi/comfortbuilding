@@ -10,9 +10,9 @@ export const SITE_UPDATED_AT = new Date("2026-10-12T00:00:00+04:00");
 export const BUYING_GUIDE_PUBLISHED_AT = new Date("2026-08-21T00:00:00+04:00");
 
 export const HOME_DESCRIPTIONS: Localized = {
-  ka: "კომფორტ ბილდინგი — სამშენებლო კომპანია ბათუმში. გაეცანით მიმდინარე და დასრულებულ საცხოვრებელ პროექტებს, ბინების გეგმებს, ფასებს, ხელმისაწვდომობასა და პირდაპირ საკონტაქტო ინფორმაციას.",
-  en: "Comfort Building is a residential developer in Batumi, Georgia. Explore current and completed projects, apartment plans, prices, availability, and direct contact details.",
-  ru: "Comfort Building — строительная компания в Батуми, Грузия. Смотрите текущие и завершённые проекты, планировки, цены, наличие квартир и прямые контакты.",
+  ka: "კომფორტ ბილდინგი — სამშენებლო კომპანია ბათუმში. გაეცანით მიმდინარე და დასრულებულ საცხოვრებელ პროექტებს, ბინების გეგმებს, ხელმისაწვდომობასა და პირდაპირ საკონტაქტო ინფორმაციას.",
+  en: "Comfort Building is a residential developer in Batumi, Georgia. Explore current and completed projects, apartment plans, availability, and direct contact details.",
+  ru: "Comfort Building — строительная компания в Батуми, Грузия. Смотрите текущие и завершённые проекты, планировки, наличие квартир и прямые контакты.",
 };
 
 const OG_LOCALES: Record<Lang, string> = {

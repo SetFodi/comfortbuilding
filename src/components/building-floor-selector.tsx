@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { PriceContact } from "@/components/price-contact";
 import type {
   Lang,
   ProjectInventory,
@@ -11,6 +12,7 @@ import type {
 interface BuildingFloorSelectorProps {
   readonly inventory: ProjectInventory;
   readonly lang: Lang;
+  readonly projectSlug: string;
   readonly activeFloorId: string;
   readonly onSelectFloor: (floorId: string) => void;
 }
@@ -26,7 +28,7 @@ const COPY = {
     sold: "გაყიდულია",
     soldNote: "ამ სართულზე თავისუფალი ბინა აღარ არის.",
     publishedUnits: "გამოქვეყნებული ობიექტი",
-    priceFrom: "ფასი / მ²-დან",
+    price: "ფასი",
     viewPlan: "სართულის გეგმის ნახვა",
     terrace: "ტერასა",
     terraceAvailable: "თავისუფალი ტერასა · 382.1 მ²",
@@ -44,7 +46,7 @@ const COPY = {
     sold: "Sold",
     soldNote: "No apartments are available on this floor.",
     publishedUnits: "published unit",
-    priceFrom: "Price / m² from",
+    price: "Price",
     viewPlan: "View floor plan",
     terrace: "Terrace",
     terraceAvailable: "Available terrace · 382.1 m²",
@@ -62,7 +64,7 @@ const COPY = {
     sold: "Продано",
     soldNote: "На этом этаже нет свободных квартир.",
     publishedUnits: "опубликованный объект",
-    priceFrom: "Цена / м² от",
+    price: "Цена",
     viewPlan: "Посмотреть план этажа",
     terrace: "Терраса",
     terraceAvailable: "Свободная терраса · 382,1 м²",
@@ -122,13 +124,10 @@ function floorState(floor: ProjectInventoryFloor | undefined): FloorState {
     : "sold";
 }
 
-function formatMoney(value: number) {
-  return `$${Math.round(value).toLocaleString("en-US")}`;
-}
-
 export function BuildingFloorSelector({
   inventory,
   lang,
+  projectSlug,
   activeFloorId,
   onSelectFloor,
 }: BuildingFloorSelectorProps) {
@@ -150,12 +149,6 @@ export function BuildingFloorSelector({
   const availableUnits = previewUnits.filter(
     (unit) => unit.status === "available",
   );
-  const availableRates = availableUnits.flatMap((unit) =>
-    unit.pricePerSqm ? [unit.pricePerSqm] : [],
-  );
-  const minRate = availableRates.length
-    ? Math.min(...availableRates)
-    : undefined;
   const terrace = inventory.floors.find((floor) => floor.id === "terrace");
 
   const stateLabel =
@@ -329,13 +322,19 @@ export function BuildingFloorSelector({
                   {String(previewUnits.length).padStart(2, "0")}
                 </dd>
               </div>
-              {minRate !== undefined && (
+              {availableUnits.length > 0 && (
                 <div className="col-span-2 border-t border-cream/12 pt-4">
                   <dt className="font-mono text-[9px] tracking-[0.13em] text-cream/40 uppercase">
-                    {copy.priceFrom}
+                    {copy.price}
                   </dt>
-                  <dd className="mt-2 font-mono text-2xl text-brass-bright">
-                    {formatMoney(minRate)}
+                  <dd className="mt-3">
+                    <PriceContact
+                      lang={lang}
+                      projectSlug={projectSlug}
+                      placement="floor-selector"
+                      topic={previewFloor.label[lang]}
+                      variant="buttons"
+                    />
                   </dd>
                 </div>
               )}

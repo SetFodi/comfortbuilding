@@ -6,6 +6,7 @@ import { ContactBand } from "@/components/contact-band";
 import { Gallery } from "@/components/gallery";
 import { JsonLd } from "@/components/json-ld";
 import { PlanViewer } from "@/components/plan-viewer";
+import { PriceContact } from "@/components/price-contact";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { StatusChip } from "@/components/status-chip";
@@ -49,21 +50,27 @@ const AVAILABILITY_2026: Localized = {
   ru: "Наличие на 2026 год",
 };
 
-const APARTMENTS_AND_PRICING: Localized = {
-  ka: "ბინები, გეგმები და ფასები",
-  en: "Apartments, plans & pricing",
-  ru: "Квартиры, планы и цены",
+const APARTMENTS_AND_PLANS: Localized = {
+  ka: "ბინები, გეგმები და ხელმისაწვდომობა",
+  en: "Apartments, plans & availability",
+  ru: "Квартиры, планы и наличие",
+};
+
+const PRICE_ON_REQUEST: Localized = {
+  ka: "მოთხოვნით",
+  en: "On request",
+  ru: "По запросу",
 };
 
 function projectMetaTitle(project: Project, lang: Lang): string {
   if (project.inventory) {
     if (lang === "ka") {
-      return `${project.name.ka} | ბინები ბათუმში, ფასები და გეგმები`;
+      return `${project.name.ka} | ბინები ბათუმში, გეგმები და ხელმისაწვდომობა`;
     }
     if (lang === "ru") {
-      return `${project.name.ru} | квартиры в Батуми, цены и планировки`;
+      return `${project.name.ru} | квартиры в Батуми, планировки и наличие`;
     }
-    return `${project.name.en} Batumi apartments | Prices and floor plans`;
+    return `${project.name.en} Batumi apartments | Floor plans and availability`;
   }
 
   if (lang === "ka") {
@@ -80,12 +87,12 @@ function projectMetaDescription(project: Project, lang: Lang): string {
   const hasInventory = Boolean(project.inventory);
   if (lang === "ka") {
     const city = project.city.ka === "ბათუმი" ? "ბათუმში" : "თბილისში";
-    return `${project.name.ka} — საცხოვრებელი პროექტი ${city}, ${project.address.ka}. იხილეთ ფოტოები, მახასიათებლები, მდებარეობა${hasInventory ? ", ბინების გეგმები, ფასები და ხელმისაწვდომობა" : " და გამოქვეყნებული მონაცემები"}.`;
+    return `${project.name.ka} — საცხოვრებელი პროექტი ${city}, ${project.address.ka}. იხილეთ ფოტოები, მახასიათებლები, მდებარეობა${hasInventory ? ", ბინების გეგმები და ხელმისაწვდომობა" : " და გამოქვეყნებული მონაცემები"}.`;
   }
   if (lang === "ru") {
-    return `${project.name.ru} — жилой проект в ${project.city.ru}, ${project.address.ru}. Фото, характеристики, расположение${hasInventory ? ", планировки, цены и наличие квартир" : " и опубликованные данные"}.`;
+    return `${project.name.ru} — жилой проект в ${project.city.ru}, ${project.address.ru}. Фото, характеристики, расположение${hasInventory ? ", планировки и наличие квартир" : " и опубликованные данные"}.`;
   }
-  return `${project.name.en} is a residential project in ${project.city.en} at ${project.address.en}. View photos, specifications, location${hasInventory ? ", apartment plans, prices, and availability" : ", and published details"}.`;
+  return `${project.name.en} is a residential project in ${project.city.en} at ${project.address.en}. View photos, specifications, location${hasInventory ? ", apartment plans, and availability" : ", and published details"}.`;
 }
 
 interface ProjectPageProps {
@@ -168,9 +175,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     ...(project.areasLabel
       ? [{ label: dict.titleBlock.areas, value: project.areasLabel[lang] }]
       : []),
-    ...(project.priceFrom
-      ? [{ label: dict.titleBlock.price, value: project.priceFrom[lang] }]
-      : []),
+    ...(project.priceOnRequest
+      ? [{ label: dict.titleBlock.price, value: PRICE_ON_REQUEST[lang] }]
+      : project.priceFrom
+        ? [{ label: dict.titleBlock.price, value: project.priceFrom[lang] }]
+        : []),
   ];
 
   return (
@@ -273,6 +282,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
             {(project.availability.length > 0 ||
               project.soldPercent !== undefined ||
+              project.priceOnRequest ||
               project.priceFrom) && (
               <Reveal className="lg:col-span-5" delayMs={120}>
                 <aside className="border border-ink/20 bg-paper p-6 md:p-8">
@@ -306,7 +316,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     </div>
                   )}
 
-                  {project.priceFrom && (
+                  {project.priceOnRequest ? (
+                    <PriceContact
+                      lang={lang}
+                      projectSlug={project.slug}
+                      placement="project-figures"
+                      tone="light"
+                      className="mt-7 border-t border-ink/15 pt-5"
+                    />
+                  ) : project.priceFrom && (
                     <div className="mt-7 border-t border-ink/15 pt-5">
                       <p className="font-mono text-[10px] tracking-[0.16em] text-ink/65 uppercase">
                         {dict.titleBlock.price}
@@ -338,12 +356,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   <p className="mt-6 text-xs leading-relaxed text-ink/65">
                     {dict.misc.sourceData}
                   </p>
-                  <a
-                    href={CONTACT.phoneHref}
-                    className="mt-6 inline-flex min-h-11 w-full items-center justify-center bg-ink px-5 text-sm font-semibold text-cream transition-colors hover:bg-iron"
-                  >
-                    {dict.cta.call}
-                  </a>
+                  {!project.priceOnRequest && (
+                    <a
+                      href={CONTACT.phoneHref}
+                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center bg-ink px-5 text-sm font-semibold text-cream transition-colors hover:bg-iron"
+                    >
+                      {dict.cta.call}
+                    </a>
+                  )}
                 </aside>
               </Reveal>
             )}
@@ -359,7 +379,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               <div className="flex flex-wrap items-end justify-between gap-8">
                 <SectionHeading
                   eyebrow={AVAILABILITY_2026[lang]}
-                  title={APARTMENTS_AND_PRICING[lang]}
+                  title={APARTMENTS_AND_PLANS[lang]}
                 />
                 <Link
                   href={`/${lang}/apartments`}
@@ -369,7 +389,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 </Link>
               </div>
               <div className="mt-12">
-                <UnitInventory inventory={project.inventory} lang={lang} />
+                <UnitInventory
+                  inventory={project.inventory}
+                  lang={lang}
+                  projectSlug={project.slug}
+                />
               </div>
             </div>
           </section>

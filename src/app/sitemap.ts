@@ -43,7 +43,7 @@ const STATIC_ROUTES = [
           PROJECTS[0].cover
         ).src,
       ),
-      absoluteUrl("/images/projects/comfort-house/plans-2026/level-09.png"),
+      absoluteUrl("/images/projects/comfort-house/evening.jpg"),
     ],
   },
   {

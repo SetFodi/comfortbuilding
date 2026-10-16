@@ -79,8 +79,8 @@ const COPY = {
       {
         title: "დაიწყეთ სრული ბიუჯეტით",
         paragraphs: [
-          "შეადარეთ არა მხოლოდ ფასი მ²-ზე, არამედ სავარაუდო სრული ღირებულება. ერთი და იგივე ტარიფი განსხვავებულ ფართობზე სრულიად განსხვავებულ ბიუჯეტს ქმნის.",
-          "გაყიდვების გუნდს წერილობით ჰკითხეთ საბოლოო ფასი, ვალუტა, გადახდის გრაფიკი და რა შედის შეთავაზებაში. საიტზე ნაჩვენები ჯამები ფართობისა და გამოქვეყნებული მ²-ის ფასის ნამრავლია.",
+          "შეადარეთ არა მხოლოდ ფასი მ²-ზე, არამედ სრული ღირებულება. ერთი და იგივე ტარიფი განსხვავებულ ფართობზე სრულიად განსხვავებულ ბიუჯეტს ქმნის.",
+          "გაყიდვების გუნდს წერილობით ჰკითხეთ საბოლოო ფასი, ვალუტა, გადახდის გრაფიკი და რა შედის შეთავაზებაში. Comfort House-ის ფასები საიტზე არ ქვეყნდება — მოითხოვეთ ისინი ზარით ან ელფოსტით.",
         ],
         action: "apartments" as StepAction,
       },
@@ -138,8 +138,8 @@ const COPY = {
     faqTitle: "ხშირი კითხვები ბინის ყიდვამდე",
     faqs: [
       {
-        question: "საიტზე ნაჩვენები ფასი საბოლოოა?",
-        answer: "არა. სრული ფასი აქ გამოთვლილია გამოქვეყნებული მ²-ის ფასისა და საერთო ფართობის მიხედვით. მიმდინარე ხელმისაწვდომობა, საბოლოო ფასი და გადახდის პირობები გაყიდვების გუნდთან გადაამოწმეთ.",
+        question: "რატომ არ არის ფასები საიტზე?",
+        answer: "Comfort House-ის ფასები მოთხოვნისამებრ მიეწოდება. დაგვირეკეთ ან მოგვწერეთ ელფოსტაზე — გაყიდვების გუნდი გეტყვით მიმდინარე ფასს, ხელმისაწვდომობასა და გადახდის პირობებს.",
       },
       {
         question: "რა უნდა ვკითხო დეველოპერს პირველ ზარზე?",
@@ -151,7 +151,7 @@ const COPY = {
       },
       {
         question: "შემიძლია ბინა დისტანციურად შევარჩიო?",
-        answer: "გეგმებისა და ფასების შედარება ონლაინ შეგიძლიათ. დისტანციური გარიგების, წარმომადგენლობის, ხელმოწერისა და რეგისტრაციის პირობები დეველოპერთან და დამოუკიდებელ იურისტთან წინასწარ შეათანხმეთ.",
+        answer: "გეგმებისა და ფართობების შედარება ონლაინ შეგიძლიათ. დისტანციური გარიგების, წარმომადგენლობის, ხელმოწერისა და რეგისტრაციის პირობები დეველოპერთან და დამოუკიდებელ იურისტთან წინასწარ შეათანხმეთ.",
       },
     ],
   },
@@ -167,7 +167,7 @@ const COPY = {
     ],
     introTitle: "Compare first. Then contact the developer with specific questions.",
     intro: [
-      "A sound comparison starts with the full picture, not the lowest advertised rate per m². Look at total area, floor, balcony, estimated total, project status, and contract terms together.",
+      "A sound comparison starts with the full picture, not the lowest advertised rate per m². Look at total area, floor, balcony, total price, project status, and contract terms together.",
       "This page is not legal or financial advice. Ask an independent lawyer to review important records and the contract.",
     ],
     checklistTitle: "Prepare before you call",
@@ -185,8 +185,8 @@ const COPY = {
       {
         title: "Start with the total budget",
         paragraphs: [
-          "Compare the estimated total, not only the rate per m². The same rate produces a very different budget when apartment sizes differ.",
-          "Ask the sales team to confirm the final price, currency, payment schedule, and included work in writing. Totals shown on this site multiply total area by the published rate per m².",
+          "Compare the total price, not only the rate per m². The same rate produces a very different budget when apartment sizes differ.",
+          "Ask the sales team to confirm the final price, currency, payment schedule, and included work in writing. Comfort House prices are not published online — ask for them by phone or email.",
         ],
         action: "apartments" as StepAction,
       },
@@ -244,8 +244,8 @@ const COPY = {
     faqTitle: "Questions to settle before buying",
     faqs: [
       {
-        question: "Is the price shown on the website final?",
-        answer: "No. The displayed total is an estimate based on the published rate per m² and total area. Confirm current availability, the final price, and payment terms with the sales team.",
+        question: "Why are prices not shown on the website?",
+        answer: "Comfort House prices are provided on request. Call or email the sales team for the current price, availability, and payment terms.",
       },
       {
         question: "What should I ask during the first call?",
@@ -257,7 +257,7 @@ const COPY = {
       },
       {
         question: "Can I choose an apartment remotely?",
-        answer: "You can compare published plans and prices online. Discuss remote transactions, representation, signing, and registration with the developer and an independent lawyer before proceeding.",
+        answer: "You can compare published plans and areas online. Discuss remote transactions, representation, signing, and registration with the developer and an independent lawyer before proceeding.",
       },
     ],
   },
@@ -273,7 +273,7 @@ const COPY = {
     ],
     introTitle: "Сначала сравните. Затем задайте застройщику конкретные вопросы.",
     intro: [
-      "Сравнение начинается с полной картины, а не с самой низкой цены за м². Одновременно учитывайте общую площадь, этаж, балкон, расчётную стоимость, статус проекта и условия договора.",
+      "Сравнение начинается с полной картины, а не с самой низкой цены за м². Одновременно учитывайте общую площадь, этаж, балкон, полную стоимость, статус проекта и условия договора.",
       "Эта страница не заменяет юридическую или финансовую консультацию. Попросите независимого юриста проверить важные документы и договор.",
     ],
     checklistTitle: "Что подготовить до звонка",
@@ -291,8 +291,8 @@ const COPY = {
       {
         title: "Начните с общего бюджета",
         paragraphs: [
-          "Сравнивайте расчётную полную стоимость, а не только цену за м². Одинаковая ставка даёт разный бюджет при разной площади квартиры.",
-          "Попросите отдел продаж письменно подтвердить итоговую цену, валюту, график оплаты и состав предложения. Суммы на сайте рассчитаны как общая площадь, умноженная на опубликованную цену за м².",
+          "Сравнивайте полную стоимость, а не только цену за м². Одинаковая ставка даёт разный бюджет при разной площади квартиры.",
+          "Попросите отдел продаж письменно подтвердить итоговую цену, валюту, график оплаты и состав предложения. Цены Comfort House на сайте не публикуются — запросите их по телефону или электронной почте.",
         ],
         action: "apartments" as StepAction,
       },
@@ -350,8 +350,8 @@ const COPY = {
     faqTitle: "Вопросы, которые стоит решить до покупки",
     faqs: [
       {
-        question: "Цена на сайте окончательная?",
-        answer: "Нет. Полная стоимость на сайте рассчитана по опубликованной цене за м² и общей площади. Уточните актуальное наличие, итоговую цену и условия оплаты в отделе продаж.",
+        question: "Почему на сайте нет цен?",
+        answer: "Цены Comfort House предоставляются по запросу. Позвоните или напишите в отдел продаж, чтобы узнать актуальную цену, наличие и условия оплаты.",
       },
       {
         question: "Что спросить во время первого звонка?",
@@ -363,7 +363,7 @@ const COPY = {
       },
       {
         question: "Можно выбрать квартиру дистанционно?",
-        answer: "Сравнить опубликованные планы и цены можно онлайн. Заранее обсудите с застройщиком и независимым юристом дистанционную сделку, представительство, подписание и регистрацию.",
+        answer: "Сравнить опубликованные планы и площади можно онлайн. Заранее обсудите с застройщиком и независимым юристом дистанционную сделку, представительство, подписание и регистрацию.",
       },
     ],
   },

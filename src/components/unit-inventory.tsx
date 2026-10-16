@@ -3,18 +3,20 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { BuildingFloorSelector } from "@/components/building-floor-selector";
+import { PriceContact } from "@/components/price-contact";
 import type { Lang, ProjectInventory, ProjectInventoryUnit } from "@/lib/types";
 
 interface UnitInventoryProps {
   readonly inventory: ProjectInventory;
   readonly lang: Lang;
+  readonly projectSlug: string;
 }
 
 const COPY = {
   ka: {
     availableApartments: "თავისუფალი ბინა",
     apartmentsShown: "ბინა გეგმებზე",
-    rateRange: "ფასი / მ²",
+    price: "ფასი",
     terrace: "თავისუფალი ტერასა",
     available: "თავისუფალია",
     sold: "გაყიდულია",
@@ -22,18 +24,13 @@ const COPY = {
     interior: "ბინის ფართობი",
     balcony: "აივანი",
     totalArea: "სრული ფართობი",
-    rate: "ფასი / მ²",
-    estimate: "სავარაუდო ფასი",
-    onRequest: "ფასი მოთხოვნით",
-    source: "წყარო",
     revision: "გეგმის თარიღი",
-    download: "PDF-ის ნახვა",
-    note: "ხელმისაწვდომობა და ფასი შეიძლება შეიცვალოს. საბოლოო მონაცემები გადაამოწმეთ გაყიდვების გუნდთან.",
+    note: "ხელმისაწვდომობა შეიძლება შეიცვალოს. ფასისა და მიმდინარე მონაცემებისთვის დაუკავშირდით გაყიდვების გუნდს.",
   },
   en: {
     availableApartments: "Available apartments",
     apartmentsShown: "Apartments in plans",
-    rateRange: "Price / m²",
+    price: "Price",
     terrace: "Available terrace",
     available: "Available",
     sold: "Sold",
@@ -41,18 +38,13 @@ const COPY = {
     interior: "Interior area",
     balcony: "Balcony",
     totalArea: "Total area",
-    rate: "Price / m²",
-    estimate: "Estimated total",
-    onRequest: "Price on request",
-    source: "Source",
     revision: "Plan revision",
-    download: "View source PDF",
-    note: "Availability and pricing may change. Confirm final figures with the sales team.",
+    note: "Availability may change. Contact the sales team for prices and current details.",
   },
   ru: {
     availableApartments: "Свободные квартиры",
     apartmentsShown: "Квартиры на планах",
-    rateRange: "Цена / м²",
+    price: "Цена",
     terrace: "Свободная терраса",
     available: "Свободно",
     sold: "Продано",
@@ -60,13 +52,8 @@ const COPY = {
     interior: "Площадь квартиры",
     balcony: "Балкон",
     totalArea: "Общая площадь",
-    rate: "Цена / м²",
-    estimate: "Расчётная стоимость",
-    onRequest: "Цена по запросу",
-    source: "Источник",
     revision: "Дата плана",
-    download: "Открыть PDF",
-    note: "Наличие и цены могут измениться. Уточняйте итоговые данные у отдела продаж.",
+    note: "Наличие может измениться. Цены и актуальные данные уточняйте в отделе продаж.",
   },
 } as const;
 
@@ -77,19 +64,16 @@ function formatArea(value: number, lang: Lang) {
   return lang === "ru" ? formatted.replace(".", ",") : formatted;
 }
 
-function formatMoney(value: number) {
-  const grouped = Math.round(value)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `$${grouped}`;
-}
-
 function unitName(unit: ProjectInventoryUnit, lang: Lang) {
   if (unit.number) return `${COPY[lang].apartment} №${unit.number}`;
   return unit.label?.[lang] ?? unit.id;
 }
 
-export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
+export function UnitInventory({
+  inventory,
+  lang,
+  projectSlug,
+}: UnitInventoryProps) {
   const [activeFloorId, setActiveFloorId] = useState(
     inventory.floors[1]?.id ?? inventory.floors[0]?.id ?? "",
   );
@@ -120,11 +104,6 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
   const availableTerrace = units.find(
     (unit) => unit.kind === "terrace" && unit.status === "available",
   );
-  const rates = availableApartments.flatMap((unit) =>
-    unit.pricePerSqm ? [unit.pricePerSqm] : [],
-  );
-  const minRate = Math.min(...rates);
-  const maxRate = Math.max(...rates);
 
   const handleBuildingFloorSelect = (floorId: string) => {
     setActiveFloorId(floorId);
@@ -142,6 +121,7 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
         key={activeFloor.id}
         inventory={inventory}
         lang={lang}
+        projectSlug={projectSlug}
         activeFloorId={activeFloor.id}
         onSelectFloor={handleBuildingFloorSelect}
       />
@@ -157,8 +137,15 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
             value: String(apartments.length).padStart(2, "0"),
           },
           {
-            label: copy.rateRange,
-            value: `${formatMoney(minRate)}–${formatMoney(maxRate)}`,
+            label: copy.price,
+            value: (
+              <PriceContact
+                lang={lang}
+                projectSlug={projectSlug}
+                placement="inventory-summary"
+                variant="buttons"
+              />
+            ),
           },
           {
             label: copy.terrace,
@@ -174,7 +161,11 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
             <p className="font-mono text-[10px] tracking-[0.16em] text-cream/50 uppercase">
               {item.label}
             </p>
-            <p className="mt-2 font-mono text-2xl text-cream">{item.value}</p>
+            {typeof item.value === "string" ? (
+              <p className="mt-2 font-mono text-2xl text-cream">{item.value}</p>
+            ) : (
+              <div className="mt-3">{item.value}</div>
+            )}
           </div>
         ))}
       </div>
@@ -239,9 +230,6 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
           <div className="divide-y divide-cream/12">
             {activeFloor.units.map((unit) => {
               const isAvailable = unit.status === "available";
-              const estimatedTotal = unit.pricePerSqm
-                ? Math.round(unit.totalArea * unit.pricePerSqm)
-                : undefined;
 
               return (
                 <article
@@ -300,29 +288,16 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
                         {formatArea(unit.totalArea, lang)} m²
                       </dd>
                     </div>
-                    {isAvailable && (
-                      <div>
-                        <dt className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
-                          {copy.rate}
-                        </dt>
-                        <dd className="mt-1 text-brass-bright">
-                          {unit.pricePerSqm
-                            ? formatMoney(unit.pricePerSqm)
-                            : copy.onRequest}
-                        </dd>
-                      </div>
-                    )}
                   </dl>
 
-                  {isAvailable && estimatedTotal !== undefined && (
-                    <div className="mt-4 flex items-end justify-between gap-4 border-t border-cream/10 pt-4">
-                      <span className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
-                        {copy.estimate}
-                      </span>
-                      <strong className="font-mono text-xl font-medium text-cream">
-                        {formatMoney(estimatedTotal)}
-                      </strong>
-                    </div>
+                  {isAvailable && (
+                    <PriceContact
+                      lang={lang}
+                      projectSlug={projectSlug}
+                      placement="inventory-unit"
+                      topic={unitName(unit, lang)}
+                      className="mt-4 border-t border-cream/10 pt-4"
+                    />
                   )}
                 </article>
               );
@@ -331,19 +306,10 @@ export function UnitInventory({ inventory, lang }: UnitInventoryProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-cream/15 px-5 py-5 text-xs text-cream/50 md:flex-row md:items-center md:justify-between md:px-6">
+      <div className="border-t border-cream/15 px-5 py-5 text-xs text-cream/50 md:px-6">
         <p className="leading-relaxed">
-          {copy.source}: {inventory.sourceName} · {copy.revision}:{" "}
-          {inventory.planRevision}. {copy.note}
+          {copy.revision}: {inventory.planRevision}. {copy.note}
         </p>
-        <a
-          href={inventory.sourceHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="link-slide inline-flex min-h-11 shrink-0 items-center gap-2 font-semibold text-brass-bright"
-        >
-          {copy.download} <span aria-hidden>↗</span>
-        </a>
       </div>
     </div>
   );

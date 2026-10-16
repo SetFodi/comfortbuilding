@@ -34,7 +34,6 @@ export interface ProjectInventoryUnit {
   readonly balconyArea?: number;
   readonly totalArea: number;
   readonly status: InventoryStatus;
-  readonly pricePerSqm?: number;
 }
 
 export interface ProjectInventoryFloor {
@@ -45,8 +44,6 @@ export interface ProjectInventoryFloor {
 }
 
 export interface ProjectInventory {
-  readonly sourceHref: string;
-  readonly sourceName: string;
   readonly planRevision: string;
   readonly floors: readonly ProjectInventoryFloor[];
 }
@@ -64,6 +61,8 @@ export interface Project {
   readonly startDate: Localized;
   readonly endDate: Localized;
   readonly priceFrom?: Localized;
+  /** Hides published prices in favour of call and email actions. */
+  readonly priceOnRequest?: boolean;
   readonly areasLabel?: Localized;
   readonly summary: Localized;
   readonly description: LocalizedList;

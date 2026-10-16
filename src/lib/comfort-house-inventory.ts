@@ -3,12 +3,10 @@ import type { ProjectInventory } from "./types";
 const PLAN_SIZE = { width: 1684, height: 1191 } as const;
 
 /**
- * Statuses, areas, and rates are transcribed from Comfort house-2026.pdf.
- * Prices are per square metre. Sold units intentionally have no active rate.
+ * Statuses and areas are transcribed from Comfort house-2026.pdf.
+ * Prices are intentionally not published; buyers contact the sales team.
  */
 export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
-  sourceHref: "/documents/comfort-house-availability-2026.pdf",
-  sourceName: "Comfort house-2026.pdf",
   planRevision: "15.01.2024",
   floors: [
     {
@@ -19,7 +17,7 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ru: "I этаж · коммерческие площади",
       },
       image: {
-        src: "/images/projects/comfort-house/plans-2026/level-01.png",
+        src: "/images/projects/comfort-house/floor-plans/level-01.png",
         ...PLAN_SIZE,
         alt: {
           ka: "კომფორტ ჰაუსის პირველი სართულის გეგმა — კომერციული ფართები და ავტოსადგომი",
@@ -71,7 +69,7 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ru: "VIII этаж · 701–706",
       },
       image: {
-        src: "/images/projects/comfort-house/plans-2026/level-08.png",
+        src: "/images/projects/comfort-house/floor-plans/level-08.png",
         ...PLAN_SIZE,
         alt: {
           ka: "კომფორტ ჰაუსის VIII სართულის გეგმა — ბინები 701–706",
@@ -88,7 +86,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 8.5,
           totalArea: 48.6,
           status: "available",
-          pricePerSqm: 1750,
         },
         {
           id: "702",
@@ -107,7 +104,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 19.8,
           totalArea: 142.2,
           status: "available",
-          pricePerSqm: 1750,
         },
         {
           id: "705",
@@ -137,7 +133,7 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ru: "IX этаж · 801–806",
       },
       image: {
-        src: "/images/projects/comfort-house/plans-2026/level-09.png",
+        src: "/images/projects/comfort-house/floor-plans/level-09.png",
         ...PLAN_SIZE,
         alt: {
           ka: "კომფორტ ჰაუსის IX სართულის გეგმა — ბინები 801–806",
@@ -154,7 +150,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 8.5,
           totalArea: 48.6,
           status: "available",
-          pricePerSqm: 1850,
         },
         {
           id: "802",
@@ -164,7 +159,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 7.3,
           totalArea: 38.5,
           status: "available",
-          pricePerSqm: 1850,
         },
         {
           id: "803",
@@ -203,7 +197,7 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ru: "X этаж · 901–906",
       },
       image: {
-        src: "/images/projects/comfort-house/plans-2026/level-10.png",
+        src: "/images/projects/comfort-house/floor-plans/level-10.png",
         ...PLAN_SIZE,
         alt: {
           ka: "კომფორტ ჰაუსის X სართულის გეგმა — ბინები 901–906",
@@ -229,7 +223,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 7.3,
           totalArea: 38.5,
           status: "available",
-          pricePerSqm: 1900,
         },
         {
           id: "903",
@@ -257,7 +250,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 8.9,
           totalArea: 54.7,
           status: "available",
-          pricePerSqm: 2000,
         },
         {
           id: "906",
@@ -278,7 +270,7 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ru: "XI этаж · 1001–1006",
       },
       image: {
-        src: "/images/projects/comfort-house/plans-2026/level-11.png",
+        src: "/images/projects/comfort-house/floor-plans/level-11.png",
         ...PLAN_SIZE,
         alt: {
           ka: "კომფორტ ჰაუსის XI სართულის გეგმა — ბინები 1001–1006",
@@ -295,7 +287,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 8.5,
           totalArea: 48.6,
           status: "available",
-          pricePerSqm: 2100,
         },
         {
           id: "1002",
@@ -305,7 +296,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 7.3,
           totalArea: 38.5,
           status: "available",
-          pricePerSqm: 2100,
         },
         {
           id: "1003",
@@ -324,7 +314,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 11.3,
           totalArea: 74,
           status: "available",
-          pricePerSqm: 2500,
         },
         {
           id: "1005",
@@ -334,7 +323,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 8.9,
           totalArea: 54.7,
           status: "available",
-          pricePerSqm: 2500,
         },
         {
           id: "1006",
@@ -344,7 +332,6 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           balconyArea: 9.6,
           totalArea: 54.9,
           status: "available",
-          pricePerSqm: 2500,
         },
       ],
     },
@@ -356,7 +343,7 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
         ru: "Терраса",
       },
       image: {
-        src: "/images/projects/comfort-house/plans-2026/terrace.png",
+        src: "/images/projects/comfort-house/floor-plans/terrace.png",
         ...PLAN_SIZE,
         alt: {
           ka: "კომფორტ ჰაუსის ტერასის გეგმა — 382.1 მ²",

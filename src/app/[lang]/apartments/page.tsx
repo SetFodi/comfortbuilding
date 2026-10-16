@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ContactBand } from "@/components/contact-band";
 import { JsonLd } from "@/components/json-ld";
 import { PageHero } from "@/components/page-hero";
+import { PriceContact } from "@/components/price-contact";
 import { getDict } from "@/lib/dictionary";
 import { PROJECTS } from "@/lib/projects";
 import {
@@ -28,8 +29,8 @@ const HERO_IMAGE =
   COMFORT_HOUSE.heroImage ??
   COMFORT_HOUSE.listingImage ??
   COMFORT_HOUSE.cover;
-const FEATURED_PLAN = INVENTORY.floors.find(
-  (floor) => floor.id === "level-09",
+const INTRO_IMAGE = COMFORT_HOUSE.gallery.find(
+  (image) => image.src === "/images/projects/comfort-house/evening.jpg",
 )!;
 
 const AVAILABLE_APARTMENTS = INVENTORY.floors.flatMap((floor) =>
@@ -41,9 +42,9 @@ const AVAILABLE_APARTMENTS = INVENTORY.floors.flatMap((floor) =>
 );
 
 const META_TITLE: Localized = {
-  ka: "ბინები ბათუმში დეველოპერისგან | ფასები და გეგმები",
-  en: "Apartments for sale in Batumi | Prices and floor plans",
-  ru: "Квартиры в Батуми от застройщика | Цены и планы",
+  ka: "ბინები ბათუმში დეველოპერისგან | გეგმები და ხელმისაწვდომობა",
+  en: "Apartments for sale in Batumi | Floor plans and availability",
+  ru: "Квартиры в Батуми от застройщика | Планы и наличие",
 };
 
 const TITLE: Localized = {
@@ -53,9 +54,9 @@ const TITLE: Localized = {
 };
 
 const DESCRIPTION: Localized = {
-  ka: "Comfort House-ში გასაყიდად გამოქვეყნებული ბინები ბათუმში. შეადარეთ ფართობები, სართულები, გეგმები, ფასი მ²-ზე და სავარაუდო სრული ღირებულება.",
-  en: "Published apartments for sale in Comfort House, Batumi. Compare areas, floors, plans, price per m², and estimated total prices.",
-  ru: "Опубликованные квартиры в продаже в Comfort House, Батуми. Сравните площадь, этаж, планировку, цену за м² и расчётную стоимость.",
+  ka: "Comfort House-ში გასაყიდად გამოქვეყნებული ბინები ბათუმში. შეადარეთ ფართობები, სართულები და გეგმები, ფასისთვის კი დაუკავშირდით გაყიდვების გუნდს.",
+  en: "Published apartments for sale in Comfort House, Batumi. Compare areas, floors, and plans, then call or email the sales team for prices.",
+  ru: "Опубликованные квартиры в продаже в Comfort House, Батуми. Сравните площадь, этаж и планировку, а цену уточните в отделе продаж.",
 };
 
 const COPY = {
@@ -65,41 +66,37 @@ const COPY = {
     stats: {
       available: "გამოქვეყნებული თავისუფალი ბინა",
       area: "ხელმისაწვდომი ფართობი",
-      rate: "გამოქვეყნებული ფასი / მ²",
+      price: "ფასი",
       location: "ვ. გორგასლის ქ. №104, №106",
     },
     introEyebrow: "Comfort House · ბათუმი",
     introTitle: "ბინის ყიდვა ბათუმში, კონკრეტული მონაცემებით",
     intro: [
       "ეს გვერდი აერთიანებს Comfort House-ში გასაყიდად გამოქვეყნებულ ბინებს. კომპლექსი მდებარეობს ბათუმში, ვ. გორგასლის ქუჩის №104 და №106 მისამართებზე, 6 მაისის პარკთან ახლოს.",
-      "თითოეულ ვარიანტზე ნაჩვენებია შიდა ფართობი, აივანი, სრული ფართობი, სართულის გეგმა და ფასი კვადრატულ მეტრზე. სავარაუდო სრული ფასი გამოთვლილია გამოქვეყნებული ტარიფისა და სრული ფართობის მიხედვით.",
+      "თითოეულ ვარიანტზე ნაჩვენებია შიდა ფართობი, აივანი, სრული ფართობი და სართულის გეგმა. ფასისა და დეტალებისთვის დაგვირეკეთ ან მოგვწერეთ ელფოსტაზე.",
     ],
     projectLink: "Comfort House-ის სრული გვერდი",
-    sourceLink: "წყარო PDF-ის ნახვა",
     guideLink: "ბინის ყიდვის გზამკვლევი",
-    inventoryEyebrow: "ფასები და ხელმისაწვდომობა",
+    inventoryEyebrow: "ხელმისაწვდომობა",
     inventoryTitle: `შეადარეთ ${AVAILABLE_APARTMENTS.length} გასაყიდი ბინა`,
     inventoryLede:
-      "აირჩიეთ ფართობი და სართული. საბოლოო ფასი და ხელმისაწვდომობა გაყიდვების გუნდთან გადაამოწმეთ.",
+      "აირჩიეთ ფართობი და სართული, შემდეგ ფასისა და ხელმისაწვდომობისთვის დაუკავშირდით გაყიდვების გუნდს.",
     apartment: "ბინა",
     floor: "სართული",
     interior: "შიდა ფართობი",
     balcony: "აივანი",
     total: "სრული ფართობი",
-    rate: "ფასი / მ²",
-    estimate: "სავარაუდო სრული ფასი",
     available: "თავისუფალია",
     plan: "გეგმის ნახვა",
     inquire: "იკითხეთ ამ ბინაზე",
     sourceNote:
-      "წყარო: Comfort house-2026.pdf. გეგმის თარიღი: 15.01.2024. ხელმისაწვდომობა და ფასი შეიძლება შეიცვალოს.",
+      "გეგმის თარიღი: 15.01.2024. ხელმისაწვდომობა შეიძლება შეიცვალოს.",
     faqEyebrow: "ხშირი კითხვები",
     faqTitle: "რას ამოწმებს მყიდველი ბინის არჩევამდე",
     faqs: [
       {
         question: "რა ღირს ბინა ბათუმში Comfort House-ში?",
-        answer:
-          "გამოქვეყნებული ფასი იწყება $1,750-დან კვადრატულ მეტრზე და სართულის მიხედვით $2,500-მდე აღწევს. ხელმისაწვდომი ბინების სავარაუდო სრული ღირებულება ამ გვერდზე $71,225-დან იწყება.",
+        answer: `ფასები საიტზე არ ქვეყნდება. მიმდინარე ფასისა და გადახდის პირობების გასაგებად დაურეკეთ გაყიდვების გუნდს ნომერზე ${CONTACT.phoneDisplay} ან მოწერეთ ${CONTACT.email}-ზე.`,
       },
       {
         question: "რა ფართობის ბინებია ხელმისაწვდომი?",
@@ -112,8 +109,8 @@ const COPY = {
           "საცხოვრებელი კომპლექსი მდებარეობს ბათუმში, ვ. გორგასლის ქუჩის №104 და №106 მისამართებზე, 6 მაისის პარკთან ახლოს.",
       },
       {
-        question: "როგორ გადავამოწმო ფასი და ხელმისაწვდომობა?",
-        answer: `დაუკავშირდით Comfort Building-ის გაყიდვების გუნდს ნომერზე ${CONTACT.phoneDisplay}. გუნდი დაადასტურებს მიმდინარე სტატუსსა და საბოლოო ფასს.`,
+        question: "როგორ გადავამოწმო ხელმისაწვდომობა?",
+        answer: `დაუკავშირდით Comfort Building-ის გაყიდვების გუნდს ნომერზე ${CONTACT.phoneDisplay}. გუნდი დაადასტურებს ბინის მიმდინარე სტატუსს და დათვალიერების დროს.`,
       },
     ],
   },
@@ -123,41 +120,37 @@ const COPY = {
     stats: {
       available: "Published available apartments",
       area: "Available apartment sizes",
-      rate: "Published price / m²",
+      price: "Price",
       location: "104, 106 V. Gorgasali St.",
     },
     introEyebrow: "Comfort House · Batumi",
     introTitle: "Choose a Batumi apartment using concrete figures",
     intro: [
       "This page collects the apartments published for sale in Comfort House. The building is at 104 and 106 V. Gorgasali Street in Batumi, close to May 6 Park.",
-      "Each option shows its interior area, balcony, total area, floor plan, and price per square metre. The estimated total uses the published rate multiplied by the total area.",
+      "Each option shows its interior area, balcony, total area, and floor plan. For prices and more details, call or email the sales team.",
     ],
     projectLink: "Full Comfort House project page",
-    sourceLink: "View the source PDF",
     guideLink: "Apartment buyer guide",
-    inventoryEyebrow: "Prices and availability",
+    inventoryEyebrow: "Availability",
     inventoryTitle: `Compare ${AVAILABLE_APARTMENTS.length} apartments for sale`,
     inventoryLede:
-      "Choose an area and floor, then confirm the final price and current availability with the sales team.",
+      "Choose an area and floor, then contact the sales team for the price and current availability.",
     apartment: "Apartment",
     floor: "Floor",
     interior: "Interior area",
     balcony: "Balcony",
     total: "Total area",
-    rate: "Price / m²",
-    estimate: "Estimated total",
     available: "Available",
     plan: "View floor plan",
     inquire: "Ask about this apartment",
     sourceNote:
-      "Source: Comfort house-2026.pdf. Plan revision: 15.01.2024. Availability and pricing may change.",
+      "Plan revision: 15.01.2024. Availability may change.",
     faqEyebrow: "Buyer questions",
     faqTitle: "What to check before choosing an apartment",
     faqs: [
       {
         question: "How much does an apartment in Comfort House cost?",
-        answer:
-          "Published rates start at $1,750 per square metre and reach $2,500 depending on the floor. Estimated totals for the available apartments shown here start at $71,225.",
+        answer: `Prices are not published on the website. Call the sales team on ${CONTACT.phoneDisplay} or email ${CONTACT.email} for the current price and payment terms.`,
       },
       {
         question: "Which apartment sizes are available?",
@@ -170,8 +163,8 @@ const COPY = {
           "Comfort House is at 104 and 106 V. Gorgasali Street in Batumi, close to May 6 Park.",
       },
       {
-        question: "How do I confirm the price and availability?",
-        answer: `Call the Comfort Building sales team on ${CONTACT.phoneDisplay}. The team will confirm the current status and final price.`,
+        question: "How do I confirm availability?",
+        answer: `Call the Comfort Building sales team on ${CONTACT.phoneDisplay}. The team will confirm the apartment's current status and arrange a viewing.`,
       },
     ],
   },
@@ -181,41 +174,37 @@ const COPY = {
     stats: {
       available: "Опубликованные свободные квартиры",
       area: "Площадь доступных квартир",
-      rate: "Опубликованная цена / м²",
+      price: "Цена",
       location: "ул. В. Горгасали №104, №106",
     },
     introEyebrow: "Comfort House · Батуми",
     introTitle: "Покупка квартиры в Батуми с конкретными цифрами",
     intro: [
       "На этой странице собраны квартиры, опубликованные для продажи в Comfort House. Дом находится в Батуми по адресам ул. В. Горгасали №104 и №106, рядом с парком 6 Мая.",
-      "Для каждого варианта указаны внутренняя площадь, балкон, общая площадь, план этажа и цена за квадратный метр. Расчётная стоимость основана на опубликованной ставке и общей площади.",
+      "Для каждого варианта указаны внутренняя площадь, балкон, общая площадь и план этажа. Цену и подробности уточняйте по телефону или электронной почте.",
     ],
     projectLink: "Полная страница Comfort House",
-    sourceLink: "Открыть исходный PDF",
     guideLink: "Как купить квартиру",
-    inventoryEyebrow: "Цены и наличие",
+    inventoryEyebrow: "Наличие",
     inventoryTitle: `Квартиры в продаже: ${AVAILABLE_APARTMENTS.length}`,
     inventoryLede:
-      "Выберите площадь и этаж. Итоговую цену и текущее наличие уточните у отдела продаж.",
+      "Выберите площадь и этаж, затем уточните цену и текущее наличие в отделе продаж.",
     apartment: "Квартира",
     floor: "Этаж",
     interior: "Внутренняя площадь",
     balcony: "Балкон",
     total: "Общая площадь",
-    rate: "Цена / м²",
-    estimate: "Расчётная стоимость",
     available: "Свободно",
     plan: "Смотреть план этажа",
     inquire: "Спросить об этой квартире",
     sourceNote:
-      "Источник: Comfort house-2026.pdf. Дата плана: 15.01.2024. Наличие и цены могут измениться.",
+      "Дата плана: 15.01.2024. Наличие может измениться.",
     faqEyebrow: "Вопросы покупателей",
     faqTitle: "Что проверить перед выбором квартиры",
     faqs: [
       {
         question: "Сколько стоит квартира в Comfort House?",
-        answer:
-          "Опубликованная цена начинается от $1,750 за квадратный метр и достигает $2,500 в зависимости от этажа. Расчётная стоимость доступных квартир на этой странице начинается от $71,225.",
+        answer: `Цены на сайте не публикуются. Позвоните в отдел продаж по номеру ${CONTACT.phoneDisplay} или напишите на ${CONTACT.email}, чтобы узнать актуальную цену и условия оплаты.`,
       },
       {
         question: "Какие площади квартир доступны?",
@@ -228,8 +217,8 @@ const COPY = {
           "Жилой дом находится в Батуми по адресам ул. В. Горгасали №104 и №106, рядом с парком 6 Мая.",
       },
       {
-        question: "Как уточнить цену и наличие?",
-        answer: `Позвоните в отдел продаж Comfort Building по номеру ${CONTACT.phoneDisplay}. Команда подтвердит текущий статус и итоговую цену.`,
+        question: "Как уточнить наличие?",
+        answer: `Позвоните в отдел продаж Comfort Building по номеру ${CONTACT.phoneDisplay}. Команда подтвердит текущий статус квартиры и согласует просмотр.`,
       },
     ],
   },
@@ -250,10 +239,6 @@ function formatArea(value: number, lang: Lang) {
     lang === "ru" ? "ru-RU" : lang === "ka" ? "ka-GE" : "en-US",
     { maximumFractionDigits: 1 },
   ).format(value);
-}
-
-function formatMoney(value: number) {
-  return `$${Math.round(value).toLocaleString("en-US")}`;
 }
 
 function apartmentName(lang: Lang, number: string) {
@@ -282,9 +267,6 @@ function apartmentsJsonLd(lang: Lang) {
       numberOfItems: AVAILABLE_APARTMENTS.length,
       itemListElement: AVAILABLE_APARTMENTS.map(({ unit }, index) => {
         const number = unit.number ?? unit.id;
-        const estimatedTotal = unit.pricePerSqm
-          ? Math.round(unit.totalArea * unit.pricePerSqm)
-          : undefined;
 
         return {
           "@type": "ListItem",
@@ -293,8 +275,6 @@ function apartmentsJsonLd(lang: Lang) {
             "@type": "Offer",
             url: `${url}#apartment-${number}`,
             availability: "https://schema.org/InStock",
-            priceCurrency: "USD",
-            ...(estimatedTotal ? { price: estimatedTotal } : {}),
             seller: { "@id": `${SITE_URL}/#organization` },
             itemOffered: {
               "@type": "Apartment",
@@ -311,17 +291,6 @@ function apartmentsJsonLd(lang: Lang) {
                 addressCountry: "GE",
               },
             },
-            ...(unit.pricePerSqm
-              ? {
-                  priceSpecification: {
-                    "@type": "UnitPriceSpecification",
-                    price: unit.pricePerSqm,
-                    priceCurrency: "USD",
-                    unitCode: "MTK",
-                    name: copy.rate,
-                  },
-                }
-              : {}),
           },
         };
       }),
@@ -360,14 +329,8 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
   const dict = getDict(lang);
   const copy = COPY[lang];
   const areas = AVAILABLE_APARTMENTS.map(({ unit }) => unit.totalArea);
-  const rates = AVAILABLE_APARTMENTS.flatMap(({ unit }) =>
-    unit.pricePerSqm ? [unit.pricePerSqm] : [],
-  );
   const areaRange = areas.length > 0
     ? `${formatArea(Math.min(...areas), lang)}–${formatArea(Math.max(...areas), lang)} m²`
-    : "—";
-  const rateRange = rates.length > 0
-    ? `${formatMoney(Math.min(...rates))}–${formatMoney(Math.max(...rates))}`
     : "—";
 
   return (
@@ -390,7 +353,17 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
               value: String(AVAILABLE_APARTMENTS.length).padStart(2, "0"),
             },
             { label: copy.stats.area, value: areaRange },
-            { label: copy.stats.rate, value: rateRange },
+            {
+              label: copy.stats.price,
+              value: (
+                <PriceContact
+                  lang={lang}
+                  projectSlug={COMFORT_HOUSE.slug}
+                  placement="apartments-summary"
+                  variant="buttons"
+                />
+              ),
+            },
             { label: dict.titleBlock.location, value: copy.stats.location },
           ].map((stat) => (
             <div
@@ -400,9 +373,13 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
               <p className="font-mono text-[10px] tracking-[0.16em] text-cream/50 uppercase">
                 {stat.label}
               </p>
-              <p className="mt-3 font-mono text-xl leading-snug text-brass md:text-2xl">
-                {stat.value}
-              </p>
+              {typeof stat.value === "string" ? (
+                <p className="mt-3 font-mono text-xl leading-snug text-brass md:text-2xl">
+                  {stat.value}
+                </p>
+              ) : (
+                <div className="mt-3">{stat.value}</div>
+              )}
             </div>
           ))}
         </div>
@@ -427,14 +404,6 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
               >
                 {copy.projectLink}
               </Link>
-              <a
-                href={INVENTORY.sourceHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-12 items-center border border-ink/30 px-6 text-sm font-semibold text-ink transition-colors hover:border-bronze hover:text-bronze"
-              >
-                {copy.sourceLink} <span aria-hidden>↗</span>
-              </a>
               <Link
                 href={`/${lang}/buying-guide`}
                 className="inline-flex min-h-12 items-center border border-ink/30 px-6 text-sm font-semibold text-ink transition-colors hover:border-bronze hover:text-bronze"
@@ -445,18 +414,18 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
           </div>
 
           <figure className="lg:col-span-7">
-            <div className="overflow-hidden border border-ink/15 bg-white p-2 md:p-5">
+            <div className="overflow-hidden border border-ink/15">
               <Image
-                src={FEATURED_PLAN.image.src}
-                alt={FEATURED_PLAN.image.alt[lang]}
-                width={FEATURED_PLAN.image.width}
-                height={FEATURED_PLAN.image.height}
+                src={INTRO_IMAGE.src}
+                alt={INTRO_IMAGE.alt[lang]}
+                width={INTRO_IMAGE.width}
+                height={INTRO_IMAGE.height}
                 sizes="(min-width: 1024px) 58vw, 100vw"
                 className="h-auto w-full"
               />
             </div>
             <figcaption className="mt-3 font-mono text-[10px] tracking-[0.12em] text-ink/55 uppercase">
-              {FEATURED_PLAN.image.alt[lang]}
+              {INTRO_IMAGE.alt[lang]}
             </figcaption>
           </figure>
         </div>
@@ -489,9 +458,6 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
           <div className="mt-14 grid border-t border-l border-cream/15 md:grid-cols-2 xl:grid-cols-3">
             {AVAILABLE_APARTMENTS.map(({ floor, unit }) => {
               const number = unit.number ?? unit.id;
-              const estimatedTotal = unit.pricePerSqm
-                ? Math.round(unit.totalArea * unit.pricePerSqm)
-                : undefined;
 
               return (
                 <article
@@ -513,19 +479,13 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
                     </span>
                   </div>
 
-                  <div className="mt-7 border-y border-cream/12 py-5">
-                    <p className="font-mono text-[9px] tracking-[0.14em] text-cream/40 uppercase">
-                      {copy.estimate}
-                    </p>
-                    <p className="mt-2 font-mono text-3xl text-brass">
-                      {estimatedTotal ? formatMoney(estimatedTotal) : "—"}
-                    </p>
-                    {unit.pricePerSqm ? (
-                      <p className="mt-1 text-sm text-cream/55">
-                        {formatMoney(unit.pricePerSqm)} / m²
-                      </p>
-                    ) : null}
-                  </div>
+                  <PriceContact
+                    lang={lang}
+                    projectSlug={COMFORT_HOUSE.slug}
+                    placement="apartment-card"
+                    topic={apartmentName(lang, number)}
+                    className="mt-7 border-y border-cream/12 py-5"
+                  />
 
                   <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
                     <div>
@@ -556,25 +516,15 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
                         </dd>
                       </div>
                     ) : null}
-                    {unit.pricePerSqm ? (
-                      <div>
-                        <dt className="font-mono text-[9px] tracking-[0.12em] text-cream/40 uppercase">
-                          {copy.rate}
-                        </dt>
-                        <dd className="mt-1 text-cream/80">
-                          {formatMoney(unit.pricePerSqm)}
-                        </dd>
-                      </div>
-                    ) : null}
                   </dl>
 
                   <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
                     <Link
                       href={inquiryHref(lang, COMFORT_HOUSE.slug, number)}
                       data-contact-action="apartment-inquiry"
-                      className="inline-flex min-h-11 items-center bg-brass px-4 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright"
+                      className="link-slide inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-brass-bright"
                     >
-                      {copy.inquire}
+                      {copy.inquire} <span aria-hidden>→</span>
                     </Link>
                     <Link
                       href={`/${lang}/projects/comfort-house#availability`}

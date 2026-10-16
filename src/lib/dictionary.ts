@@ -88,7 +88,7 @@ export const DICT: Record<Lang, Dict> = {
       eyebrow: "Comfort Building · ბათუმი",
       titleA: "სამშენებლო კომპანია",
       titleB: "ბათუმში",
-      lede: "გაეცანით გასაყიდ ბინებს, გამოქვეყნებულ ფასებსა და გეგმებს, ასევე Comfort Building-ის საცხოვრებელ პროექტებს ბათუმსა და თბილისში.",
+      lede: "გაეცანით გასაყიდ ბინებსა და მათ გეგმებს, ასევე Comfort Building-ის საცხოვრებელ პროექტებს ბათუმსა და თბილისში.",
     },
     titleBlock: {
       project: "პროექტი",
@@ -159,7 +159,7 @@ export const DICT: Record<Lang, Dict> = {
       eyebrow: "Comfort Building · Batumi",
       titleA: "Residential developer",
       titleB: "in Batumi",
-      lede: "See apartments for sale, published prices and floor plans, plus Comfort Building's residential projects in Batumi and Tbilisi.",
+      lede: "See apartments for sale and their floor plans, plus Comfort Building's residential projects in Batumi and Tbilisi.",
     },
     titleBlock: {
       project: "Project",
@@ -230,7 +230,7 @@ export const DICT: Record<Lang, Dict> = {
       eyebrow: "Comfort Building · Батуми",
       titleA: "Строительная компания",
       titleB: "в Батуми",
-      lede: "Смотрите квартиры в продаже, опубликованные цены и планировки, а также жилые проекты Comfort Building в Батуми и Тбилиси.",
+      lede: "Смотрите квартиры в продаже и их планировки, а также жилые проекты Comfort Building в Батуми и Тбилиси.",
     },
     titleBlock: {
       project: "Проект",
