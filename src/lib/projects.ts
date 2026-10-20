@@ -13,16 +13,17 @@ const PARNAVAZ_65_RENDER: SiteImage = {
   width: 2400,
   height: 1697,
   alt: {
-    ka: "ფარნავაზი 65 — მშენებარე 8-სართულიანი საცხოვრებელი სახლის ფოტომონტაჟი ფარნავაზ მეფის ქუჩაზე, ბათუმში",
-    en: "Parnavaz 65 — photomontage of the 8-storey residential building under construction on Parnavaz Mepe Street, Batumi",
-    ru: "Парнаваз 65 — фотомонтаж строящегося 8-этажного жилого дома на улице Парнаваз Мепе в Батуми",
+    ka: "ფარნავაზ მეფის ქ. №65 — მშენებარე 8-სართულიანი საცხოვრებელი სახლის ფოტომონტაჟი ბათუმში",
+    en: "Parnavaz Mepe St. №65 — photomontage of the 8-storey residential building under construction in Batumi",
+    ru: "ул. Парнаваз Мепе №65 — фотомонтаж строящегося 8-этажного жилого дома в Батуми",
   },
 };
 
 /**
  * Transcribed from the sales team's sheet "ქალაქი ბათუმი, ფარნავაზ მეფის
  * ქუჩა #65.pdf". Prices are per m² of total area; apartments not listed are
- * sold, and floor VIII is not for sale.
+ * sold, and floor VIII is not for sale. Apartment 701 was confirmed sold on
+ * 20 October 2026 and removed from the available inventory.
  */
 const PARNAVAZ_65_PRICE_LIST: ProjectPriceList = {
   asOf: { ka: "ოქტომბერი 2026", en: "October 2026", ru: "Октябрь 2026" },
@@ -43,7 +44,6 @@ const PARNAVAZ_65_PRICE_LIST: ProjectPriceList = {
     { number: "606", floor: 6, totalArea: 50.1, pricePerSqm: 3600 },
     { number: "607", floor: 6, totalArea: 55.1, pricePerSqm: 3600 },
     { number: "608", floor: 6, totalArea: 117, pricePerSqm: 3500 },
-    { number: "701", floor: 7, totalArea: 55.3, pricePerSqm: 3500 },
     { number: "703", floor: 7, totalArea: 46.3, pricePerSqm: 3700 },
     { number: "704", floor: 7, totalArea: 46.5, pricePerSqm: 3700 },
     { number: "705", floor: 7, totalArea: 43.4, pricePerSqm: 3700 },
@@ -108,9 +108,9 @@ function parnavazLayout(
       width,
       height,
       alt: {
-        ka: `ფარნავაზი 65 — ${area} მ² ბინის გეგმა და ინტერიერის კონცეფცია`,
-        en: `Parnavaz 65 — ${area} m² apartment layout and interior concept`,
-        ru: `Парнаваз 65 — планировка квартиры ${areaRu} м² и концепция интерьера`,
+        ka: `ფარნავაზ მეფის ქ. №65 — ${area} მ² ბინის გეგმა და ინტერიერის კონცეფცია`,
+        en: `Parnavaz Mepe St. №65 — ${area} m² apartment layout and interior concept`,
+        ru: `ул. Парнаваз Мепе №65 — планировка квартиры ${areaRu} м² и концепция интерьера`,
       },
     },
   };
@@ -128,9 +128,9 @@ export const PROJECTS: readonly Project[] = [
     accent: "#C98A5E",
     status: "ongoing",
     name: {
-      ka: "ფარნავაზი 65",
-      en: "Parnavaz 65",
-      ru: "Парнаваз 65",
+      ka: "ფარნავაზ მეფის ქ. №65",
+      en: "Parnavaz Mepe St. №65",
+      ru: "ул. Парнаваз Мепе №65",
     },
     city: { ka: "ბათუმი", en: "Batumi", ru: "Батуми" },
     address: {
@@ -156,15 +156,15 @@ export const PROJECTS: readonly Project[] = [
     },
     description: {
       ka: [
-        "„ფარნავაზი 65“ — Comfort Building-ის ახალი, მშენებარე 8-სართულიანი საცხოვრებელი სახლია ბათუმში, ფარნავაზ მეფის ქუჩის №65-ში. ბინები უკვე იყიდება პირდაპირ დეველოპერისგან.",
+        "Comfort Building-ის ახალი, მშენებარე 8-სართულიანი საცხოვრებელი სახლი მდებარეობს ბათუმში, ფარნავაზ მეფის ქუჩის №65-ში. ბინები უკვე იყიდება პირდაპირ დეველოპერისგან.",
         `სახლში შვიდი ტიპის ბინაა — 45.7 მ²-იანი ერთსაძინებლიანიდან 117 მ²-იან ორსაძინებლიან ბინამდე, თითოეული აივნით. ინტერიერის კონცეფციები შესრულებულია მშვიდ, ბუნებრივ Japandi სტილში. ფასი 1 მ²-ზე ${formatUsd(P65.minRate)}-დან იწყება.`,
       ],
       en: [
-        "Parnavaz 65 is a new 8-storey residential building by Comfort Building, under construction at 65 Parnavaz Mepe Street in Batumi. Apartments are already on sale directly from the developer.",
+        "A new 8-storey residential building by Comfort Building is under construction at 65 Parnavaz Mepe Street in Batumi. Apartments are already on sale directly from the developer.",
         `There are seven apartment layouts, from a 45.7 m² one-bedroom home to a 117 m² two-bedroom apartment, each with a balcony. The interior concepts follow a calm, natural Japandi style. Prices start at ${formatUsd(P65.minRate)} per m².`,
       ],
       ru: [
-        "«Парнаваз 65» — новый строящийся 8-этажный жилой дом Comfort Building в Батуми, на улице Парнаваз Мепе №65. Квартиры уже продаются напрямую от застройщика.",
+        "Новый 8-этажный жилой дом Comfort Building строится в Батуми, на улице Парнаваз Мепе №65. Квартиры уже продаются напрямую от застройщика.",
         `В доме семь планировок — от квартиры 45,7 м² с одной спальней до квартиры 117 м² с двумя спальнями, у каждой есть балкон. Концепции интерьера выполнены в спокойном природном стиле japandi. Цена — от ${formatUsd(P65.minRate)} за м².`,
       ],
     },
@@ -232,7 +232,7 @@ export const PROJECTS: readonly Project[] = [
     faqs: {
       ka: [
         {
-          question: "სად მდებარეობს „ფარნავაზი 65“?",
+          question: "სად მდებარეობს სახლი?",
           answer: "სახლი მდებარეობს ბათუმში, ფარნავაზ მეფის ქუჩის №65-ში.",
         },
         {
@@ -240,7 +240,7 @@ export const PROJECTS: readonly Project[] = [
           answer: `III–VII სართულებზე იყიდება ${P65.count} ბინა, ${P65.minArea}-დან ${P65.maxArea} მ²-მდე. ძირითადი ტიპებია ერთსაძინებლიანი — 45.7, 46.5, 50.1 და 55.1 მ², და ორსაძინებლიანი — 55.3, 76.4 და 117 მ², ყველა აივნით.`,
         },
         {
-          question: "რა ღირს ბინა „ფარნავაზი 65“-ში?",
+          question: "რა ღირს ბინა ფარნავაზ მეფის ქ. №65-ში?",
           answer: `თავისუფალი ბინების ფასი 1 მ²-ზე ${formatUsd(P65.minRate)}-დან ${formatUsd(P65.maxRate)}-მდეა, სართულისა და მდებარეობის მიხედვით. სავარაუდო სრული ღირებულება ${formatUsd(P65.minTotal)}-დან იწყება. საბოლოო ფასი დააზუსტეთ გაყიდვების გუნდთან: ${CONTACT.phoneDisplay}.`,
         },
         {
@@ -250,12 +250,12 @@ export const PROJECTS: readonly Project[] = [
         {
           question: "სახლი უკვე შენდება?",
           answer:
-            "დიახ. „ფარნავაზი 65“ მშენებარე 8-სართულიანი საცხოვრებელი სახლია, ბინები კი უკვე იყიდება პირდაპირ Comfort Building-ისგან.",
+            "დიახ. ფარნავაზ მეფის ქ. №65-ში 8-სართულიანი საცხოვრებელი სახლი შენდება, ბინები კი უკვე იყიდება პირდაპირ Comfort Building-ისგან.",
         },
       ],
       en: [
         {
-          question: "Where is Parnavaz 65?",
+          question: "Where is the building?",
           answer: "The building is at 65 Parnavaz Mepe Street in Batumi.",
         },
         {
@@ -263,7 +263,7 @@ export const PROJECTS: readonly Project[] = [
           answer: `${P65.count} apartments from ${P65.minArea} to ${P65.maxArea} m² are for sale on floors III–VII. The main layouts are one-bedroom apartments of 45.7, 46.5, 50.1 and 55.1 m², and two-bedroom apartments of 55.3, 76.4 and 117 m², each with a balcony.`,
         },
         {
-          question: "How much does an apartment in Parnavaz 65 cost?",
+          question: "How much does an apartment at 65 Parnavaz Mepe Street cost?",
           answer: `Available apartments cost ${formatUsd(P65.minRate)} to ${formatUsd(P65.maxRate)} per m², depending on the floor and position. Estimated totals start at ${formatUsd(P65.minTotal)}. Confirm the final price with the sales team on ${CONTACT.phoneDisplay}.`,
         },
         {
@@ -273,12 +273,12 @@ export const PROJECTS: readonly Project[] = [
         {
           question: "Is the building under construction?",
           answer:
-            "Yes. Parnavaz 65 is an 8-storey residential building under construction, and apartments are already on sale directly from Comfort Building.",
+            "Yes. The 8-storey residential building at 65 Parnavaz Mepe Street is under construction, and apartments are already on sale directly from Comfort Building.",
         },
       ],
       ru: [
         {
-          question: "Где находится «Парнаваз 65»?",
+          question: "Где находится дом?",
           answer: "Дом находится в Батуми, на улице Парнаваз Мепе №65.",
         },
         {
@@ -286,7 +286,7 @@ export const PROJECTS: readonly Project[] = [
           answer: `На III–VII этажах в продаже ${P65.count} ${ruApartments(P65.count)} площадью от ${String(P65.minArea).replace(".", ",")} до ${P65.maxArea} м². Основные планировки — с одной спальней (45,7, 46,5, 50,1 и 55,1 м²) и с двумя спальнями (55,3, 76,4 и 117 м²), у каждой есть балкон.`,
         },
         {
-          question: "Сколько стоит квартира в «Парнаваз 65»?",
+          question: "Сколько стоит квартира на ул. Парнаваз Мепе №65?",
           answer: `Свободные квартиры стоят от ${formatUsd(P65.minRate)} до ${formatUsd(P65.maxRate)} за м² в зависимости от этажа и расположения. Расчётная стоимость — от ${formatUsd(P65.minTotal)}. Итоговую цену уточните в отделе продаж: ${CONTACT.phoneDisplay}.`,
         },
         {
@@ -296,7 +296,7 @@ export const PROJECTS: readonly Project[] = [
         {
           question: "Дом уже строится?",
           answer:
-            "Да. «Парнаваз 65» — строящийся 8-этажный жилой дом, квартиры уже продаются напрямую от Comfort Building.",
+            "Да. На ул. Парнаваз Мепе №65 строится 8-этажный жилой дом, квартиры уже продаются напрямую от Comfort Building.",
         },
       ],
     },

@@ -20,12 +20,23 @@ npm run build
 npm run check:analytics
 npm run check:inquiries
 npm run check:carousel
+npm run check:explorer
 ```
 
 Run `npm run check:seo` against a running production build. Use `SEO_BASE_URL` when it is not on port 3000.
 Run `npm run check:search-content` against the same server to check readable headings and complete, non-duplicated business/project entities on every sitemap page.
 Run `npm run check:inquiry-endpoint` against the development server on port 3001, or set `INQUIRY_BASE_URL`. This check sends only invalid requests and does not send emails.
 For a locally served production build, also set `INQUIRY_ORIGIN=https://www.comfortbuilding.ge`; production intentionally rejects localhost origins.
+
+## Parnavaz Mepe St. №65 apartment explorer
+
+The project page has an eight-floor facade selector and seven furnished Three.js apartment concepts reconstructed from the supplied design boards. Floor outlines use the original facade image's coordinate system; preserve its full aspect ratio when changing the layout.
+
+Apartment availability and prices come from the project price list. Models match exact apartment areas only: 45.7, 46.5, 50.1, 55.1, 55.3, 76.4, and 117 m². Units without a matching board show a plan inquiry instead of an unrelated model. The 3D dimensions, furniture, and finishes are illustrative, not construction drawings.
+
+The working Three.js viewer is currently enabled only by `npm run dev`, through the compile-time `NODE_ENV === "development"` gate in `parnavaz-explorer.tsx`. Production and preview builds show a localized "3D coming soon" panel instead, with the supplied design, prices, and inquiry link still available. Do not remove this gate until the 3D release is approved.
+
+All seven model definitions and the viewer remain in source control for continued local development. The viewer supports orbit, room views, top view, and a supplied-design fallback. Inquiry links retain both the project and apartment number; numbers are not unique across projects.
 
 ## Inquiry delivery and analytics
 

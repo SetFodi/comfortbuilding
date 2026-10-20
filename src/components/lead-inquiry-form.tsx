@@ -191,14 +191,14 @@ export function LeadInquiryForm({ lang, projects }: { readonly lang: Lang; reado
                 </select>
               </label>
               <label className="mt-6 block"><span className={LABEL}>{copy.interest}</span>
-                <select name="interest" value={interest} onChange={(event) => {
+                <select name="interest" value={interest.startsWith("apartment-") ? `apartment-${projectSlug}/${interest.slice(10)}` : interest} onChange={(event) => {
                   const value = event.target.value;
-                  const selected = choices.find((unit) => `apartment-${unit.id}` === value);
-                  selectContext(selected?.projectSlug ?? projectSlug, value);
+                  const selected = choices.find((unit) => `apartment-${unit.projectSlug}/${unit.id}` === value);
+                  selectContext(selected?.projectSlug ?? projectSlug, selected ? `apartment-${selected.id}` : value);
                 }} className={INPUT}>
                   <option value="general">{copy.general}</option>
                   <option value="apartments">{copy.apartments}</option>
-                  {choices.map((unit) => <option key={`${unit.projectSlug}/${unit.id}`} value={`apartment-${unit.id}`}>{copy.apartment} {unit.number}{!project ? ` · ${unit.projectName}` : ""}</option>)}
+                  {choices.map((unit) => <option key={`${unit.projectSlug}/${unit.id}`} value={`apartment-${unit.projectSlug}/${unit.id}`}>{copy.apartment} {unit.number}{!project ? ` · ${unit.projectName}` : ""}</option>)}
                 </select>
               </label>
               <label className="mt-6 block"><span className={LABEL}>{copy.message}</span>

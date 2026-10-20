@@ -6,6 +6,7 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { getDict } from "@/lib/dictionary";
 import { PROJECTS } from "@/lib/projects";
+import { inquiryApartments } from "@/lib/inquiry-context";
 import { CONTACT } from "@/lib/site";
 import {
   breadcrumbJsonLd,
@@ -87,9 +88,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const inquiryProjects = PROJECTS.map((project) => ({
     slug: project.slug,
     name: project.name[lang],
-    apartments: (project.inventory?.floors ?? []).flatMap((floor) => floor.units)
-      .filter((unit) => unit.kind === "apartment" && unit.status === "available" && unit.number)
-      .map((unit) => ({ id: unit.id, number: unit.number! })),
+    apartments: inquiryApartments(project),
   }));
 
   const details = [

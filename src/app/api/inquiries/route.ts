@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { PROJECTS } from "@/lib/projects";
 import { CONTACT } from "@/lib/site";
 import { inquiryEmailText, parseInquiry } from "@/lib/inquiry-validation";
+import { inquiryApartments } from "@/lib/inquiry-context";
 
 export const runtime = "nodejs";
 export const maxDuration = 15;
@@ -58,9 +59,7 @@ export async function POST(request: Request) {
   const projects = PROJECTS.map((project) => ({
     slug: project.slug,
     name: project.name[lang === "ka" || lang === "ru" ? lang : "en"],
-    apartments: (project.inventory?.floors ?? []).flatMap((floor) => floor.units)
-      .filter((unit) => unit.kind === "apartment" && unit.status === "available" && unit.number)
-      .map((unit) => ({ id: unit.id, number: unit.number! })),
+    apartments: inquiryApartments(project),
   }));
   const parsed = parseInquiry(body, projects);
   if (!parsed.ok) return response(parsed.error, 400);

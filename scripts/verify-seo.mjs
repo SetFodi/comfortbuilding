@@ -180,11 +180,49 @@ for (const language of languages) {
     html.includes("data-lead-inquiry"),
     `/${language}/contact must render the guided inquiry form`,
   );
-  assert.equal(
-    html.match(/<option value="apartment-[^"]+"/g)?.length,
-    10,
-    `/${language}/contact must offer all 10 available apartments`,
+  const interestSelect = html.match(
+    /<select\b[^>]*\bname="interest"[^>]*>([\s\S]*?)<\/select>/i,
+  )?.[1];
+  assert.ok(interestSelect, `/${language}/contact must expose inquiry topics`);
+  const apartmentOptions = Array.from(
+    interestSelect.matchAll(
+      /<option\b[^>]*\bvalue="(apartment-[^"]+)"[^>]*>([\s\S]*?)<\/option>/gi,
+    ),
+    (match) => ({ value: match[1], label: match[2].replace(/<[^>]*>/g, "") }),
   );
+  const apartmentLabels = apartmentOptions.map((option) => option.label);
+  assert.equal(
+    apartmentLabels.length,
+    30,
+    `/${language}/contact must offer all 30 available apartments`,
+  );
+  assert.equal(
+    new Set(apartmentOptions.map((option) => option.value)).size,
+    apartmentOptions.length,
+    `/${language}/contact apartment choices must have unique values across projects`,
+  );
+  for (const [slug, expectedCount, includes701] of [
+    ["comfort-house", 10, false],
+    ["parnavaz-65", 20, false],
+  ]) {
+    const projectName = html.match(
+      new RegExp(`<option\\b[^>]*\\bvalue="${slug}"[^>]*>([\\s\\S]*?)<\\/option>`, "i"),
+    )?.[1].replace(/<[^>]*>/g, "");
+    assert.ok(projectName, `/${language}/contact must include project ${slug}`);
+    const projectApartments = apartmentLabels.filter(
+      (label) => label.endsWith(` · ${projectName}`),
+    );
+    assert.equal(
+      projectApartments.length,
+      expectedCount,
+      `/${language}/contact must offer ${expectedCount} apartments for ${slug}`,
+    );
+    assert.equal(
+      projectApartments.some((label) => /\b701\b/.test(label)),
+      includes701,
+      `/${language}/contact must preserve apartment 701's availability for ${slug}`,
+    );
+  }
   assert.ok(
     html.includes('"@type":"ContactPoint"'),
     `/${language}/contact must publish sales contact structured data`,

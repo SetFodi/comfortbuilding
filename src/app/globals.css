@@ -93,6 +93,27 @@ a {
   background-size: clamp(3rem, 7vw, 6.5rem) clamp(3rem, 7vw, 6.5rem);
 }
 
+.apartment-explorer-dialog[open] {
+  animation: apartment-entry 420ms cubic-bezier(0.2, 0.65, 0.25, 1) both;
+}
+
+@keyframes apartment-entry {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apartment-explorer-dialog[open] {
+    animation: none;
+  }
+}
+
 .datum-line {
   position: relative;
 }

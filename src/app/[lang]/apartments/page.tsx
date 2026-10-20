@@ -36,7 +36,7 @@ const PARNAVAZ_65_PRICES = priceListSummary(PARNAVAZ_65.priceList!);
 const NEW_PROJECT_COPY = {
   ka: {
     eyebrow: "ახალი პროექტი · ბათუმი",
-    title: "ფარნავაზი 65 — მშენებარე სახლი",
+    title: PARNAVAZ_65.name.ka,
     price: `${formatUsd(PARNAVAZ_65_PRICES.minRate)}-დან / მ² · იყიდება ${PARNAVAZ_65_PRICES.count} ბინა`,
     prices: "ფასები და თავისუფალი ბინები",
     unit: "მ²",
@@ -44,7 +44,7 @@ const NEW_PROJECT_COPY = {
   },
   en: {
     eyebrow: "New project · Batumi",
-    title: "Parnavaz 65 — under construction",
+    title: PARNAVAZ_65.name.en,
     price: `from ${formatUsd(PARNAVAZ_65_PRICES.minRate)} / m² · ${PARNAVAZ_65_PRICES.count} apartments for sale`,
     prices: "Prices and availability",
     unit: "m²",
@@ -52,7 +52,7 @@ const NEW_PROJECT_COPY = {
   },
   ru: {
     eyebrow: "Новый проект · Батуми",
-    title: "Парнаваз 65 — строящийся дом",
+    title: PARNAVAZ_65.name.ru,
     price: `от ${formatUsd(PARNAVAZ_65_PRICES.minRate)} / м² · ${PARNAVAZ_65_PRICES.count} ${ruApartments(PARNAVAZ_65_PRICES.count)} в продаже`,
     prices: "Цены и наличие",
     unit: "м²",
@@ -88,9 +88,9 @@ const TITLE: Localized = {
 };
 
 const DESCRIPTION: Localized = {
-  ka: "იყიდება ბინები ბათუმში პირდაპირ დეველოპერისგან: Comfort House და მშენებარე „ფარნავაზი 65“. შეადარეთ ფართობები და სართულები, ფასისთვის კი დაუკავშირდით გაყიდვების გუნდს.",
-  en: "Apartments for sale in Batumi direct from the developer: Comfort House and the new Parnavaz 65. Compare areas and floors, then call or email the sales team for prices.",
-  ru: "Квартиры в Батуми от застройщика: Comfort House и строящийся «Парнаваз 65». Сравните площадь и этаж, а цену уточните в отделе продаж.",
+  ka: "იყიდება ბინები ბათუმში პირდაპირ დეველოპერისგან: Comfort House და მშენებარე სახლი ფარნავაზ მეფის ქ. №65-ში. შეადარეთ ფართობები და სართულები, ფასისთვის კი დაუკავშირდით გაყიდვების გუნდს.",
+  en: "Apartments for sale in Batumi direct from the developer: Comfort House and the new building at 65 Parnavaz Mepe Street. Compare areas and floors, then contact sales.",
+  ru: "Квартиры в Батуми от застройщика: Comfort House и строящийся дом на ул. Парнаваз Мепе №65. Сравните площадь и этаж, а цену уточните в отделе продаж.",
 };
 
 const COPY = {

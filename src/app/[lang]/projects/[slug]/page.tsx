@@ -7,6 +7,7 @@ import { ContactBand } from "@/components/contact-band";
 import { Gallery } from "@/components/gallery";
 import { JsonLd } from "@/components/json-ld";
 import { PlanViewer } from "@/components/plan-viewer";
+import { ParnavazExplorer } from "@/components/parnavaz-explorer";
 import { PriceContact } from "@/components/price-contact";
 import { ProjectPriceList } from "@/components/project-price-list";
 import { Reveal } from "@/components/reveal";
@@ -83,6 +84,12 @@ const VIEW_LAYOUTS: Localized = {
   ka: "ბინების ტიპების ნახვა",
   en: "View apartment layouts",
   ru: "Смотреть планировки",
+};
+
+const EXPLORE_APARTMENTS: Localized = {
+  ka: "აირჩიეთ სართული",
+  en: "Choose a floor",
+  ru: "Выбрать этаж",
 };
 
 const BUYER_QUESTIONS: Localized = {
@@ -516,6 +523,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   </p>
                   {(project.layouts || project.priceList) && (
                     <div className="mt-5 flex flex-wrap gap-x-6">
+                      {project.slug === "parnavaz-65" && project.priceList && project.layouts && (
+                        <a
+                          href="#explore"
+                          className="link-slide inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-bronze"
+                        >
+                          {EXPLORE_APARTMENTS[lang]} <span aria-hidden>↓</span>
+                        </a>
+                      )}
                       {project.priceList && (
                         <a
                           href="#prices"
@@ -547,6 +562,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             )}
           </div>
         </section>
+
+        {project.slug === "parnavaz-65" && project.priceList && project.layouts && (
+          <ParnavazExplorer
+            lang={lang}
+            projectName={project.name[lang]}
+            priceList={project.priceList}
+            layouts={project.layouts}
+          />
+        )}
 
         {project.layouts && project.layouts.length > 0 && (
           <section
