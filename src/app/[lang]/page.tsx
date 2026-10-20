@@ -14,7 +14,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { ServicesSection } from "@/components/services-section";
 import { StatBand } from "@/components/stat-band";
 import { getDict } from "@/lib/dictionary";
-import { PROJECTS } from "@/lib/projects";
+import { PROJECTS, projectFloors, projectPeriod } from "@/lib/projects";
 import { COMPANY_NAME } from "@/lib/site";
 import {
   HOME_DESCRIPTIONS,
@@ -72,9 +72,10 @@ export default async function HomePage({ params }: HomePageProps) {
         name: project.name[lang],
         city: project.city[lang],
         address: project.address[lang],
-        floors: project.floorsLabel,
-        startYear: project.startYear,
-        endYear: project.endYear,
+        floors: project.floorsLabel
+          ? `${project.floorsLabel} ${dict.titleBlock.floors.toLowerCase()}`
+          : `${dict.titleBlock.floors}: ${projectFloors(project, dict.misc.tba)}`,
+        period: projectPeriod(project, dict.misc.tba),
         status: project.status,
         cover: {
           src: image.src,
@@ -116,7 +117,6 @@ export default async function HomePage({ params }: HomePageProps) {
               lang={lang}
               projects={registerItems}
               labels={{
-                floors: dict.titleBlock.floors,
                 ongoing: dict.status.ongoing,
                 completed: dict.status.completed,
               }}

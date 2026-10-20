@@ -108,10 +108,10 @@ export interface Stat {
   readonly label: Localized;
 }
 
-/** Stable portfolio facts derived from the six project pages in the official sitemap. */
+/** Stable portfolio facts derived from the published project pages. */
 export const STATS: readonly Stat[] = [
   {
-    value: "6",
+    value: "7",
     label: {
       ka: "ოფიციალურ არქივში გამოქვეყნებული პროექტი",
       en: "Projects in the official archive",

@@ -70,6 +70,7 @@ export interface Dict {
     readonly next: string;
     readonly skipContent: string;
     readonly sourceData: string;
+    readonly tba: string;
     readonly llc: string;
   };
 }
@@ -103,7 +104,7 @@ export const DICT: Record<Lang, Dict> = {
     status: { ongoing: "მიმდინარე", completed: "დასრულებული" },
     sections: {
       projects: "პროექტების რეესტრი",
-      projectsLede: "ექვსი გამოქვეყნებული საცხოვრებელი პროექტი ბათუმსა და თბილისში.",
+      projectsLede: "შვიდი გამოქვეყნებული საცხოვრებელი პროექტი ბათუმსა და თბილისში.",
       about: "ჩვენ შესახებ",
       services: "მომსახურება",
       contact: "კონტაქტი",
@@ -143,6 +144,7 @@ export const DICT: Record<Lang, Dict> = {
       skipContent: "კონტენტზე გადასვლა",
       sourceData:
         "ფასი და ხელმისაწვდომობა ნაჩვენებია წყარო ვებსაიტზე გამოქვეყნებული მონაცემებით — მიმდინარე ინფორმაცია გადაამოწმეთ კომპანიასთან.",
+      tba: "დაზუსტდება",
       llc: "შპს „კომფორტ ბილდინგი“",
     },
   },
@@ -174,7 +176,7 @@ export const DICT: Record<Lang, Dict> = {
     status: { ongoing: "Ongoing", completed: "Completed" },
     sections: {
       projects: "Project register",
-      projectsLede: "Six published residential projects across Batumi and Tbilisi.",
+      projectsLede: "Seven published residential projects across Batumi and Tbilisi.",
       about: "About us",
       services: "Services",
       contact: "Contact",
@@ -214,6 +216,7 @@ export const DICT: Record<Lang, Dict> = {
       skipContent: "Skip to content",
       sourceData:
         "Price and availability are shown as published on the source website — confirm current details with the company.",
+      tba: "TBA",
       llc: "LLC Comfort Building",
     },
   },
@@ -245,7 +248,7 @@ export const DICT: Record<Lang, Dict> = {
     status: { ongoing: "Строится", completed: "Завершён" },
     sections: {
       projects: "Реестр проектов",
-      projectsLede: "Шесть опубликованных жилых проектов в Батуми и Тбилиси.",
+      projectsLede: "Семь опубликованных жилых проектов в Батуми и Тбилиси.",
       about: "О нас",
       services: "Услуги",
       contact: "Контакты",
@@ -285,6 +288,7 @@ export const DICT: Record<Lang, Dict> = {
       skipContent: "Перейти к содержанию",
       sourceData:
         "Цена и наличие показаны по данным исходного сайта — уточните актуальную информацию у компании.",
+      tba: "Уточняется",
       llc: "ООО «Комфорт Билдинг»",
     },
   },

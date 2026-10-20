@@ -71,7 +71,7 @@ function MarqueeCopy({
             </span>
           </div>
 
-          <div className="w-32 shrink-0 border-l border-cream/15 px-6 py-5">
+          <div className="min-w-32 shrink-0 border-l border-cream/15 px-6 py-5">
             <span className="font-mono text-[10px] tracking-[0.22em] text-cream/45 uppercase">
               {labels.floors}
             </span>

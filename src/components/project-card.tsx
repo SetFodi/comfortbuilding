@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Dict } from "@/lib/dictionary";
+import { projectPeriod } from "@/lib/projects";
 import type { Lang, Project } from "@/lib/types";
 import { StatusChip } from "./status-chip";
 
@@ -33,7 +34,7 @@ export function ProjectCard({ lang, dict, project }: ProjectCardProps) {
           {project.name[lang]}
         </h3>
         <span className="shrink-0 font-mono text-xs text-cream/45">
-          {project.startYear}–{project.endYear}
+          {projectPeriod(project, dict.misc.tba)}
         </span>
       </div>
       <p className="mt-1.5 text-sm text-cream/55">

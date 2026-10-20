@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Fragment, type CSSProperties } from "react";
 import type { Dict } from "@/lib/dictionary";
 import { CONTACT } from "@/lib/site";
+import { projectFloors } from "@/lib/projects";
 import type { Lang, Project } from "@/lib/types";
 import {
   HeroProjectCarousel,
@@ -59,7 +60,7 @@ export function Hero({ lang, dict, projects }: HeroProps) {
       city: project.city[lang],
       address: project.address[lang],
       status: dict.status[project.status],
-      floors: project.floorsLabel,
+      floors: projectFloors(project, dict.misc.tba),
       image: {
         src: image.src,
         alt: image.alt[lang],

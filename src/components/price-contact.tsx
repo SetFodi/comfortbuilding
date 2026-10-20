@@ -4,6 +4,8 @@ import type { Lang } from "@/lib/types";
 interface PriceContactProps {
   readonly lang: Lang;
   readonly projectSlug: string;
+  /** Opens the email subject line. */
+  readonly projectName?: string;
   /** Used as the `data-contact-action` prefix for analytics. */
   readonly placement: string;
   /** Appended to the email subject, e.g. "Apartment №802". */
@@ -20,21 +22,21 @@ const COPY = {
     prompt: "ფასი მოთხოვნით — დეტალებისთვის დაგვიკავშირდით.",
     call: "დაგვირეკეთ",
     email: "მოგვწერეთ",
-    subject: "Comfort House — ფასის მოთხოვნა",
+    subject: "ფასის მოთხოვნა",
   },
   en: {
     label: "Price",
     prompt: "Price on request — contact us for more details.",
     call: "Call us",
     email: "Email us",
-    subject: "Comfort House — price inquiry",
+    subject: "price inquiry",
   },
   ru: {
     label: "Цена",
     prompt: "Цена по запросу — свяжитесь с нами для подробностей.",
     call: "Позвонить",
     email: "Написать",
-    subject: "Comfort House — запрос цены",
+    subject: "запрос цены",
   },
 } as const;
 
@@ -42,6 +44,7 @@ const COPY = {
 export function PriceContact({
   lang,
   projectSlug,
+  projectName = "Comfort House",
   placement,
   topic,
   tone = "dark",
@@ -49,7 +52,8 @@ export function PriceContact({
   className = "",
 }: PriceContactProps) {
   const copy = COPY[lang];
-  const subject = topic ? `${copy.subject}, ${topic}` : copy.subject;
+  const base = `${projectName} — ${copy.subject}`;
+  const subject = topic ? `${base}, ${topic}` : base;
   const mailto = `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}`;
   const onLight = tone === "light";
 

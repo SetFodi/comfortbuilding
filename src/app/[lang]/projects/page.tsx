@@ -10,7 +10,7 @@ import {
 } from "@/components/projects-browser";
 import { SectionHeading } from "@/components/section-heading";
 import { getDict } from "@/lib/dictionary";
-import { PROJECTS } from "@/lib/projects";
+import { PROJECTS, projectFloors, projectPeriod } from "@/lib/projects";
 import {
   absoluteUrl,
   breadcrumbJsonLd,
@@ -113,9 +113,8 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
       city: project.city[lang],
       address: project.address[lang],
       summary: project.summary[lang],
-      floors: project.floorsLabel,
-      startYear: project.startYear,
-      endYear: project.endYear,
+      floors: projectFloors(project, dict.misc.tba),
+      period: projectPeriod(project, dict.misc.tba),
       status: project.status,
       accent: project.accent,
       image: { src: image.src, alt: image.alt[lang] },

@@ -25,7 +25,7 @@ const canonicalUrls = Array.from(
   (match) => match[1],
 );
 
-assert.equal(canonicalUrls.length, 36, "sitemap must contain 36 page URLs");
+assert.equal(canonicalUrls.length, 39, "sitemap must contain 39 page URLs");
 assert.equal(
   new Set(canonicalUrls).size,
   canonicalUrls.length,

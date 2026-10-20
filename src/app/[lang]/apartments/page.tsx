@@ -7,7 +7,12 @@ import { JsonLd } from "@/components/json-ld";
 import { PageHero } from "@/components/page-hero";
 import { PriceContact } from "@/components/price-contact";
 import { getDict } from "@/lib/dictionary";
-import { PROJECTS } from "@/lib/projects";
+import {
+  formatUsd,
+  priceListSummary,
+  PROJECTS,
+  ruApartments,
+} from "@/lib/projects";
 import {
   absoluteUrl,
   breadcrumbJsonLd,
@@ -25,6 +30,35 @@ const COMFORT_HOUSE = PROJECTS.find(
   (project) => project.slug === "comfort-house",
 )!;
 const INVENTORY = COMFORT_HOUSE.inventory!;
+const PARNAVAZ_65 = PROJECTS.find((project) => project.slug === "parnavaz-65")!;
+const PARNAVAZ_65_PRICES = priceListSummary(PARNAVAZ_65.priceList!);
+
+const NEW_PROJECT_COPY = {
+  ka: {
+    eyebrow: "ახალი პროექტი · ბათუმი",
+    title: "ფარნავაზი 65 — მშენებარე სახლი",
+    price: `${formatUsd(PARNAVAZ_65_PRICES.minRate)}-დან / მ² · იყიდება ${PARNAVAZ_65_PRICES.count} ბინა`,
+    prices: "ფასები და თავისუფალი ბინები",
+    unit: "მ²",
+    link: `${PARNAVAZ_65.layouts!.length} ტიპის ბინის ნახვა`,
+  },
+  en: {
+    eyebrow: "New project · Batumi",
+    title: "Parnavaz 65 — under construction",
+    price: `from ${formatUsd(PARNAVAZ_65_PRICES.minRate)} / m² · ${PARNAVAZ_65_PRICES.count} apartments for sale`,
+    prices: "Prices and availability",
+    unit: "m²",
+    link: `See all ${PARNAVAZ_65.layouts!.length} layouts`,
+  },
+  ru: {
+    eyebrow: "Новый проект · Батуми",
+    title: "Парнаваз 65 — строящийся дом",
+    price: `от ${formatUsd(PARNAVAZ_65_PRICES.minRate)} / м² · ${PARNAVAZ_65_PRICES.count} ${ruApartments(PARNAVAZ_65_PRICES.count)} в продаже`,
+    prices: "Цены и наличие",
+    unit: "м²",
+    link: `Смотреть ${PARNAVAZ_65.layouts!.length} планировок`,
+  },
+} as const;
 const HERO_IMAGE =
   COMFORT_HOUSE.heroImage ??
   COMFORT_HOUSE.listingImage ??
@@ -54,9 +88,9 @@ const TITLE: Localized = {
 };
 
 const DESCRIPTION: Localized = {
-  ka: "Comfort House-ში გასაყიდად გამოქვეყნებული ბინები ბათუმში. შეადარეთ ფართობები და სართულები, ფასისთვის კი დაუკავშირდით გაყიდვების გუნდს.",
-  en: "Published apartments for sale in Comfort House, Batumi. Compare areas and floors, then call or email the sales team for prices.",
-  ru: "Опубликованные квартиры в продаже в Comfort House, Батуми. Сравните площадь и этаж, а цену уточните в отделе продаж.",
+  ka: "იყიდება ბინები ბათუმში პირდაპირ დეველოპერისგან: Comfort House და მშენებარე „ფარნავაზი 65“. შეადარეთ ფართობები და სართულები, ფასისთვის კი დაუკავშირდით გაყიდვების გუნდს.",
+  en: "Apartments for sale in Batumi direct from the developer: Comfort House and the new Parnavaz 65. Compare areas and floors, then call or email the sales team for prices.",
+  ru: "Квартиры в Батуми от застройщика: Comfort House и строящийся «Парнаваз 65». Сравните площадь и этаж, а цену уточните в отделе продаж.",
 };
 
 const COPY = {
@@ -541,6 +575,66 @@ export default async function ApartmentsPage({ params }: ApartmentsPageProps) {
           <p className="mt-5 max-w-4xl text-xs leading-relaxed text-cream/45">
             {copy.sourceNote}
           </p>
+        </div>
+      </section>
+
+      <section
+        data-project-slug={PARNAVAZ_65.slug}
+        className="border-b border-ink/10 bg-limestone py-20 text-ink md:py-28"
+      >
+        <div className="wrap grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-16">
+          <Link
+            href={`/${lang}/projects/${PARNAVAZ_65.slug}`}
+            className="group relative block aspect-[16/11] overflow-hidden border border-ink/15 lg:col-span-6"
+          >
+            <Image
+              src={PARNAVAZ_65.cover.src}
+              alt={PARNAVAZ_65.cover.alt[lang]}
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none"
+            />
+          </Link>
+          <div className="lg:col-span-6">
+            <p className="eyebrow eyebrow-on-light">
+              {NEW_PROJECT_COPY[lang].eyebrow}
+            </p>
+            <h2 className="mt-4 font-display text-4xl leading-tight font-medium md:text-5xl">
+              {NEW_PROJECT_COPY[lang].title}
+            </h2>
+            <p className="mt-5 max-w-xl leading-relaxed text-ink/70">
+              {PARNAVAZ_65.summary[lang]}
+            </p>
+            <p className="mt-4 font-mono text-lg text-bronze">
+              {NEW_PROJECT_COPY[lang].price}
+            </p>
+            <ul className="mt-7 flex flex-wrap gap-2">
+              {PARNAVAZ_65.layouts!.map((layout) => (
+                <li key={layout.id}>
+                  <Link
+                    href={`/${lang}/projects/${PARNAVAZ_65.slug}#layout-${layout.id}`}
+                    className="inline-flex min-h-10 items-center border border-ink/20 bg-paper px-3 font-mono text-xs text-ink/75 transition-colors hover:border-bronze hover:text-bronze"
+                  >
+                    {formatArea(layout.totalArea, lang)} {NEW_PROJECT_COPY[lang].unit}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href={`/${lang}/projects/${PARNAVAZ_65.slug}#prices`}
+                className="inline-flex min-h-12 items-center gap-3 bg-ink px-6 text-sm font-semibold text-cream transition-colors hover:bg-iron"
+              >
+                {NEW_PROJECT_COPY[lang].prices} <span aria-hidden>→</span>
+              </Link>
+              <Link
+                href={`/${lang}/projects/${PARNAVAZ_65.slug}#layouts`}
+                className="inline-flex min-h-12 items-center gap-3 border border-ink/30 px-6 text-sm font-semibold text-ink transition-colors hover:border-bronze hover:text-bronze"
+              >
+                {NEW_PROJECT_COPY[lang].link}
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 

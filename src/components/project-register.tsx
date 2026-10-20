@@ -7,9 +7,9 @@ export interface ProjectRegisterItem {
   readonly name: string;
   readonly city: string;
   readonly address: string;
+  /** Pill text, e.g. "10 floors". */
   readonly floors: string;
-  readonly startYear: number;
-  readonly endYear: number;
+  readonly period: string;
   readonly status: ProjectStatus;
   readonly cover: { readonly src: string; readonly alt: string };
 }
@@ -18,7 +18,6 @@ interface ProjectRegisterProps {
   readonly lang: Lang;
   readonly projects: readonly ProjectRegisterItem[];
   readonly labels: {
-    readonly floors: string;
     readonly ongoing: string;
     readonly completed: string;
   };
@@ -83,8 +82,7 @@ export function ProjectRegister({
 
                 <span className="min-w-0">
                   <span className="block font-mono text-xs text-cream/60">
-                    {String(index + 1).padStart(2, "0")} · {project.startYear}–
-                    {project.endYear}
+                    {String(index + 1).padStart(2, "0")} · {project.period}
                   </span>
                   <span className="mt-2 block font-display text-[clamp(2.2rem,10vw,3rem)] leading-[1.08] font-medium text-cream transition-[translate,color] duration-700 ease-out group-hover:text-brass md:mt-1 md:truncate md:text-5xl md:leading-tight md:group-hover:translate-x-3">
                     {project.name}
@@ -97,7 +95,7 @@ export function ProjectRegister({
                   {project.city} · {statusLabel}
                 </span>
                 <span className="shrink-0 rounded-full border border-cream/20 px-5 py-2.5 font-mono text-sm text-cream transition-colors duration-500 group-hover:border-brass group-hover:bg-brass group-hover:text-ink md:px-4 md:py-2">
-                  {project.floors} {labels.floors.toLowerCase()}
+                  {project.floors}
                 </span>
               </span>
             </span>

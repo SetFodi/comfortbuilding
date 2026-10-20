@@ -2,18 +2,28 @@ import type { Metadata } from "next";
 import Image, { getImageProps } from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ApartmentLayouts } from "@/components/apartment-layouts";
 import { ContactBand } from "@/components/contact-band";
 import { Gallery } from "@/components/gallery";
 import { JsonLd } from "@/components/json-ld";
 import { PlanViewer } from "@/components/plan-viewer";
 import { PriceContact } from "@/components/price-contact";
+import { ProjectPriceList } from "@/components/project-price-list";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { StatusChip } from "@/components/status-chip";
 import { TitleBlock } from "@/components/title-block";
 import { UnitInventory } from "@/components/unit-inventory";
 import { getDict } from "@/lib/dictionary";
-import { getProject, PROJECTS } from "@/lib/projects";
+import {
+  formatUsd,
+  getProject,
+  priceListSummary,
+  projectDate,
+  projectFloors,
+  PROJECTS,
+  ruApartments,
+} from "@/lib/projects";
 import {
   absoluteUrl,
   breadcrumbJsonLd,
@@ -21,6 +31,7 @@ import {
   pageMetadata,
   pagePath,
   projectJsonLd,
+  projectLayoutsJsonLd,
   webPageJsonLd,
 } from "@/lib/seo";
 import { CONTACT } from "@/lib/site";
@@ -62,7 +73,96 @@ const PRICE_ON_REQUEST: Localized = {
   ru: "По запросу",
 };
 
+const APARTMENT_LAYOUTS: Localized = {
+  ka: "ბინების ტიპები",
+  en: "Apartment layouts",
+  ru: "Планировки квартир",
+};
+
+const VIEW_LAYOUTS: Localized = {
+  ka: "ბინების ტიპების ნახვა",
+  en: "View apartment layouts",
+  ru: "Смотреть планировки",
+};
+
+const BUYER_QUESTIONS: Localized = {
+  ka: "ხშირი კითხვები",
+  en: "Buyer questions",
+  ru: "Вопросы покупателей",
+};
+
+const SEE_PRICES: Localized = {
+  ka: "ფასების ნახვა",
+  en: "See prices",
+  ru: "Смотреть цены",
+};
+
+const LAYOUTS_PRICED_NOTE: Localized = {
+  ka: "გეგმები და ინტერიერები საკონცეფციოა და შეიძლება შეიცვალოს. ფასი მითითებულია 1 მ²-ზე და დამოკიდებულია სართულზე.",
+  en: "Layouts and interiors are design concepts and may change. Prices are per m² and depend on the floor.",
+  ru: "Планировки и интерьеры — дизайн-концепции и могут измениться. Цена указана за м² и зависит от этажа.",
+};
+
+const LAYOUTS_NOTE: Localized = {
+  ka: "გეგმები და ინტერიერები საკონცეფციოა და შეიძლება შეიცვალოს. ფასისა და დეტალებისთვის დაუკავშირდით გაყიდვების გუნდს.",
+  en: "Layouts and interiors are design concepts and may change. Call or email the sales team for prices and details.",
+  ru: "Планировки и интерьеры — дизайн-концепции и могут измениться. Цены и подробности уточняйте в отделе продаж.",
+};
+
+function formatArea(value: number, lang: Lang) {
+  return lang === "ru" ? String(value).replace(".", ",") : String(value);
+}
+
+function layoutRange(project: Project, lang: Lang) {
+  const areas = (project.layouts ?? []).map((layout) => layout.totalArea);
+  return {
+    count: areas.length,
+    min: formatArea(Math.min(...areas), lang),
+    max: formatArea(Math.max(...areas), lang),
+  };
+}
+
+/** Starting price for apartments of this size on the published price list. */
+function layoutPrice(project: Project, totalArea: number) {
+  const units = (project.priceList?.units ?? []).filter(
+    (unit) => unit.totalArea === totalArea,
+  );
+  if (units.length === 0) return undefined;
+  return {
+    from: formatUsd(Math.min(...units.map((unit) => unit.pricePerSqm))),
+    forSale: units.length,
+  };
+}
+
+function layoutsTitle(project: Project, lang: Lang) {
+  const { count, min, max } = layoutRange(project, lang);
+  if (lang === "ka") return `${count} ტიპის ბინა — ${min}-დან ${max} მ²-მდე`;
+  if (lang === "ru") return `${count} планировок от ${min} до ${max} м²`;
+  return `${count} layouts from ${min} to ${max} m²`;
+}
+
 function projectMetaTitle(project: Project, lang: Lang): string {
+  if (project.priceList) {
+    const from = formatUsd(priceListSummary(project.priceList).minRate);
+    if (lang === "ka") {
+      return `${project.name.ka} — ბინები ბათუმში ${from}-დან მ²-ზე`;
+    }
+    if (lang === "ru") {
+      return `${project.name.ru} — новостройка в Батуми, квартиры от ${from} за м²`;
+    }
+    return `${project.name.en} — apartments for sale in Batumi from ${from}/m²`;
+  }
+
+  if (project.layouts) {
+    if (lang === "ka") {
+      return `${project.name.ka} — იყიდება ბინები ბათუმში, მშენებარე სახლი`;
+    }
+    if (lang === "ru") {
+      return `${project.name.ru} — новостройка в Батуми, квартиры от застройщика`;
+    }
+    return `${project.name.en} — new apartments for sale in Batumi`;
+  }
+
   if (project.inventory) {
     if (lang === "ka") {
       return `${project.name.ka} | ბინები ბათუმში და ხელმისაწვდომობა`;
@@ -84,6 +184,36 @@ function projectMetaTitle(project: Project, lang: Lang): string {
 }
 
 function projectMetaDescription(project: Project, lang: Lang): string {
+  if (project.priceList) {
+    const { count, minRate, minArea, maxArea } = priceListSummary(
+      project.priceList,
+    );
+    const from = formatUsd(minRate);
+    const min = formatArea(minArea, lang);
+    const max = formatArea(maxArea, lang);
+    const floors = project.floorsLabel;
+    const parking = project.priceList.parking;
+    if (lang === "ka") {
+      return `${project.name.ka} — მშენებარე ${floors ? `${floors}-სართულიანი ` : ""}სახლი ბათუმში, ${project.address.ka}. იყიდება ${count} ბინა, ${min}–${max} მ², ფასი ${from}-დან მ²-ზე.${parking ? ` ავტოსადგომი — ${formatUsd(parking.price)}.` : ""}`;
+    }
+    if (lang === "ru") {
+      return `${project.name.ru} — строящийся ${floors ? `${floors}-этажный ` : ""}дом в Батуми, ${project.address.ru}. В продаже ${count} ${ruApartments(count)}, ${min}–${max} м², от ${from} за м².${parking ? ` Парковка — ${formatUsd(parking.price)}.` : ""}`;
+    }
+    return `${project.name.en}: ${floors ? `${floors}-storey ` : "new "}building under construction at ${project.address.en}, Batumi. ${count} apartments for sale, ${min}–${max} m², from ${from} per m².${parking ? ` Parking ${formatUsd(parking.price)}.` : ""}`;
+  }
+
+  if (project.layouts) {
+    const { count, min, max } = layoutRange(project, lang);
+    const floors = project.floorsLabel;
+    if (lang === "ka") {
+      return `${project.name.ka} — მშენებარე ${floors ? `${floors}-სართულიანი ` : ""}საცხოვრებელი სახლი ბათუმში, ${project.address.ka}. იყიდება ბინები ${min}-დან ${max} მ²-მდე, ${count} ტიპის გეგმა. ფასისთვის დაგვირეკეთ ან მოგვწერეთ.`;
+    }
+    if (lang === "ru") {
+      return `${project.name.ru} — строящийся ${floors ? `${floors}-этажный ` : ""}жилой дом в Батуми, ${project.address.ru}. Квартиры от ${min} до ${max} м², ${count} планировок. Цены — по телефону или почте.`;
+    }
+    return `${project.name.en}: a new ${floors ? `${floors}-storey ` : ""}building under construction at ${project.address.en}, Batumi. Apartments for sale from ${min} to ${max} m², ${count} layouts. Call or email for prices.`;
+  }
+
   const hasInventory = Boolean(project.inventory);
   if (lang === "ka") {
     const city = project.city.ka === "ბათუმი" ? "ბათუმში" : "თბილისში";
@@ -158,6 +288,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     width: mobileHeroImage.width,
     height: mobileHeroImage.height,
   });
+  const pageUrl = absoluteUrl(pagePath(lang, `/projects/${project.slug}`));
+  const faqs = project.faqs?.[lang] ?? [];
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.mapQuery)}`;
   const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(project.mapQuery)}&output=embed`;
   const titleCells = [
@@ -169,9 +301,18 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       label: dict.titleBlock.status,
       value: dict.status[project.status],
     },
-    { label: dict.titleBlock.floors, value: project.floorsLabel },
-    { label: dict.titleBlock.start, value: project.startDate[lang] },
-    { label: dict.titleBlock.completion, value: project.endDate[lang] },
+    {
+      label: dict.titleBlock.floors,
+      value: projectFloors(project, dict.misc.tba),
+    },
+    {
+      label: dict.titleBlock.start,
+      value: projectDate(project.startDate, lang, dict.misc.tba),
+    },
+    {
+      label: dict.titleBlock.completion,
+      value: projectDate(project.endDate, lang, dict.misc.tba),
+    },
     ...(project.areasLabel
       ? [{ label: dict.titleBlock.areas, value: project.areasLabel[lang] }]
       : []),
@@ -193,11 +334,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               projectMetaTitle(project, lang),
               projectMetaDescription(project, lang),
             ),
-            mainEntity: {
-              "@id": `${absoluteUrl(pagePath(lang, `/projects/${project.slug}`))}#project`,
-            },
+            mainEntity: { "@id": `${pageUrl}#project` },
           },
           projectJsonLd(project, lang),
+          ...projectLayoutsJsonLd(project, lang),
+          ...(faqs.length > 0
+            ? [
+                {
+                  "@type": "FAQPage",
+                  "@id": `${pageUrl}#faq`,
+                  mainEntity: faqs.map((faq) => ({
+                    "@type": "Question",
+                    name: faq.question,
+                    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+                  })),
+                },
+              ]
+            : []),
           breadcrumbJsonLd([
             { name: dict.nav.home, path: pagePath(lang) },
             {
@@ -320,6 +473,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     <PriceContact
                       lang={lang}
                       projectSlug={project.slug}
+                      projectName={project.name[lang]}
                       placement="project-figures"
                       tone="light"
                       className="mt-7 border-t border-ink/15 pt-5"
@@ -354,8 +508,32 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   )}
 
                   <p className="mt-6 text-xs leading-relaxed text-ink/65">
-                    {dict.misc.sourceData}
+                    {project.priceList
+                      ? LAYOUTS_PRICED_NOTE[lang]
+                      : project.layouts
+                        ? LAYOUTS_NOTE[lang]
+                        : dict.misc.sourceData}
                   </p>
+                  {(project.layouts || project.priceList) && (
+                    <div className="mt-5 flex flex-wrap gap-x-6">
+                      {project.priceList && (
+                        <a
+                          href="#prices"
+                          className="link-slide inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-bronze"
+                        >
+                          {SEE_PRICES[lang]} <span aria-hidden>↓</span>
+                        </a>
+                      )}
+                      {project.layouts && (
+                        <a
+                          href="#layouts"
+                          className="link-slide inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-bronze"
+                        >
+                          {VIEW_LAYOUTS[lang]} <span aria-hidden>↓</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
                   {!project.priceOnRequest && (
                     <a
                       href={CONTACT.phoneHref}
@@ -369,6 +547,58 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             )}
           </div>
         </section>
+
+        {project.layouts && project.layouts.length > 0 && (
+          <section
+            id="layouts"
+            className="draft-grid-light scroll-mt-20 border-t border-ink/10 bg-paper py-24 text-ink md:py-32"
+          >
+            <div className="wrap">
+              <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
+                <div className="lg:col-span-8">
+                  <SectionHeading
+                    eyebrow={APARTMENT_LAYOUTS[lang]}
+                    title={layoutsTitle(project, lang)}
+                    onLight
+                  />
+                </div>
+                <p className="max-w-md text-sm leading-relaxed text-ink/65 lg:col-span-4 lg:justify-self-end">
+                  {project.priceList
+                    ? LAYOUTS_PRICED_NOTE[lang]
+                    : LAYOUTS_NOTE[lang]}
+                </p>
+              </div>
+              <div className="mt-12">
+                <ApartmentLayouts
+                  lang={lang}
+                  projectSlug={project.slug}
+                  projectName={project.name[lang]}
+                  layouts={project.layouts.map((layout) => ({
+                    id: layout.id,
+                    area: formatArea(layout.totalArea, lang),
+                    bedrooms: layout.bedrooms,
+                    price: layoutPrice(project, layout.totalArea),
+                    image: {
+                      src: layout.image.src,
+                      width: layout.image.width,
+                      height: layout.image.height,
+                      alt: layout.image.alt[lang],
+                    },
+                  }))}
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {project.priceList && (
+          <ProjectPriceList
+            lang={lang}
+            projectSlug={project.slug}
+            projectName={project.name[lang]}
+            priceList={project.priceList}
+          />
+        )}
 
         {project.inventory && (
           <section
@@ -447,29 +677,67 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </section>
         )}
 
-        <section className="bg-basalt py-24 md:py-32">
-          <div className="wrap">
-            <SectionHeading
-              eyebrow={dict.sections.gallery}
-              title={project.name[lang]}
-            />
-            <div className="mt-12">
-              <Gallery
-                images={project.gallery.map((image) => ({
-                  src: image.src,
-                  width: image.width,
-                  height: image.height,
-                  alt: image.alt[lang],
-                }))}
-                labels={{
-                  previous: dict.misc.previous,
-                  next: dict.misc.next,
-                  close: dict.misc.close,
-                }}
+        {project.gallery.length > 1 && (
+          <section className="bg-basalt py-24 md:py-32">
+            <div className="wrap">
+              <SectionHeading
+                eyebrow={dict.sections.gallery}
+                title={project.name[lang]}
               />
+              <div className="mt-12">
+                <Gallery
+                  images={project.gallery.map((image) => ({
+                    src: image.src,
+                    width: image.width,
+                    height: image.height,
+                    alt: image.alt[lang],
+                  }))}
+                  labels={{
+                    previous: dict.misc.previous,
+                    next: dict.misc.next,
+                    close: dict.misc.close,
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
+
+        {faqs.length > 0 && (
+          <section className="draft-grid-light bg-paper py-24 text-ink md:py-32">
+            <div className="wrap grid gap-14 lg:grid-cols-12 lg:gap-20">
+              <div className="lg:col-span-5">
+                <p className="eyebrow eyebrow-on-light">
+                  {BUYER_QUESTIONS[lang]}
+                </p>
+                <h2 className="mt-4 font-display text-4xl leading-tight font-medium md:text-6xl">
+                  {project.name[lang]}
+                </h2>
+              </div>
+              <div className="border-t border-ink/15 lg:col-span-7">
+                {faqs.map((faq) => (
+                  <details
+                    key={faq.question}
+                    className="group border-b border-ink/15"
+                  >
+                    <summary className="flex min-h-20 cursor-pointer list-none items-center justify-between gap-5 py-5 text-lg font-semibold marker:content-none">
+                      {faq.question}
+                      <span
+                        aria-hidden
+                        className="font-mono text-2xl font-normal text-bronze transition-transform group-open:rotate-45"
+                      >
+                        +
+                      </span>
+                    </summary>
+                    <p className="max-w-2xl pb-7 leading-relaxed text-ink/65">
+                      {faq.answer}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="bg-limestone py-24 text-ink md:py-32">
           <div className="wrap grid gap-10 lg:grid-cols-12 lg:items-stretch">

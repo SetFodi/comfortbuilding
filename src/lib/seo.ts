@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import type { Project, SiteImage } from "./types";
+import { unitTotal } from "./projects";
 import { CONTACT, COMPANY_NAME } from "./site";
 import { LANGS, type Lang, type Localized } from "./types";
 
 export const SITE_URL = "https://www.comfortbuilding.ge";
 // Manually maintained: the shared business/project graph changed on this date.
 // Do not replace this with the build date or imply refreshed inventory.
-export const SITE_UPDATED_AT = new Date("2026-10-12T00:00:00+04:00");
+export const SITE_UPDATED_AT = new Date("2026-10-20T00:00:00+04:00");
 export const BUYING_GUIDE_PUBLISHED_AT = new Date("2026-08-21T00:00:00+04:00");
 
 export const HOME_DESCRIPTIONS: Localized = {
@@ -213,7 +214,18 @@ export function projectJsonLd(project: Project, lang: Lang) {
       ].filter((source): source is string => Boolean(source)),
     ),
   ).map(absoluteUrl);
-  const floorPlans = project.inventory?.floors.flatMap((floor) => {
+  const layoutPlans = (project.layouts ?? []).map((layout) => ({
+    "@type": "FloorPlan",
+    name: layout.image.alt[lang],
+    floorSize: {
+      "@type": "QuantitativeValue",
+      value: layout.totalArea,
+      unitCode: "MTK",
+    },
+    numberOfBedrooms: layout.bedrooms,
+    layoutImage: absoluteUrl(layout.image.src),
+  }));
+  const inventoryPlans = (project.inventory?.floors ?? []).flatMap((floor) => {
     const apartments = floor.units.filter((unit) => unit.kind === "apartment");
     if (apartments.length === 0) return [];
 
@@ -228,6 +240,7 @@ export function projectJsonLd(project: Project, lang: Lang) {
       },
     ];
   });
+  const floorPlans = [...layoutPlans, ...inventoryPlans];
 
   return {
     "@type": "ApartmentComplex",
@@ -250,10 +263,92 @@ export function projectJsonLd(project: Project, lang: Lang) {
       name: feature,
       value: true,
     })),
-    ...(floorPlans && floorPlans.length > 0
+    ...(floorPlans.length > 0
       ? { accommodationFloorPlan: floorPlans }
       : {}),
   };
+}
+
+const APARTMENT_WORD: Localized = { ka: "ბინა", en: "Apartment", ru: "Квартира" };
+
+/**
+ * Sale offers for the project: priced units when a price list is published,
+ * otherwise the apartment layouts with prices on request.
+ */
+export function projectLayoutsJsonLd(project: Project, lang: Lang) {
+  const url = absoluteUrl(pagePath(lang, `/projects/${project.slug}`));
+  const priceList = project.priceList;
+  if (priceList) {
+    return [
+      {
+        "@type": "ItemList",
+        "@id": `${url}#prices`,
+        name: `${project.name[lang]} — ${APARTMENT_WORD[lang]}`,
+        numberOfItems: priceList.units.length,
+        itemListElement: priceList.units.map((unit, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "Offer",
+            url: `${url}#unit-${unit.number}`,
+            availability: "https://schema.org/InStock",
+            price: unitTotal(unit),
+            priceCurrency: priceList.currency,
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              price: unit.pricePerSqm,
+              priceCurrency: priceList.currency,
+              unitCode: "MTK",
+            },
+            seller: { "@id": `${SITE_URL}/#organization` },
+            itemOffered: {
+              "@type": "Apartment",
+              name: `${APARTMENT_WORD[lang]} №${unit.number}`,
+              floorLevel: String(unit.floor),
+              floorSize: {
+                "@type": "QuantitativeValue",
+                value: unit.totalArea,
+                unitCode: "MTK",
+              },
+              containedInPlace: { "@id": `${url}#project` },
+            },
+          },
+        })),
+      },
+    ];
+  }
+  if (!project.layouts?.length) return [];
+
+  return [
+    {
+      "@type": "ItemList",
+      "@id": `${url}#layouts`,
+      name: project.name[lang],
+      numberOfItems: project.layouts.length,
+      itemListElement: project.layouts.map((layout, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "Offer",
+          url: `${url}#layout-${layout.id}`,
+          availability: "https://schema.org/InStock",
+          seller: { "@id": `${SITE_URL}/#organization` },
+          itemOffered: {
+            "@type": "Apartment",
+            name: layout.image.alt[lang],
+            numberOfBedrooms: layout.bedrooms,
+            floorSize: {
+              "@type": "QuantitativeValue",
+              value: layout.totalArea,
+              unitCode: "MTK",
+            },
+            image: absoluteUrl(layout.image.src),
+            containedInPlace: { "@id": `${url}#project` },
+          },
+        },
+      })),
+    },
+  ];
 }
 
 export function jsonLdGraph(nodes: readonly Record<string, unknown>[]) {

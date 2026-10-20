@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
-import { PROJECTS } from "@/lib/projects";
+import { getProject, PROJECTS } from "@/lib/projects";
 import { absoluteUrl, pagePath, SITE_UPDATED_AT } from "@/lib/seo";
 import { LANGS } from "@/lib/types";
+
+const COMFORT_HOUSE = getProject("comfort-house")!;
 
 function alternates(suffix = "") {
   return {
@@ -38,9 +40,9 @@ const STATIC_ROUTES = [
     images: [
       absoluteUrl(
         (
-          PROJECTS[0].heroImage ??
-          PROJECTS[0].listingImage ??
-          PROJECTS[0].cover
+          COMFORT_HOUSE.heroImage ??
+          COMFORT_HOUSE.listingImage ??
+          COMFORT_HOUSE.cover
         ).src,
       ),
       absoluteUrl("/images/projects/comfort-house/evening.jpg"),
@@ -87,6 +89,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
           new Set([
             (project.heroImage ?? project.listingImage ?? project.cover).src,
             ...project.gallery.map((image) => image.src),
+            ...(project.layouts?.map((layout) => layout.image.src) ?? []),
           ]),
         ).map(absoluteUrl);
 

@@ -15,8 +15,7 @@ export interface ProjectBrowserItem {
   readonly address: string;
   readonly summary: string;
   readonly floors: string;
-  readonly startYear: number;
-  readonly endYear: number;
+  readonly period: string;
   readonly status: ProjectStatus;
   readonly accent: string;
   readonly image: { readonly src: string; readonly alt: string };
@@ -140,7 +139,7 @@ export function ProjectsBrowser({
               <dl className="mt-8 grid grid-cols-2 border-y border-cream/15 py-5 text-sm">
                 <div>
                   <dt className="font-mono text-[10px] tracking-[0.16em] text-cream/60 uppercase">
-                    {project.startYear}—{project.endYear}
+                    {project.period}
                   </dt>
                   <dd className="mt-2 text-cream/80">
                     {project.city} · {project.address}

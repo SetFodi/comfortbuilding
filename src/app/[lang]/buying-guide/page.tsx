@@ -96,7 +96,7 @@ const COPY = {
         title: "ნახეთ დეველოპერის დასრულებული პროექტები",
         paragraphs: [
           "წინა პროექტები გაძლევთ შესაძლებლობას შეაფასოთ მდებარეობები, მასშტაბი და კომპანიის მუშაობის ისტორია. თუ შესაძლებელია, შენობები ადგილზე დაათვალიერეთ.",
-          "Comfort Building-ის საიტზე გამოქვეყნებულია ექვსი პროექტი ბათუმსა და თბილისში, თითოეული მისამართით, ფოტოებითა და სტატუსით.",
+          "Comfort Building-ის საიტზე გამოქვეყნებულია შვიდი პროექტი ბათუმსა და თბილისში, თითოეული მისამართით, ფოტოებითა და სტატუსით.",
         ],
         action: "projects" as StepAction,
       },
@@ -202,7 +202,7 @@ const COPY = {
         title: "Review the developer's completed work",
         paragraphs: [
           "Earlier projects help you assess locations, scale, and the company's operating history. Visit completed buildings where practical.",
-          "Comfort Building publishes six projects in Batumi and Tbilisi with addresses, photographs, and project status.",
+          "Comfort Building publishes seven projects in Batumi and Tbilisi with addresses, photographs, and project status.",
         ],
         action: "projects" as StepAction,
       },
@@ -308,7 +308,7 @@ const COPY = {
         title: "Изучите завершённые проекты застройщика",
         paragraphs: [
           "Предыдущие проекты помогают оценить расположение, масштаб и историю работы компании. По возможности посетите завершённые здания.",
-          "Comfort Building публикует шесть проектов в Батуми и Тбилиси с адресами, фотографиями и статусом.",
+          "Comfort Building публикует семь проектов в Батуми и Тбилиси с адресами, фотографиями и статусом.",
         ],
         action: "projects" as StepAction,
       },
