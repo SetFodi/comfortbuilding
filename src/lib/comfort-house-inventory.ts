@@ -64,7 +64,7 @@ export const COMFORT_HOUSE_INVENTORY: ProjectInventory = {
           interiorArea: 40.1,
           balconyArea: 8.5,
           totalArea: 48.6,
-          status: "available",
+          status: "sold",
         },
         {
           id: "702",

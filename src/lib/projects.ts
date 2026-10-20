@@ -86,7 +86,7 @@ export const PROJECTS: readonly Project[] = [
           en: "Available apartments",
           ru: "Свободные квартиры",
         },
-        value: "11",
+        value: "10",
       },
       {
         label: { ka: "ტერასა", en: "Terrace", ru: "Терраса" },

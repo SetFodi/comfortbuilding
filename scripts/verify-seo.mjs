@@ -137,17 +137,17 @@ for (const [language, heading] of [
   assert.ok(html.includes(heading), `/${language}/apartments must target ${heading}`);
   assert.equal(
     html.match(/"@type":"Offer"/g)?.length,
-    11,
-    `/${language}/apartments must publish 11 visible offers`,
+    10,
+    `/${language}/apartments must publish 10 visible offers`,
   );
   assert.equal(
     html.match(/id="apartment-[^"]+"/g)?.length,
-    11,
-    `/${language}/apartments must render 11 apartment cards`,
+    10,
+    `/${language}/apartments must render 10 apartment cards`,
   );
   assert.equal(
     html.match(/data-contact-action="apartment-inquiry"/g)?.length,
-    11,
+    10,
     `/${language}/apartments must expose an inquiry action for every apartment`,
   );
 }
@@ -182,8 +182,8 @@ for (const language of languages) {
   );
   assert.equal(
     html.match(/<option value="apartment-[^"]+"/g)?.length,
-    11,
-    `/${language}/contact must offer all 11 available apartments`,
+    10,
+    `/${language}/contact must offer all 10 available apartments`,
   );
   assert.ok(
     html.includes('"@type":"ContactPoint"'),
