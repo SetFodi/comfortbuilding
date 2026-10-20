@@ -36,14 +36,14 @@ export function MagneticCta({ href, label }: MagneticCtaProps) {
       href={href}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
-      className="group relative flex size-32 items-center justify-center rounded-full bg-brass text-ink shadow-xl transition-[transform,background-color] duration-500 ease-out hover:bg-brass-bright md:size-40"
+      className="group relative flex size-24 items-center justify-center rounded-full bg-brass text-ink shadow-xl transition-[transform,background-color] duration-500 ease-out hover:bg-brass-bright md:size-28"
     >
-      <span className="px-4 text-center text-xs font-bold tracking-[0.18em] uppercase">
+      <span className="px-2 text-center text-[10px] font-bold tracking-[0.1em] uppercase md:tracking-[0.16em]">
         {label}
       </span>
       <span
         aria-hidden
-        className="absolute inset-2 scale-90 rounded-full border border-ink/15 transition-transform duration-500 group-hover:scale-100"
+        className="absolute inset-1.5 scale-90 rounded-full border border-ink/15 transition-transform duration-500 group-hover:scale-100"
       />
     </Link>
   );

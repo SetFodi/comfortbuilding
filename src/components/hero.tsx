@@ -134,7 +134,7 @@ export function Hero({ lang, dict, projects }: HeroProps) {
           />
 
           <div
-            className="hero-fade absolute bottom-24 -left-4 lg:-left-16"
+            className="hero-fade absolute bottom-36 -left-3 lg:-left-12"
             style={{ "--fade-delay": "1.2s" } as CSSProperties}
           >
             <MagneticCta
