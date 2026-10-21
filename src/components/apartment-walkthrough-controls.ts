@@ -35,8 +35,13 @@ export function createWalkthroughControls(
   let lastPose = 0;
   let escapeAt = -Infinity;
   let lockRequest = 0;
+  // On-screen joystick: x to the right, y forward, each in [-1, 1].
+  const stick = { x: 0, y: 0 };
+  let touching = false;
   const dialog = canvas.closest("dialog");
   canvas.tabIndex = 0;
+  // Fingers look around the room instead of scrolling the page.
+  canvas.style.touchAction = "none";
 
   function reportPose(force = false) {
     const now = performance.now();
@@ -60,6 +65,7 @@ export function createWalkthroughControls(
     active = false;
     dragging = false;
     keys.clear();
+    stick.x = stick.y = 0;
     if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
     pointerId = null;
     if (document.pointerLockElement === canvas) document.exitPointerLock();
@@ -87,7 +93,8 @@ export function createWalkthroughControls(
   }
 
   function onPointerDown(event: PointerEvent) {
-    if (!enabled || !active || locked || event.button !== 0) return;
+    touching = event.pointerType === "touch";
+    if (!enabled || !active || locked || event.button !== 0 || dragging) return;
     canvas.focus({ preventScroll: true });
     dragging = true;
     pointerId = event.pointerId;
@@ -97,15 +104,18 @@ export function createWalkthroughControls(
   }
 
   function onPointerMove(event: PointerEvent) {
-    if (!enabled || !active || locked || !dragging) return;
-    yaw -= (event.clientX - lastX) * 0.0026;
-    pitch = THREE.MathUtils.clamp(pitch - (event.clientY - lastY) * 0.0026, -1.15, 1.15);
+    if (!enabled || !active || locked || !dragging || event.pointerId !== pointerId) return;
+    // A finger covers less ground than a mouse, so it turns a little faster.
+    const speed = event.pointerType === "touch" ? 0.0042 : 0.0026;
+    yaw -= (event.clientX - lastX) * speed;
+    pitch = THREE.MathUtils.clamp(pitch - (event.clientY - lastY) * speed, -1.15, 1.15);
     lastX = event.clientX;
     lastY = event.clientY;
     orient();
   }
 
-  function onPointerUp() {
+  function onPointerUp(event: PointerEvent) {
+    if (pointerId !== null && event.pointerId !== pointerId) return;
     dragging = false;
     if (pointerId !== null && canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
     pointerId = null;
@@ -148,6 +158,8 @@ export function createWalkthroughControls(
   }
 
   function onFocusOut(event: FocusEvent) {
+    // A touch on the joystick moves focus off the canvas; that is not leaving.
+    if (touching) return;
     if (enabled && active && !locked && event.relatedTarget !== canvas) pause();
   }
 
@@ -187,11 +199,17 @@ export function createWalkthroughControls(
       reportPose(true);
       onState("ready");
     },
-    start() {
+    start(options: { touch?: boolean } = {}) {
       if (!enabled || disposed) return;
       canvas.focus({ preventScroll: true });
       active = true;
       onState("drag");
+      // Touch screens look by dragging and move with the joystick.
+      touching = Boolean(options.touch);
+      if (touching) {
+        invalidate();
+        return;
+      }
       const requestId = ++lockRequest;
       try {
         // Browsers without pointer lock still support focused WASD + drag-to-look.
@@ -215,17 +233,26 @@ export function createWalkthroughControls(
       pause();
     },
     pause,
+    /** Joystick input: x to the right and y forward, clamped to the unit circle. */
+    setStick(x: number, y: number) {
+      const length = Math.hypot(x, y);
+      const scale = length > 1 ? 1 / length : 1;
+      stick.x = enabled && active ? x * scale : 0;
+      stick.y = enabled && active ? y * scale : 0;
+      invalidate();
+    },
     /** True while the visitor is walking (pointer locked or focused drag mode). */
     isActive() {
       return enabled && active && !disposed;
     },
     update(deltaSeconds: number) {
-      if (!enabled || !active || keys.size === 0) return false;
-      const forward = Number(keys.has("KeyW") || keys.has("ArrowUp")) - Number(keys.has("KeyS") || keys.has("ArrowDown"));
-      const right = Number(keys.has("KeyD") || keys.has("ArrowRight")) - Number(keys.has("KeyA") || keys.has("ArrowLeft"));
+      if (!enabled || !active || (keys.size === 0 && !stick.x && !stick.y)) return false;
+      const forward = Number(keys.has("KeyW") || keys.has("ArrowUp")) - Number(keys.has("KeyS") || keys.has("ArrowDown")) + stick.y;
+      const right = Number(keys.has("KeyD") || keys.has("ArrowRight")) - Number(keys.has("KeyA") || keys.has("ArrowLeft")) + stick.x;
       const magnitude = Math.hypot(forward, right);
-      if (!magnitude) return false;
-      const distance = Math.min(deltaSeconds, 0.05) * 1.65 / magnitude;
+      if (magnitude < 0.05) return false;
+      // Keys walk at full pace; a joystick held part way walks slower.
+      const distance = Math.min(deltaSeconds, 0.05) * 1.65 * Math.min(1, magnitude) / magnitude;
       const next = moveWalkthrough(layout, { x: camera.position.x, z: camera.position.z }, {
         x: (-Math.sin(yaw) * forward + Math.cos(yaw) * right) * distance,
         z: (-Math.cos(yaw) * forward - Math.sin(yaw) * right) * distance,

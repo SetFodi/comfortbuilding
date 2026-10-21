@@ -66,6 +66,7 @@ function createHarness(lockMode = "unavailable") {
   const window = new EventTarget();
   const dialog = new EventTarget();
   const canvas = new EventTarget();
+  canvas.style = {};
   const captures = new Set();
   let resolveLock;
   document.activeElement = null;
@@ -169,6 +170,35 @@ test("focused WASD moves the real camera at eye height and keyup stops movement"
     assert.equal(h.controls.update(0.05), false);
     assert.deepEqual(h.camera.position, stopped);
     assert.ok(h.invalidations() > 0);
+  } finally {
+    h.dispose();
+  }
+});
+
+test("touch walking skips pointer lock and the joystick walks at its tilt, then stops", () => {
+  const h = createHarness();
+  try {
+    let lockRequests = 0;
+    h.canvas.requestPointerLock = () => { lockRequests += 1; };
+    h.controls.enter();
+    h.controls.start({ touch: true });
+    assert.equal(lockRequests, 0);
+    assert.equal(h.states.at(-1), "drag");
+    const before = h.camera.position.clone();
+    // Half-way forward walks at half pace; past the rim is clamped to full pace.
+    h.controls.setStick(0, 0.5);
+    assert.equal(h.controls.update(0.05), true);
+    close(h.camera.position.distanceTo(before), 1.65 * 0.05 * 0.5);
+    const middle = h.camera.position.clone();
+    h.controls.setStick(0, 3);
+    assert.equal(h.controls.update(0.05), true);
+    close(h.camera.position.distanceTo(middle), 1.65 * 0.05);
+    h.controls.setStick(0, 0);
+    assert.equal(h.controls.update(0.05), false);
+    // Pausing drops a held joystick so the walk cannot run on by itself.
+    h.controls.setStick(1, 0);
+    h.controls.pause();
+    assert.equal(h.controls.update(0.05), false);
   } finally {
     h.dispose();
   }

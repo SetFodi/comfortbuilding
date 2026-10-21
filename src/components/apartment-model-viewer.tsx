@@ -37,6 +37,9 @@ const COPY = {
     look: "მაუსით მიმოხედვა",
     pause: "პაუზა / მაუსის გათავისუფლება",
     dragLook: "დააწკაპუნეთ სივრცეზე · WASD მოძრაობა · გადაათრიეთ მოსახედად",
+    stick: "ჯოისტიკით მოძრაობა",
+    swipe: "ეკრანზე გაასრიალეთ მიმოსახედად",
+    pauseTouch: "პაუზა",
     paused: "გასეირნება შეჩერებულია",
     resume: "გაგრძელება",
     tvOn: "ტელევიზორის ჩართვა",
@@ -76,6 +79,9 @@ const COPY = {
     look: "Mouse to look",
     pause: "Pause / release mouse",
     dragLook: "Click the scene · WASD to move · Drag to look",
+    stick: "Move with the joystick",
+    swipe: "Swipe the screen to look around",
+    pauseTouch: "Pause",
     paused: "Walkthrough paused",
     resume: "Resume walkthrough",
     tvOn: "Turn on TV",
@@ -115,6 +121,9 @@ const COPY = {
     look: "Осмотр мышью",
     pause: "Пауза / освободить мышь",
     dragLook: "Нажмите на сцену · WASD для движения · Перетащите для осмотра",
+    stick: "Джойстик — движение",
+    swipe: "Проведите по экрану, чтобы осмотреться",
+    pauseTouch: "Пауза",
     paused: "Прогулка приостановлена",
     resume: "Продолжить",
     tvOn: "Включить телевизор",
@@ -162,6 +171,57 @@ function subscribeDesktop(callback: () => void) {
 const isDesktop = () => window.matchMedia(desktopQuery).matches;
 const serverDesktop = () => false;
 
+const touchQuery = "(pointer: coarse)";
+function subscribeTouch(callback: () => void) {
+  const query = window.matchMedia(touchQuery);
+  query.addEventListener("change", callback);
+  return () => query.removeEventListener("change", callback);
+}
+const isTouch = () => window.matchMedia(touchQuery).matches;
+
+/** Game-style thumbstick: drag the knob to walk, further to walk faster. */
+function Joystick({ label, onMove }: { label: string; onMove: (x: number, y: number) => void }) {
+  const base = useRef<HTMLDivElement>(null);
+  const finger = useRef<number | null>(null);
+  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const reach = 36;
+  const track = (event: React.PointerEvent) => {
+    const rect = base.current?.getBoundingClientRect();
+    if (!rect) return;
+    let dx = event.clientX - (rect.left + rect.width / 2);
+    let dy = event.clientY - (rect.top + rect.height / 2);
+    const length = Math.hypot(dx, dy);
+    if (length > reach) {
+      dx *= reach / length;
+      dy *= reach / length;
+    }
+    setKnob({ x: dx, y: dy });
+    onMove(dx / reach, -dy / reach);
+  };
+  const release = () => {
+    finger.current = null;
+    setKnob({ x: 0, y: 0 });
+    onMove(0, 0);
+  };
+  return (
+    <div ref={base} role="application" aria-label={label} data-walkthrough-joystick
+      className="absolute bottom-4 left-4 size-28 touch-none select-none rounded-full border border-white/25 bg-ink/45 shadow-xl backdrop-blur-md"
+      onPointerDown={(event) => {
+        event.preventDefault();
+        finger.current = event.pointerId;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        track(event);
+      }}
+      onPointerMove={(event) => { if (event.pointerId === finger.current) track(event); }}
+      onPointerUp={(event) => { if (event.pointerId === finger.current) release(); }}
+      onPointerCancel={release}>
+      <span className="pointer-events-none absolute inset-4 rounded-full border border-white/10" aria-hidden />
+      <span className="pointer-events-none absolute top-1/2 left-1/2 -mt-6 -ml-6 size-12 rounded-full border border-brass-bright/60 bg-brass/90 shadow-lg"
+        style={{ transform: `translate(${knob.x}px, ${knob.y}px)` }} aria-hidden />
+    </div>
+  );
+}
+
 function OrientationMap({ model, pose, label }: { model: ApartmentModel; pose: WalkthroughPose | null; label: string }) {
   // Plan coordinates are normalized, so the map keeps the apartment's real proportions.
   const height = Math.round(100 * model.size.depth / model.size.width);
@@ -196,6 +256,9 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
   const [interaction, setInteraction] = useState<WalkthroughInteraction>(null);
   const [showNotice, setShowNotice] = useState(false);
   const desktop = useSyncExternalStore(subscribeDesktop, isDesktop, serverDesktop);
+  // Phones and tablets walk with an on-screen joystick and look by swiping.
+  const touch = useSyncExternalStore(subscribeTouch, isTouch, serverDesktop) && !desktop;
+  const canWalk = desktop || touch;
   const walkthroughAvailable = allowWalkthrough;
   const walking = view === "walkthrough";
 
@@ -233,20 +296,20 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
   }, [model]);
 
   const changeView = (next: ApartmentView) => {
-    if (next === "walkthrough" && (!walkthroughAvailable || !desktop)) return;
+    if (next === "walkthrough" && (!walkthroughAvailable || !canWalk)) return;
     setView(next);
     setShowNotice(next === "walkthrough");
     scene.current?.setView(next, room);
   };
 
   useEffect(() => {
-    if (!desktop) scene.current?.pauseWalkthrough();
-  }, [desktop]);
+    if (!canWalk) scene.current?.pauseWalkthrough();
+  }, [canWalk]);
 
   const startWalking = () => {
-    if (!desktop || !walkthroughAvailable) return;
+    if (!canWalk || !walkthroughAvailable) return;
     setShowNotice(false);
-    scene.current?.startWalkthrough();
+    scene.current?.startWalkthrough({ touch });
   };
 
   const iconButton = "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-ink/75 text-cream backdrop-blur-md transition hover:border-brass/60 hover:text-brass focus-visible:outline-brass disabled:opacity-40";
@@ -280,8 +343,8 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
                   {(["dollhouse", "walkthrough"] as const).map((mode) => (
                     <button key={mode} type="button" onClick={() => changeView(mode)}
                       aria-pressed={mode === "dollhouse" ? !walking : walking}
-                      disabled={status !== "ready" || (mode === "walkthrough" && !desktop)}
-                      title={mode === "walkthrough" && !desktop ? copy.desktop : copy[mode]}
+                      disabled={status !== "ready" || (mode === "walkthrough" && !canWalk)}
+                      title={mode === "walkthrough" && !canWalk ? copy.desktop : copy[mode]}
                       className={`flex min-h-11 items-center gap-2 rounded-full px-4 text-xs transition ${((mode === "dollhouse" && !walking) || view === mode) ? "bg-brass text-ink" : "text-cream/65 hover:text-cream"} disabled:opacity-40`}>
                       <ViewIcon view={mode} />{copy[mode]}
                     </button>
@@ -349,31 +412,44 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
                 <ViewIcon view="top" />{copy.top}
               </button>
             )}
-            {walking && !showNotice && desktop && (
+            {walking && !showNotice && canWalk && (
               <>
                 <div className="pointer-events-none absolute left-5 top-5 flex items-center gap-2 rounded-full border border-brass/25 bg-ink/65 px-3 py-2 text-[9px] tracking-widest text-brass backdrop-blur-md">
                   <span className="size-1.5 rounded-full bg-brass" />{copy.experimental}
                 </div>
-                <div className="pointer-events-none absolute right-5 top-5"><OrientationMap model={model} pose={pose} label={copy.map} /></div>
+                <div className="pointer-events-none absolute right-3 top-3 origin-top-right scale-75 sm:right-5 sm:top-5 sm:scale-100"><OrientationMap model={model} pose={pose} label={copy.map} /></div>
                 {(walkState === "walking" || walkState === "drag") && (
                   <span className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-all duration-200 ${interaction ? "size-3 border-brass bg-brass/20" : "size-1.5 border-white/80 bg-black/20"}`} aria-hidden />
                 )}
-                {interaction && (walkState === "walking" || walkState === "drag") && (
+                {interaction && touch && (walkState === "walking" || walkState === "drag") && (
+                  <button type="button" onClick={() => scene.current?.interact()} data-walkthrough-prompt
+                    className="absolute left-1/2 top-1/2 mt-7 flex min-h-11 -translate-x-1/2 items-center gap-2.5 rounded-full border border-brass/50 bg-ink/85 py-1.5 pl-1.5 pr-4 text-xs text-cream shadow-lg backdrop-blur-md">
+                    <span className="flex size-7 items-center justify-center rounded-full bg-brass text-ink" aria-hidden>⏻</span>
+                    {interaction.on ? copy.tvOff : copy.tvOn}
+                  </button>
+                )}
+                {interaction && !touch && (walkState === "walking" || walkState === "drag") && (
                   <div className="pointer-events-none absolute left-1/2 top-1/2 mt-7 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-brass/40 bg-ink/80 py-1.5 pl-1.5 pr-4 text-xs text-cream shadow-lg backdrop-blur-md" role="status" data-walkthrough-prompt>
                     <kbd className="flex size-6 items-center justify-center rounded-full bg-brass font-mono text-[11px] font-semibold text-ink">E</kbd>
                     {interaction.on ? copy.tvOff : copy.tvOn}
                   </div>
                 )}
-                <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
+                {touch ? (
+                  <>
+                    <Joystick label={copy.stick} onMove={(x, y) => scene.current?.moveWalkthrough(x, y)} />
+                    <p className="pointer-events-none absolute right-4 bottom-18 max-w-[45%] text-right text-[10px] leading-relaxed text-cream/70 [text-shadow:0_1px_3px_rgba(0,0,0,.6)]">{copy.swipe}</p>
+                    <button type="button" onClick={() => scene.current?.pauseWalkthrough()} className="absolute right-4 bottom-4 flex min-h-11 items-center gap-2 rounded-full border border-white/20 bg-ink/80 px-4 text-xs text-cream backdrop-blur-md">Ⅱ <span>{copy.pauseTouch}</span></button>
+                  </>
+                ) : <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
                   <div className="rounded-xl border border-white/15 bg-ink/80 px-4 py-3 text-cream/85 backdrop-blur-md">
                     <p className="text-[11px]"><span className="font-mono tracking-[.18em] text-brass">W A S D</span><span className="mx-3 text-white/20">/</span>{copy.move}<span className="mx-3 text-white/20">/</span>{copy.look}</p>
                     <p className="mt-1.5 text-[10px] text-cream/50">{walkState === "drag" ? copy.dragLook : `ESC · ${copy.pause}`}</p>
                   </div>
                   <button type="button" onClick={() => scene.current?.pauseWalkthrough()} className="flex min-h-11 items-center gap-2 rounded-full border border-white/20 bg-ink/80 px-4 text-xs text-cream backdrop-blur-md">Ⅱ <span>Esc</span></button>
-                </div>
+                </div>}
               </>
             )}
-            {walking && (showNotice || !desktop) && (
+            {walking && (showNotice || !canWalk) && (
               <div className="absolute inset-0 flex items-center justify-center overflow-y-auto bg-ink/70 p-6 backdrop-blur-md" data-walkthrough-notice role="region" aria-label={copy.experimental}>
                 <div className="w-full max-w-lg border border-brass/30 bg-[#171a18]/95 p-7 shadow-2xl sm:p-10">
                   <div className="mb-6 flex size-12 items-center justify-center rounded-full border border-brass/40 text-brass"><ViewIcon view="walkthrough" /></div>
@@ -381,16 +457,21 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
                   <h3 className="mt-4 font-display text-3xl text-cream sm:text-4xl">{copy.enterTitle}</h3>
                   <p className="mt-5 text-sm leading-relaxed text-cream/65">{copy.warning}</p>
                   <div className="my-7 space-y-3 border-y border-white/10 py-5 text-xs text-cream/70">
-                    <p><kbd className="mr-4 font-mono tracking-widest text-brass">W A S D</kbd>{copy.move}</p>
-                    <p><span className="mr-4 text-brass">↔</span>{copy.look}</p>
-                    <p><kbd className="mr-4 font-mono text-brass">ESC</kbd>{copy.pause}</p>
+                    {touch ? <>
+                      <p><span className="mr-4 text-brass">◎</span>{copy.stick}</p>
+                      <p><span className="mr-4 text-brass">↔</span>{copy.swipe}</p>
+                    </> : <>
+                      <p><kbd className="mr-4 font-mono tracking-widest text-brass">W A S D</kbd>{copy.move}</p>
+                      <p><span className="mr-4 text-brass">↔</span>{copy.look}</p>
+                      <p><kbd className="mr-4 font-mono text-brass">ESC</kbd>{copy.pause}</p>
+                    </>}
                   </div>
-                  <p className="mb-3 flex items-center gap-2 text-[10px] text-cream/40" role="status"><span className={`size-1 rounded-full ${status === "ready" ? "bg-brass" : "animate-pulse bg-cream/40"}`} />{desktop ? status === "ready" ? copy.ready : copy.preparing : copy.desktop}</p>
-                  <button type="button" onClick={startWalking} disabled={status !== "ready" || !desktop} className="flex min-h-12 w-full items-center justify-between bg-brass px-5 text-sm font-medium text-ink hover:bg-brass-bright disabled:opacity-40">{copy.start}<span aria-hidden>→</span></button>
+                  <p className="mb-3 flex items-center gap-2 text-[10px] text-cream/40" role="status"><span className={`size-1 rounded-full ${status === "ready" ? "bg-brass" : "animate-pulse bg-cream/40"}`} />{canWalk ? status === "ready" ? copy.ready : copy.preparing : copy.desktop}</p>
+                  <button type="button" onClick={startWalking} disabled={status !== "ready" || !canWalk} className="flex min-h-12 w-full items-center justify-between bg-brass px-5 text-sm font-medium text-ink hover:bg-brass-bright disabled:opacity-40">{copy.start}<span aria-hidden>→</span></button>
                 </div>
               </div>
             )}
-            {walking && !showNotice && desktop && (walkState === "paused" || walkState === "ready") && (
+            {walking && !showNotice && canWalk && (walkState === "paused" || walkState === "ready") && (
               <div className="absolute inset-0 flex items-center justify-center bg-ink/30 backdrop-blur-[2px]">
                 <div className="border border-white/20 bg-ink/90 p-6 text-center shadow-xl">
                   <p className="mb-4 text-sm text-cream/75">{copy.paused}</p>
@@ -399,17 +480,17 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
               </div>
             )}
           </div>
-          {walkthroughAvailable && !desktop && <p className="px-4 py-3 text-[10px] text-cream/50">{copy.desktop}</p>}
+          {walkthroughAvailable && !canWalk && <p className="px-4 py-3 text-[10px] text-cream/50">{copy.desktop}</p>}
           {walking && status === "ready" && (
-            <div className="flex shrink-0 items-center gap-2 border-t border-white/10 bg-ink/70 px-4 py-2" role="group" aria-label={copy.rooms}>
+            <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-t border-white/10 bg-ink/70 px-4 py-2" role="group" aria-label={copy.rooms}>
               <span className="mr-2 text-[10px] text-cream/40">{copy.rooms}</span>
               {model.viewpoints.map((viewpoint) => (
                 <button type="button" key={viewpoint.id} onClick={() => {
-                  if (!desktop) return;
+                  if (!canWalk) return;
                   setRoom(viewpoint.id);
                   scene.current?.setView("walkthrough", viewpoint.id);
-                  if (!showNotice) scene.current?.startWalkthrough();
-                }} disabled={!desktop} className="min-h-9 rounded-full border border-white/10 px-4 text-[11px] text-cream/70 hover:border-brass/50 hover:text-brass disabled:opacity-40">{copy[viewpoint.id]}</button>
+                  if (!showNotice) scene.current?.startWalkthrough({ touch });
+                }} disabled={!canWalk} className="min-h-9 shrink-0 rounded-full border border-white/10 px-4 text-[11px] text-cream/70 hover:border-brass/50 hover:text-brass disabled:opacity-40">{copy[viewpoint.id]}</button>
               ))}
             </div>
           )}

@@ -20,8 +20,12 @@ const TV_REACH = 3.6;
 
 export interface ApartmentScene {
   setView: (view: ApartmentView, roomId?: string) => void;
-  startWalkthrough: () => void;
+  startWalkthrough: (options?: { touch?: boolean }) => void;
   pauseWalkthrough: () => void;
+  /** On-screen joystick: x to the right, y forward. */
+  moveWalkthrough: (x: number, y: number) => void;
+  /** Uses whatever the crosshair rests on, as E does. */
+  interact: () => void;
   zoom: (direction: 1 | -1) => void;
   reset: () => void;
   dispose: () => void;
@@ -513,10 +517,16 @@ function buildScene(
 
   return {
     setView,
-    startWalkthrough() {
-      if (view === "walkthrough" && ready && !disposed) walkthrough.start();
+    startWalkthrough(options) {
+      if (view === "walkthrough" && ready && !disposed) walkthrough.start(options);
     },
     pauseWalkthrough: walkthrough.pause,
+    moveWalkthrough(x, y) {
+      if (!disposed && view === "walkthrough") walkthrough.setStick(x, y);
+    },
+    interact() {
+      if (!disposed && view === "walkthrough" && aimed && walkthrough.isActive()) switchTv(aimed, !aimed.on);
+    },
     zoom(direction) {
       if (disposed || view === "walkthrough") return;
       transition = null;

@@ -54,9 +54,9 @@ All seven model definitions and the viewer remain in source control for continue
 
 Open `/en/projects/parnavaz-65#explore`, choose floor 7, then apartment 704. Its 46.5 m² interior uses a more detailed reconstruction of the supplied design board. The top-right person icon opens an experimental notice before entering first-person mode.
 
-Use WASD or the arrow keys to move, the mouse to look, and Escape to pause and release the cursor. If the browser does not allow pointer lock, click the scene and drag to look while using WASD. Room buttons move to clear starting positions in the living room, bedrooms, kitchen and bathroom. The small plan shows your position and direction.
+Use WASD or the arrow keys to move, the mouse to look, and Escape to pause and release the cursor. On phones and tablets a game-style joystick at the bottom left walks (further from centre is faster), swiping anywhere else looks around, both work at once, and a tap on the on-screen prompt switches a TV. If the browser does not allow pointer lock, click the scene and drag to look while using WASD. Room buttons move to clear starting positions in the living room, bedrooms, kitchen and bathroom. The small plan shows your position and direction.
 
-Every apartment with a 3D model has the walkthrough, with a room menu that includes its bathroom, on desktop devices with a fine pointer and a viewport at least 900px wide. The dimensions and finishes remain approximate; this is not a measured walkthrough.
+Every apartment with a 3D model has the walkthrough, with a room menu that includes its bathroom, on desktops (fine pointer, viewport at least 900px wide) and on touch screens. The dimensions and finishes remain approximate; this is not a measured walkthrough.
 
 When the site is opened or refreshed, a small construction scene plays over the page (`site-loader.tsx`): blocks drop in and the crane sets the Comfort Building medallion on the tower, then the curtain lifts at about 2.9 s. The lift is pure CSS, so the page underneath is always in the HTML and appears even if JavaScript is slow; hero entrances wait for the lift. Client-side navigation does not replay it, and reduced motion or no JavaScript skips it.
 
