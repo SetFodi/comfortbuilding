@@ -215,6 +215,20 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
     };
   }, [isOpen]);
 
+  // A link like ?apartment=605 (from the promo cards) opens that apartment.
+  useEffect(() => {
+    const number = new URLSearchParams(window.location.search).get("apartment");
+    const unit = number ? priceList.units.find((item) => item.number === number) : undefined;
+    if (!unit) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById("explore")?.scrollIntoView({ block: "start" });
+      setSelectedFloor(unit.floor);
+      setShowDesign(false);
+      setActiveUnit(unit);
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [priceList]);
+
   function openUnit(unit: PricedUnit) {
     setSelectedFloor(unit.floor);
     setHoveredFloor(null);

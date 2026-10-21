@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AboutTeaser } from "@/components/about-teaser";
 import { AvailableApartmentsSpotlight } from "@/components/available-apartments-spotlight";
+import { ParnavazPromo } from "@/components/parnavaz-promo";
 import { ContactBand } from "@/components/contact-band";
 import { Hero } from "@/components/hero";
 import { JsonLd } from "@/components/json-ld";
@@ -93,6 +94,7 @@ export default async function HomePage({ params }: HomePageProps) {
         ])}
       />
       <Hero lang={lang} dict={dict} projects={PROJECTS} />
+      <ParnavazPromo lang={lang} placement="home" />
       <StatBand lang={lang} />
       <AvailableApartmentsSpotlight lang={lang} />
 
