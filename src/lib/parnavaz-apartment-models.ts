@@ -1172,9 +1172,20 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
   }),
 ];
 
-/** Never substitute a nearby area: apartments without a matching board have no model. */
+/**
+ * Apartments within this many m² of a designed type are shown with that
+ * type's design; anything further from every board has no model.
+ */
+export const SIMILAR_AREA_TOLERANCE = 2.5;
+
+/** The designed type for an apartment: its own board, else the nearest close one. */
 export function getParnavazApartmentModel(
   area: number,
 ): ApartmentModel | undefined {
-  return PARNAVAZ_APARTMENT_MODELS.find((model) => model.area === area);
+  let nearest: ApartmentModel | undefined;
+  for (const model of PARNAVAZ_APARTMENT_MODELS) {
+    const gap = Math.abs(model.area - area);
+    if (gap <= SIMILAR_AREA_TOLERANCE + 1e-9 && (!nearest || gap < Math.abs(nearest.area - area))) nearest = model;
+  }
+  return nearest;
 }

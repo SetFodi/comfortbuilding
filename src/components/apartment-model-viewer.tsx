@@ -43,7 +43,7 @@ const COPY = {
     tvOff: "ტელევიზორის გამორთვა",
     desktop: "გასეირნება ხელმისაწვდომია კომპიუტერზე, კლავიატურითა და მაუსით.",
     map: "თქვენი მდებარეობა",
-    prototype: "ლოკალური პროტოტიპი · ბინა",
+    prototype: "3D კონცეფცია · ბინა",
     ready: "სივრცე მზადაა",
     preparing: "სივრცე მზადდება",
   },
@@ -82,7 +82,7 @@ const COPY = {
     tvOff: "Turn off TV",
     desktop: "The walkthrough is available on a desktop with a keyboard and mouse.",
     map: "You are here",
-    prototype: "Local prototype · Apartment",
+    prototype: "3D concept · Apartment",
     ready: "Apartment ready",
     preparing: "Preparing the apartment",
   },
@@ -121,7 +121,7 @@ const COPY = {
     tvOff: "Выключить телевизор",
     desktop: "Прогулка доступна на компьютере с клавиатурой и мышью.",
     map: "Вы здесь",
-    prototype: "Локальный прототип · Квартира",
+    prototype: "3D-концепция · Квартира",
     ready: "Квартира готова",
     preparing: "Готовим квартиру",
   },
@@ -180,11 +180,11 @@ function OrientationMap({ model, pose, label }: { model: ApartmentModel; pose: W
   );
 }
 
-export default function ApartmentModelViewer(props: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string }) {
+export default function ApartmentModelViewer(props: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string; area?: number }) {
   return <ApartmentModelExperience key={props.model.id} {...props} />;
 }
 
-function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit }: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string }) {
+function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit, area = model.area }: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string; area?: number }) {
   const copy = COPY[lang];
   const canvasHost = useRef<HTMLDivElement>(null);
   const scene = useRef<ApartmentScene | null>(null);
@@ -272,7 +272,7 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit 
             {walkthroughAvailable ? (
               <>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-[10px] tracking-[.14em] text-brass/75">{model.area.toFixed(2)} M²</span>
+                  <span className="font-mono text-[10px] tracking-[.14em] text-brass/75">{area.toFixed(2)} M²</span>
                   <span className="hidden h-4 w-px bg-white/15 sm:block" />
                   <span className="hidden text-[10px] text-cream/40 sm:block">{unit ? `${copy.prototype} ${unit}` : copy.prototype}</span>
                 </div>
@@ -306,7 +306,7 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit 
               ))}
             </div>}
             {!walkthroughAvailable && <span className="hidden font-mono text-[10px] tracking-[0.22em] text-brass/60 sm:inline" aria-hidden="true">
-              {model.area.toFixed(2)} M²
+              {area.toFixed(2)} M²
             </span>}
           </div>
           <div className="relative min-h-[250px] flex-1" style={{ background: "radial-gradient(ellipse at 50% 40%, #5b5b50 0%, #353a34 43%, #1b1e1d 78%)" }}>

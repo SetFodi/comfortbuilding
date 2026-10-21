@@ -151,7 +151,7 @@ test("each facade level and its number marker fit the actual uncropped building 
   }
 });
 
-test("3D models match the seven supplied layouts exactly and never substitute a nearby apartment size", () => {
+test("3D models match the seven supplied layouts, and close sizes borrow the nearest design", () => {
   assert.equal(PARNAVAZ_APARTMENT_MODELS.length, 7);
   assert.equal(new Set(PARNAVAZ_APARTMENT_MODELS.map((model) => model.id)).size, 7);
   assert.deepEqual(
@@ -165,8 +165,15 @@ test("3D models match the seven supplied layouts exactly and never substitute a 
     assert.equal(model.bedrooms, layout.bedrooms);
     assert.equal(model.source.src, layout.image.src);
   }
-  for (const area of [43.4, 46.3, 54, 97.4]) {
-    assert.equal(getParnavazApartmentModel(area), undefined, `No supplied model exists for ${area} m²`);
+  // Apartments within 2.5 m² of a designed type use that type's design.
+  for (const [area, design] of [[46.3, 46.5], [54, 55.1], [43.4, 45.7]]) {
+    assert.equal(getParnavazApartmentModel(area)?.area, design, `${area} m² is shown with the ${design} m² design`);
+  }
+  // Nothing designed is close to 97.4 m², so it has no model.
+  assert.equal(getParnavazApartmentModel(97.4), undefined);
+  for (const unit of parnavaz.priceList.units) {
+    const model = getParnavazApartmentModel(unit.totalArea);
+    if (model) assert.ok(Math.abs(model.area - unit.totalArea) <= 2.5, `Apartment ${unit.number} design is close in size`);
   }
 });
 
