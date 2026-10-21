@@ -35,6 +35,8 @@ const COPY = {
     previous: "წინა",
     next: "შემდეგი",
     close: "დახურვა",
+    zoomIn: "გადიდება",
+    zoomOut: "ეკრანზე მორგება",
     from: (price: string) => `${price}-დან / მ²`,
     forSale: (count: number) => `${count} იყიდება`,
     seePrices: "ფასების ნახვა",
@@ -47,6 +49,8 @@ const COPY = {
     previous: "Previous",
     next: "Next",
     close: "Close",
+    zoomIn: "Zoom in",
+    zoomOut: "Fit to screen",
     from: (price: string) => `from ${price} / m²`,
     forSale: (count: number) => `${count} for sale`,
     seePrices: "See prices",
@@ -59,6 +63,8 @@ const COPY = {
     previous: "Назад",
     next: "Далее",
     close: "Закрыть",
+    zoomIn: "Увеличить",
+    zoomOut: "Вписать в экран",
     from: (price: string) => `от ${price} / м²`,
     forSale: (count: number) => `${count} в продаже`,
     seePrices: "Смотреть цены",
@@ -79,15 +85,35 @@ export function ApartmentLayouts({
   const copy = COPY[lang];
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [zoomed, setZoomed] = useState(false);
+  const stage = useRef<HTMLDivElement>(null);
   const active = openIndex === null ? null : layouts[openIndex];
+
+  /** Tap or click to zoom in on that spot of the board; again to fit it back. */
+  const toggleZoom = (event?: React.MouseEvent) => {
+    const element = stage.current;
+    if (!element) return;
+    if (zoomed) {
+      setZoomed(false);
+      return;
+    }
+    const rect = element.getBoundingClientRect();
+    const fx = event ? (event.clientX - rect.left) / rect.width : 0.5;
+    const fy = event ? (event.clientY - rect.top) / rect.height : 0.5;
+    setZoomed(true);
+    requestAnimationFrame(() => {
+      element.scrollLeft = fx * element.scrollWidth - rect.width / 2;
+      element.scrollTop = fy * element.scrollHeight - rect.height / 2;
+    });
+  };
 
   const step = useCallback(
     (direction: 1 | -1) =>
-      setOpenIndex((current) =>
+      (setZoomed(false), setOpenIndex((current) =>
         current === null
           ? current
           : (current + direction + layouts.length) % layouts.length,
-      ),
+      )),
     [layouts.length],
   );
 
@@ -122,7 +148,7 @@ export function ApartmentLayouts({
           >
             <button
               type="button"
-              onClick={() => setOpenIndex(index)}
+              onClick={() => { setZoomed(false); setOpenIndex(index); }}
               aria-label={`${copy.view}: ${layout.area} ${copy.unit}`}
               className={`relative block aspect-[5/4] overflow-hidden border-b border-ink/15 ${BOARD_BACKGROUND}`}
             >
@@ -198,11 +224,11 @@ export function ApartmentLayouts({
           if (event.key === "ArrowRight") step(1);
           if (event.key === "ArrowLeft") step(-1);
         }}
-        className="m-auto max-h-[94svh] w-[min(72rem,94vw)] overflow-hidden border border-ink/15 bg-paper p-0 text-ink backdrop:bg-ink/85 backdrop:backdrop-blur-sm"
+        className="m-auto h-[100svh] max-h-none w-screen max-w-none overflow-hidden bg-paper p-0 text-ink backdrop:bg-ink/85 backdrop:backdrop-blur-sm md:h-[96svh] md:w-[96vw] md:border md:border-ink/15"
       >
         {active && openIndex !== null && (
-          <div className="flex max-h-[94svh] flex-col">
-            <div className="flex items-center justify-between gap-4 border-b border-ink/15 px-5 py-3 md:px-6">
+          <div className="flex h-full flex-col">
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-ink/15 px-4 py-1.5 md:px-6">
               <p className="font-mono text-[10px] tracking-[0.14em] text-ink/60 uppercase">
                 {typeLabel(openIndex)} · {active.area} {copy.unit} ·{" "}
                 {copy.bedrooms(active.bedrooms)}
@@ -216,20 +242,43 @@ export function ApartmentLayouts({
               </button>
             </div>
 
+            {/* The board fills the space between the bars; zoomed, it scrolls. */}
             <div className={`relative min-h-0 flex-1 ${BOARD_BACKGROUND}`}>
-              <Image
-                key={active.image.src}
-                src={active.image.src}
-                alt={active.image.alt}
-                width={active.image.width}
-                height={active.image.height}
-                sizes="(min-width: 1152px) 72rem, 94vw"
-                quality={90}
-                className="mx-auto h-auto max-h-[calc(94svh-8rem)] w-auto max-w-full object-contain"
-              />
+              <div
+                ref={stage}
+                className={`absolute inset-0 overscroll-contain ${zoomed ? "cursor-zoom-out overflow-auto" : "cursor-zoom-in overflow-hidden"}`}
+                onClick={(event) => toggleZoom(event)}
+                data-layout-stage={zoomed ? "zoomed" : "fit"}
+                style={{ containerType: "size" }}
+              >
+                <div
+                  className="relative"
+                  style={zoomed
+                    // About 2.4 times the fitted board, never narrower than the stage.
+                    ? { width: `max(100cqw, min(100cqw, ${active.image.width / active.image.height * 100}cqh) * 2.4)`, aspectRatio: `${active.image.width} / ${active.image.height}` }
+                    : { width: "100%", height: "100%" }}
+                >
+                  <Image
+                    key={active.image.src}
+                    src={active.image.src}
+                    alt={active.image.alt}
+                    fill
+                    sizes={zoomed ? "300vw" : "100vw"}
+                    quality={90}
+                    className="object-contain p-2 md:p-4"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => toggleZoom()}
+                className="absolute right-3 bottom-3 z-10 inline-flex min-h-11 items-center gap-2 bg-ink px-4 font-mono text-[10px] tracking-[0.12em] text-cream uppercase shadow-lg hover:bg-bronze"
+              >
+                {zoomed ? copy.zoomOut : copy.zoomIn} <span aria-hidden>{zoomed ? "−" : "+"}</span>
+              </button>
             </div>
 
-            <div className="flex items-center justify-between gap-4 border-t border-ink/15 px-5 py-2 md:px-6">
+            <div className="flex shrink-0 items-center justify-between gap-4 border-t border-ink/15 px-4 py-0.5 md:px-6">
               <button
                 type="button"
                 onClick={() => step(-1)}

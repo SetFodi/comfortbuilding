@@ -269,13 +269,15 @@ function OrientationMap({ model, pose, label }: { model: ApartmentModel; pose: W
   );
 }
 
-export default function ApartmentModelViewer(props: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string; area?: number }) {
+export default function ApartmentModelViewer(props: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string; area?: number; entrance?: boolean }) {
   return <ApartmentModelExperience key={props.model.id} {...props} />;
 }
 
-function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit, area = model.area }: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string; area?: number }) {
+function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit, area = model.area, entrance = false }: { model: ApartmentModel; lang: Lang; allowWalkthrough?: boolean; unit?: string; area?: number; entrance?: boolean }) {
   const copy = COPY[lang];
   const canvasHost = useRef<HTMLDivElement>(null);
+  // Only the first scene of this apartment arrives from above.
+  const entranceOnMount = useRef(entrance);
   const scene = useRef<ApartmentScene | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "fallback">("loading");
   const [view, setView] = useState<ApartmentView>("dollhouse");
@@ -317,7 +319,7 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
         if (!cancelled) setPose(next);
       }, (next) => {
         if (!cancelled) setInteraction(next);
-      });
+      }, { entrance: entranceOnMount.current });
       scene.current = currentScene;
     } catch {
       queueMicrotask(fail);

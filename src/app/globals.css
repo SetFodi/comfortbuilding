@@ -97,6 +97,22 @@ a {
   animation: apartment-entry 420ms cubic-bezier(0.2, 0.65, 0.25, 1) both;
 }
 
+/* The apartment's outline in its location view breathes, so it is found at a glance. */
+.location-pulse {
+  animation: location-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes location-pulse {
+  0%, 100% { stroke-opacity: 1; }
+  50% { stroke-opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .location-pulse {
+    animation: none;
+  }
+}
+
 /* A touch walkthrough fills the screen: the dialog's entry transform would
    otherwise anchor the fixed stage to the dialog instead of the viewport. */
 .apartment-explorer-dialog:has([data-immersive]) {

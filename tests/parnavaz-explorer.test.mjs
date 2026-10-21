@@ -53,6 +53,14 @@ const {
   PARNAVAZ_APARTMENT_MODELS,
   getParnavazApartmentModel,
 } = loadSource("src/lib/parnavaz-apartment-models.ts");
+const {
+  PARNAVAZ_FLOOR_PLANS,
+  PARNAVAZ_PLAN,
+  facadeOutline,
+  findPlanUnit,
+  longFaceX,
+  shortFaceX,
+} = loadSource("src/lib/parnavaz-floor-plans.ts");
 const parnavaz = PROJECTS.find((project) => project.slug === "parnavaz-65");
 assert.ok(parnavaz?.priceList, "Parnavaz 65 has its published sales inventory");
 
@@ -219,4 +227,46 @@ test("plan crops use real image bounds and all interior camera views remain with
       );
     }
   }
+});
+
+test("every apartment for sale is outlined on its floor plan, and floor 8 carries none", async () => {
+  const sharp = require("sharp");
+  assert.deepEqual(PARNAVAZ_FLOOR_PLANS.map((plan) => plan.floor), [2, 3, 4, 5, 6, 7, 8]);
+  for (const plan of PARNAVAZ_FLOOR_PLANS) {
+    const image = await sharp(resolve(root, "public", plan.image.src.slice(1))).metadata();
+    assert.equal(image.width, plan.image.width, `floor ${plan.floor} plan width`);
+    assert.equal(image.height, plan.image.height, `floor ${plan.floor} plan height`);
+    assert.ok(Math.abs(plan.image.width / plan.image.height - PARNAVAZ_PLAN.width / PARNAVAZ_PLAN.height) < 0.001);
+    for (const unit of plan.units) {
+      for (const [x, y] of unit.points) {
+        assert.ok(x >= 0 && x <= PARNAVAZ_PLAN.width && y >= 0 && y <= PARNAVAZ_PLAN.height, `${unit.number ?? "unit"} on floor ${plan.floor} stays on the plan`);
+      }
+      if (unit.number) assert.equal(Number(unit.number[0]), plan.floor, `${unit.number} is drawn on its own floor`);
+    }
+  }
+  assert.equal(PARNAVAZ_FLOOR_PLANS.find((plan) => plan.floor === 8).units.length, 0);
+  for (const unit of parnavaz.priceList.units) {
+    const found = findPlanUnit(unit.number);
+    assert.ok(found, `apartment ${unit.number} is outlined on a floor plan`);
+    assert.equal(found.plan.floor, unit.floor);
+  }
+});
+
+test("street-side apartments are outlined on the building render inside their floor's band", () => {
+  // The two visible faces meet at the corner and run left and right of it.
+  assert.ok(Math.abs(longFaceX(60) - 1134) < 0.5 && Math.abs(shortFaceX(555) - 1134) < 0.5);
+  assert.ok(shortFaceX(100) < shortFaceX(300) && longFaceX(508) < longFaceX(1580));
+  for (const plan of PARNAVAZ_FLOOR_PLANS) {
+    for (const unit of plan.units) {
+      const outline = facadeOutline(plan.floor, unit);
+      assert.equal(Boolean(outline), Boolean(unit.facade), `${unit.number ?? "unit"} outline matches its facade side`);
+      if (!outline) continue;
+      for (const [x, y] of outline.split(" ").map((point) => point.split(",").map(Number))) {
+        assert.ok(x >= 690 && x <= 2065 && y >= 0 && y <= PARNAVAZ_FACADE.height, `${unit.number} outline point ${x},${y}`);
+      }
+    }
+  }
+  // 117 m² apartments wrap the corner; 601-type apartments face the courtyard.
+  assert.ok(findPlanUnit("608").unit.facade.short && findPlanUnit("608").unit.facade.long);
+  assert.equal(facadeOutline(6, findPlanUnit("601").unit), null);
 });

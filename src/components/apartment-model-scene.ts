@@ -12,6 +12,15 @@ import { createWalkthroughLayout } from "@/lib/apartment-walkthrough";
 
 export type ApartmentView = "dollhouse" | "inside" | "top" | "walkthrough";
 
+export interface SceneOptions {
+  /**
+   * Arrive from above, as if lowered into the apartment from its floor plan:
+   * the camera starts high overhead with the walls flat and settles into the
+   * 3D view while they rise.
+   */
+  readonly entrance?: boolean;
+}
+
 /** What the walkthrough crosshair is resting on, if it can be used. */
 export type WalkthroughInteraction = { readonly kind: "tv"; readonly on: boolean } | null;
 
@@ -99,6 +108,7 @@ export function createApartmentScene(
   onWalkthroughState: (state: WalkthroughState) => void = () => {},
   onWalkthroughPose: (pose: WalkthroughPose) => void = () => {},
   onInteraction: (interaction: WalkthroughInteraction) => void = () => {},
+  options: SceneOptions = {},
 ): ApartmentScene {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
   const scene = new THREE.Scene();
@@ -114,7 +124,7 @@ export function createApartmentScene(
     renderer.domElement.style.cssText = "display:block;width:100%;height:100%;touch-action:none;outline:none";
     renderer.domElement.setAttribute("aria-hidden", "true");
     host.appendChild(renderer.domElement);
-    return buildScene(renderer, scene, host, model, onReady, onFailure, onWalkthroughState, onWalkthroughPose, onInteraction);
+    return buildScene(renderer, scene, host, model, onReady, onFailure, onWalkthroughState, onWalkthroughPose, onInteraction, options);
   } catch (error) {
     disposeScene(scene);
     renderer.dispose();
@@ -134,6 +144,7 @@ function buildScene(
   onWalkthroughState: (state: WalkthroughState) => void,
   onWalkthroughPose: (pose: WalkthroughPose) => void,
   onInteraction: (interaction: WalkthroughInteraction) => void,
+  options: SceneOptions,
 ): ApartmentScene {
   const camera = new THREE.PerspectiveCamera(39, 1, 0.05, 150);
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -248,6 +259,7 @@ function buildScene(
   let transition: {
     start: number;
     duration: number;
+    arc?: boolean;
     from: THREE.Vector3;
     to: THREE.Vector3;
     fromTarget: THREE.Vector3;
@@ -274,10 +286,27 @@ function buildScene(
     previousFrameTime = now;
     if (transition) {
       renderer.shadowMap.needsUpdate = true;
+      // A glide that has not drawn yet starts now, so slow first frames never skip it.
+      if (transition.start < 0) transition.start = now;
       const elapsed = Math.min(1, (now - transition.start) / transition.duration);
       const t = elapsed < 0.5 ? 4 * elapsed ** 3 : 1 - (-2 * elapsed + 2) ** 3 / 2;
-      camera.position.lerpVectors(transition.from, transition.to, t);
       controls.target.lerpVectors(transition.fromTarget, transition.toTarget, t);
+      if (transition.arc) {
+        // Swing around the apartment rather than cutting straight across it.
+        const from = new THREE.Spherical().setFromVector3(transition.from.clone().sub(transition.fromTarget));
+        const to = new THREE.Spherical().setFromVector3(transition.to.clone().sub(transition.toTarget));
+        let turn = to.theta - from.theta;
+        if (turn > Math.PI) turn -= Math.PI * 2;
+        if (turn < -Math.PI) turn += Math.PI * 2;
+        const along = new THREE.Spherical(
+          THREE.MathUtils.lerp(from.radius, to.radius, t),
+          THREE.MathUtils.lerp(from.phi, to.phi, t),
+          from.theta + turn * t,
+        );
+        camera.position.setFromSpherical(along).add(controls.target);
+      } else {
+        camera.position.lerpVectors(transition.from, transition.to, t);
+      }
       cutaway.scale.y = THREE.MathUtils.lerp(transition.fromWall, transition.toWall, t);
       camera.fov = THREE.MathUtils.lerp(transition.fromFov, transition.toFov, t);
       camera.updateProjectionMatrix();
@@ -503,8 +532,13 @@ function buildScene(
   });
   intersectionObserver.observe(host);
   resize();
-  setView("dollhouse", undefined, true);
-  if (!reducedMotion.matches) {
+  const entering = Boolean(options.entrance) && !reducedMotion.matches;
+  setView(entering ? "top" : "dollhouse", undefined, true);
+  if (entering) {
+    // High overhead, a quarter turn round, with the walls still flat.
+    camera.position.set(-depth * 0.06, camera.position.y * 1.55, width * 0.04);
+    cutaway.scale.y = 0.02;
+  } else if (!reducedMotion.matches) {
     camera.position.multiplyScalar(1.13);
     camera.position.y += size * 0.08;
   }
@@ -513,6 +547,11 @@ function buildScene(
     ready = true;
     onReady();
     setView("dollhouse");
+    if (entering && transition) {
+      transition.start = -1;
+      transition.duration = 1900;
+      transition.arc = true;
+    }
   }).catch(() => {
     if (!disposed) onFailure();
   });

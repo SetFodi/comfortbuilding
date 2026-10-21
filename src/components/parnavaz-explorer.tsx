@@ -3,16 +3,26 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { inquiryHref } from "@/lib/inquiry-context";
 import { getParnavazApartmentModel } from "@/lib/parnavaz-apartment-models";
 import { PARNAVAZ_FACADE, PARNAVAZ_FACADE_FLOORS, parnavazFloorState } from "@/lib/parnavaz-facade";
+import { facadeOutline, findPlanUnit, getFloorPlan, PARNAVAZ_PLAN, planCentre, planPoints, type FloorPlan, type PlanUnit } from "@/lib/parnavaz-floor-plans";
 import type { ApartmentLayout, Lang, PricedUnit, ProjectPriceList } from "@/lib/types";
 
 const ApartmentModelViewer = dynamic(() => import("./apartment-model-viewer"), {
   ssr: false,
   loading: () => (
     <div className="flex h-full min-h-80 items-center justify-center bg-[#e9e3d8]" role="status" aria-label="3D">
+      <span className="size-10 animate-spin rounded-full border border-bronze/20 border-t-bronze motion-reduce:animate-none" />
+    </div>
+  ),
+});
+
+const ParnavazFloor3d = dynamic(() => import("./parnavaz-floor-3d"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full items-center justify-center" role="status" aria-label="3D">
       <span className="size-10 animate-spin rounded-full border border-bronze/20 border-t-bronze motion-reduce:animate-none" />
     </div>
   ),
@@ -37,6 +47,9 @@ const COPY = {
     confirm: "საბოლოო ფასი და პირობები დააზუსტეთ გაყიდვების გუნდთან.",
     source: "დიზაინის ნახვა", back3d: "3D-ში დაბრუნება",
     bedrooms: "საძინებელი", floorApartments: "ბინები ამ სართულზე",
+    planTitle: "სართულის გეგმა", floorPlan: "გეგმა", floor3d: "3D სართული", location: "მდებარეობა შენობაში",
+    courtyard: "ბინა შენობის უკანა, ეზოს მხარესაა.", planNote: "გეგმა გაყიდვების ნახაზებიდანაა, ბინების კონტურები საორიენტაციოა.",
+    swipe: "გეგმა გვერდზე გადაასრიალეთ", notForSaleFloor: "მე-8 სართული გასაყიდად არ არის შეთავაზებული.", open3d: "3D-ში ნახვა",
   },
   en: {
     eyebrow: "From the facade to your home",
@@ -56,6 +69,9 @@ const COPY = {
     confirm: "Confirm the final price and terms with the sales team.",
     source: "View supplied design", back3d: "Back to 3D",
     bedrooms: "Bedrooms", floorApartments: "Apartments on this floor",
+    planTitle: "Floor plan", floorPlan: "Plan", floor3d: "3D floor", location: "Where it is in the building",
+    courtyard: "This apartment is on the back of the building, facing the courtyard.", planNote: "Plan from the sales drawings. Apartment outlines are indicative.",
+    swipe: "Swipe the plan sideways", notForSaleFloor: "Floor 8 is not offered for sale.", open3d: "View in 3D",
   },
   ru: {
     eyebrow: "От фасада к вашей квартире",
@@ -75,11 +91,27 @@ const COPY = {
     confirm: "Окончательную цену и условия уточняйте в отделе продаж.",
     source: "Посмотреть дизайн", back3d: "Вернуться в 3D",
     bedrooms: "Спальни", floorApartments: "Квартиры на этом этаже",
+    planTitle: "План этажа", floorPlan: "План", floor3d: "3D-этаж", location: "Расположение в доме",
+    courtyard: "Квартира находится с задней стороны дома, окна во двор.", planNote: "План по чертежам отдела продаж. Контуры квартир ориентировочные.",
+    swipe: "Сдвиньте план в сторону", notForSaleFloor: "8-й этаж не выставлен на продажу.", open3d: "Смотреть в 3D",
   },
 } as const;
 
 const dollars = (value: number) => `$${Math.round(value).toLocaleString("en-US")}`;
 const area = (value: number, lang: Lang) => lang === "ru" ? String(value).replace(".", ",") : String(value);
+
+/** A unit on a floor plan, joined to its price-list entry when it is for sale. */
+interface UnitView {
+  readonly key: string;
+  readonly number?: string;
+  readonly unit?: PricedUnit;
+  readonly available: boolean;
+  readonly label: string;
+  readonly points: PlanUnit["points"];
+  readonly planUnit: PlanUnit;
+}
+
+const BAND_TOP = (points: string) => Math.min(...points.trim().split(/\s+/).map((point) => Number(point.split(",")[1])));
 
 interface ParnavazExplorerProps {
   readonly lang: Lang;
@@ -116,6 +148,56 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
   const similarDesign = Boolean(activeUnit && selectedModel && selectedModel.area !== activeUnit.totalArea);
   const activeFloorUnits = activeUnit ? priceList.units.filter((unit) => unit.floor === activeUnit.floor) : [];
   const stateLabel = previewState === "available" ? copy.available : previewState === "sold" ? copy.sold : copy.notForSale;
+  const [hoveredUnit, setHoveredUnit] = useState<string | null>(null);
+  const [floorView, setFloorView] = useState<"plan" | "3d">("plan");
+  // The plan zooms into the chosen apartment before it opens.
+  const [entering, setEntering] = useState<{ readonly key: string; readonly origin: readonly [number, number] } | null>(null);
+  const planPanel = useRef<HTMLDivElement>(null);
+  const priced = useMemo(() => new Map(priceList.units.map((unit) => [unit.number, unit])), [priceList]);
+  const viewsFor = useMemo(() => (floorPlan: FloorPlan | undefined): UnitView[] => floorPlan?.units.map((planUnit, index) => {
+    const unit = planUnit.number ? priced.get(planUnit.number) : undefined;
+    return {
+      key: planUnit.number ?? `${floorPlan.floor}-${index}`, number: planUnit.number, unit, available: Boolean(unit),
+      label: planUnit.number ?? copy.sold, points: planUnit.points, planUnit,
+    };
+  }) ?? [], [priced, copy.sold]);
+  const selectedPlan = getFloorPlan(selectedFloor);
+  const selectedViews = useMemo(() => viewsFor(selectedPlan), [viewsFor, selectedPlan]);
+  const previewViews = useMemo(() => viewsFor(getFloorPlan(previewFloor)), [viewsFor, previewFloor]);
+  // Street-side apartments of the floor in view, outlined on the building.
+  const facadeUnits = useMemo(() => previewViews.flatMap((view) => {
+    const outline = facadeOutline(previewFloor, view.planUnit);
+    return outline ? [{ view, outline }] : [];
+  }), [previewViews, previewFloor]);
+  const hoveredFacade = facadeUnits.find(({ view }) => view.key === hoveredUnit);
+  const activeLocation = useMemo(() => {
+    const found = activeUnit ? findPlanUnit(activeUnit.number) : undefined;
+    if (!found) return null;
+    return {
+      plan: found.plan, unit: found.unit, outline: facadeOutline(found.plan.floor, found.unit),
+      band: PARNAVAZ_FACADE_FLOORS.find((floor) => floor.number === found.plan.floor)?.points,
+    };
+  }, [activeUnit]);
+  function enterFromPlan(view: UnitView) {
+    if (!view.unit || entering) return;
+    const unit = view.unit;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      openUnit(unit);
+      return;
+    }
+    const [cx, cy] = planCentre(view.points);
+    setHoveredUnit(view.key);
+    setEntering({ key: view.key, origin: [cx / PARNAVAZ_PLAN.width * 100, cy / PARNAVAZ_PLAN.height * 100] });
+    window.setTimeout(() => {
+      openUnit(unit);
+      window.setTimeout(() => setEntering(null), 450);
+    }, 640);
+  }
+
+  // Only a mouse previews on hover; a tap goes straight to the apartment.
+  const hoverUnit = (event: React.PointerEvent, key: string | null) => {
+    if (event.pointerType === "mouse") setHoveredUnit(key);
+  };
 
   useEffect(() => {
     const element = dialog.current;
@@ -146,13 +228,20 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
     if (event.pointerType === "mouse") setHoveredFloor(number);
   }
 
+  // Choosing a floor shows its plan first; an apartment is chosen from there.
   function openFloor(number: number) {
     setSelectedFloor(number);
     setHoveredFloor(null);
-    const units = priceList.units.filter((unit) => unit.floor === number);
-    if (parnavazFloorState(priceList, number) !== "available") return;
-    const first = units.find((unit) => getParnavazApartmentModel(unit.totalArea)) ?? units[0];
-    if (first) openUnit(first);
+    setHoveredUnit(null);
+    requestAnimationFrame(() => {
+      const panel = planPanel.current;
+      if (!panel) return;
+      const { top } = panel.getBoundingClientRect();
+      if (top > window.innerHeight * 0.8) {
+        const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        panel.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+      }
+    });
   }
 
   return (
@@ -185,7 +274,28 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
                   className="cursor-pointer transition-[fill,stroke] duration-200 motion-reduce:transition-none"
                   onPointerEnter={(event) => previewOnHover(event, floor.number)} onClick={() => openFloor(floor.number)} />;
               })}
+              {facadeUnits.map(({ view, outline }) => {
+                const on = hoveredUnit === view.key;
+                return <polygon key={view.key} points={outline} data-unit-outline={view.key}
+                  fill={view.available ? on ? "rgba(11,13,15,.5)" : "rgba(197,170,114,.14)" : on ? "rgba(11,13,15,.4)" : "rgba(11,13,15,.28)"}
+                  stroke={on ? "#fff3d6" : view.available ? "#dfc58c" : "rgba(243,240,233,.5)"} strokeWidth={on ? 3 : 1.25} strokeDasharray={view.available || on ? undefined : "5 4"}
+                  strokeLinejoin="round" vectorEffect="non-scaling-stroke" className="cursor-pointer transition-[fill] duration-150 motion-reduce:transition-none"
+                  onPointerEnter={(event) => hoverUnit(event, view.key)} onPointerLeave={(event) => hoverUnit(event, null)}
+                  onClick={() => view.unit ? openUnit(view.unit) : openFloor(previewFloor)} />;
+              })}
             </svg>
+            {hoveredFacade && (() => {
+              const xs = hoveredFacade.outline.split(" ").map((point) => Number(point.split(",")[0]));
+              const left = (Math.min(...xs) + Math.max(...xs)) / 2 / PARNAVAZ_FACADE.width * 100;
+              const top = BAND_TOP(hoveredFacade.outline) / PARNAVAZ_FACADE.height * 100;
+              const unit = hoveredFacade.view.unit;
+              return (
+                <div className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full border-l-2 border-brass bg-ink/90 px-3 py-2 shadow-xl backdrop-blur-md" style={{ left: `${left}%`, top: `calc(${top}% - 8px)` }} data-facade-card>
+                  <p className="font-mono text-sm text-cream">{copy.apartment} {hoveredFacade.view.number ?? ""}</p>
+                  <p className="mt-0.5 text-[10px] text-cream/60">{unit ? `${area(unit.totalArea, lang)} m² · ${dollars(unit.pricePerSqm)} / m²` : copy.sold}</p>
+                </div>
+              );
+            })()}
             <div className="pointer-events-none absolute z-10 transition-[left,top] duration-300 motion-reduce:transition-none" style={{ left: `${shape.marker[0] / PARNAVAZ_FACADE.width * 100}%`, top: `${shape.marker[1] / PARNAVAZ_FACADE.height * 100}%` }} aria-hidden>
               <div className="flex -translate-x-full -translate-y-1/2 items-center">
                 <span className={`flex size-7 items-center justify-center rounded-full font-mono text-[11px] shadow-lg sm:size-9 sm:text-sm ${previewState === "available" ? "bg-brass text-ink" : "bg-ink text-cream ring-1 ring-cream/60"}`}>{previewFloor}</span>
@@ -220,7 +330,9 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
               {floorUnits.length > 0 && previewState === "available" ? floorUnits.map((unit) => {
                 const hasModel = Boolean(getParnavazApartmentModel(unit.totalArea));
                 return (
-                  <button key={unit.number} type="button" onClick={() => openUnit(unit)} className="group flex min-h-20 w-full items-center justify-between gap-3 border border-cream/12 bg-ink/40 px-4 py-3 text-left transition-colors hover:border-brass/60 hover:bg-brass/5" aria-label={`${copy.apartment} ${unit.number} · ${area(unit.totalArea, lang)} m² · ${hasModel ? copy.enter : copy.requestPlan}`}>
+                  <button key={unit.number} type="button" onClick={() => openUnit(unit)}
+                    onPointerEnter={(event) => hoverUnit(event, unit.number)} onPointerLeave={(event) => hoverUnit(event, null)}
+                    className={`group flex min-h-20 w-full items-center justify-between gap-3 border px-4 py-3 text-left transition-colors hover:border-brass/60 hover:bg-brass/5 ${hoveredUnit === unit.number ? "border-brass/60 bg-brass/5" : "border-cream/12 bg-ink/40"}`} aria-label={`${copy.apartment} ${unit.number} · ${area(unit.totalArea, lang)} m² · ${hasModel ? copy.enter : copy.requestPlan}`}>
                     <span><span className="block text-[10px] text-cream/45">{copy.apartment}</span><span className="mt-1 block font-mono text-xl">{unit.number}</span></span>
                     <span className="ml-auto text-right"><span className="block font-mono text-sm text-brass">{area(unit.totalArea, lang)} m²</span><span className="mt-1 block text-[10px] text-cream/40">{dollars(unit.pricePerSqm)} / m²</span></span>
                     {hasModel ? <CubeIcon className="ml-2 size-6 text-brass transition-transform group-hover:-translate-y-0.5" /> : <span className="ml-2 text-cream/40" aria-hidden>↗</span>}
@@ -231,6 +343,78 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
             <p className="mt-auto flex items-center gap-2 pt-6 text-[10px] text-cream/40"><CubeIcon className="size-4 text-brass" />{copy.model}</p>
           </div>
         </div>
+
+        {selectedPlan && (
+          <div ref={planPanel} data-floor-plan={selectedFloor} className="mt-6 scroll-mt-24 overflow-hidden border border-cream/15 bg-basalt">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-cream/10 px-5 py-4 sm:px-7">
+              <div>
+                <p className="font-mono text-[10px] tracking-[.16em] text-brass uppercase">{copy.floor} {String(selectedFloor).padStart(2, "0")}</p>
+                <h3 className="mt-1 font-display text-2xl sm:text-3xl">{copy.planTitle}</h3>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-4 text-[10px] text-cream/55" aria-hidden>
+                  <span className="flex items-center gap-1.5"><span className="size-2.5 border border-brass bg-brass/40" />{copy.available}</span>
+                  <span className="flex items-center gap-1.5"><span className="size-2.5 border border-dashed border-cream/40 bg-cream/10" />{copy.sold}</span>
+                </div>
+                <div className="flex rounded-full border border-cream/15 bg-ink/50 p-1" role="group" aria-label={copy.planTitle}>
+                  {(["plan", "3d"] as const).map((mode) => (
+                    <button key={mode} type="button" aria-pressed={floorView === mode} onClick={() => setFloorView(mode)} disabled={mode === "3d" && selectedPlan.units.length === 0}
+                      className={`flex min-h-10 items-center gap-2 rounded-full px-4 text-xs transition-colors disabled:opacity-40 ${floorView === mode ? "bg-brass text-ink" : "text-cream/65 hover:text-cream"}`}>
+                      {mode === "3d" && <CubeIcon className="size-4" />}{mode === "plan" ? copy.floorPlan : copy.floor3d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {floorView === "3d" && selectedPlan.units.length > 0 ? (
+              <div className="h-[46svh] max-h-[36rem] min-h-72 bg-[#e9e3d8] sm:h-[62svh]">
+                <ParnavazFloor3d plan={selectedPlan} units={selectedViews} hovered={hoveredUnit} label={`${copy.floor3d} · ${copy.floor} ${selectedFloor}`}
+                  onHover={setHoveredUnit} onSelect={(key) => { const view = selectedViews.find((item) => item.key === key); if (view?.unit) openUnit(view.unit); }} />
+              </div>
+            ) : (
+              <div className="overflow-x-auto overscroll-x-contain" data-floor-plan-scroll>
+                <div className={`relative min-w-[52rem] overflow-hidden bg-[#f3efe6] ${entering ? "pointer-events-none" : ""}`} style={{ aspectRatio: `${PARNAVAZ_PLAN.width} / ${PARNAVAZ_PLAN.height}` }}>
+                  <div className="absolute inset-0 transition-transform duration-[640ms] ease-[cubic-bezier(.6,0,.25,1)] motion-reduce:transition-none"
+                    style={entering ? { transform: "scale(3.2)", transformOrigin: `${entering.origin[0]}% ${entering.origin[1]}%` } : undefined} data-plan-zoom={entering?.key}>
+                    <Image src={selectedPlan.image.src} alt={`${projectName} · ${copy.floor} ${selectedFloor} · ${copy.planTitle}`} fill sizes="(min-width: 1440px) 1320px, (min-width: 832px) 92vw, 832px" className="object-contain mix-blend-multiply" />
+                    <svg viewBox={`0 0 ${PARNAVAZ_PLAN.width} ${PARNAVAZ_PLAN.height}`} className="absolute inset-0 h-full w-full">
+                      {selectedViews.map((view) => {
+                        const [cx, cy] = planCentre(view.points);
+                        const on = hoveredUnit === view.key;
+                        const detail = view.unit ? `${area(view.unit.totalArea, lang)} m²` : copy.sold;
+                        return (
+                          <g key={view.key} data-plan-unit={view.key} data-available={view.available || undefined} className={view.available ? "cursor-pointer" : undefined}
+                            onPointerEnter={(event) => hoverUnit(event, view.key)} onPointerLeave={(event) => hoverUnit(event, null)}
+                            onClick={() => enterFromPlan(view)}>
+                            <polygon points={planPoints(view.points)} strokeLinejoin="round" vectorEffect="non-scaling-stroke" className="transition-[fill] duration-150 motion-reduce:transition-none"
+                              fill={view.available ? on ? "rgba(27,30,29,.32)" : "rgba(197,170,114,.24)" : on ? "rgba(30,30,28,.16)" : "rgba(30,30,28,.07)"}
+                              stroke={on ? "#1b1e1d" : view.available ? "#9c7d43" : "rgba(30,30,28,.4)"} strokeWidth={on ? 4.5 : 1.75} strokeDasharray={view.available || on ? undefined : "7 5"} />
+                            {on && <polygon points={planPoints(view.points)} fill="none" stroke="#dfc58c" strokeWidth={1.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />}
+                            <g pointerEvents="none" transform={`translate(${cx} ${cy})`}>
+                              <rect x={-56} y={-30} width={112} height={56} rx={6} fill={view.available ? on ? "#1b1e1d" : "rgba(27,30,29,.88)" : "rgba(243,239,230,.92)"} stroke={view.available ? "#c5aa72" : "rgba(30,30,28,.25)"} />
+                              <text y={-4} textAnchor="middle" className="font-mono" fontSize={22} fill={view.available ? "#f3f0e9" : "rgba(30,30,28,.55)"}>{view.number ?? "—"}</text>
+                              <text y={18} textAnchor="middle" fontSize={14} fill={view.available ? "#dfc58c" : "rgba(30,30,28,.5)"}>{detail}</text>
+                            </g>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <div className={`pointer-events-none absolute inset-0 bg-ink transition-opacity duration-500 delay-200 ${entering ? "opacity-70" : "opacity-0"}`} aria-hidden />
+                  {selectedPlan.units.length === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-ink/40">
+                      <p className="border border-cream/25 bg-ink/85 px-5 py-3 text-sm text-cream/80">{copy.notForSaleFloor}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <p className="flex flex-wrap justify-between gap-x-6 gap-y-1 border-t border-cream/10 px-5 py-3 text-[10px] text-cream/40 sm:px-7">
+              <span>{copy.planNote}</span>
+              {floorView === "plan" && <span className="text-brass/70 md:hidden">↔ {copy.swipe}</span>}
+            </p>
+          </div>
+        )}
       </div>
 
       <dialog ref={dialog} aria-label={activeUnit ? `${projectName} · ${copy.apartment} ${activeUnit.number}` : projectName}
@@ -244,7 +428,7 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
             </div>
             <div data-apartment-content className="min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden xl:grid-cols-[minmax(0,1fr)_23rem]">
               <div data-apartment-visual className={`relative flex h-[55svh] min-h-80 flex-col lg:h-full bg-[#e9e3d8]`}>
-                {selectedModel && !showDesign ? <ApartmentModelViewer key={`${selectedModel.id}-${activeUnit.number}`} model={selectedModel} lang={lang} allowWalkthrough unit={activeUnit.number} area={activeUnit.totalArea} /> : selectedLayout ? (
+                {selectedModel && !showDesign ? <ApartmentModelViewer key={`${selectedModel.id}-${activeUnit.number}`} model={selectedModel} lang={lang} allowWalkthrough unit={activeUnit.number} area={activeUnit.totalArea} entrance /> : selectedLayout ? (
                   <div className="relative h-full w-full"><Image src={selectedLayout.image.src} alt={selectedLayout.image.alt[lang]} fill sizes="(min-width: 1024px) 75vw, 96vw" quality={90} className="object-contain p-5" /></div>
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center text-ink"><CubeIcon className="size-12 text-bronze/50" /><p className="max-w-sm font-display text-2xl">{copy.noModel}</p><Link href={inquiryHref(lang, "parnavaz-65", activeUnit.number)} data-contact-action="explorer-plan-inquiry" data-project-slug="parnavaz-65" className="inline-flex min-h-12 items-center bg-ink px-5 text-sm text-cream">{copy.requestPlan} <span className="ml-5" aria-hidden>→</span></Link></div>
@@ -265,6 +449,43 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
                   </dl>
                   {similarDesign && selectedModel && <p data-similar-design className="mt-4 border-l-2 border-brass/50 pl-3 text-[11px] leading-relaxed text-cream/55">{copy.similar(area(selectedModel.area, lang))}</p>}
                 </div>
+                {activeLocation && (
+                  <div className="mt-6 border-t border-cream/15 pt-5" data-apartment-location={activeLocation.outline ? "street" : "courtyard"}>
+                    <p className="text-[10px] text-cream/45">{copy.location}</p>
+                    {/* The building, cropped from the render, with this apartment outlined. */}
+                    <div className="relative mt-3 overflow-hidden bg-ink" style={{ aspectRatio: "1440 / 1480" }}>
+                      <div className="absolute" style={{ width: `${2400 / 1440 * 100}%`, left: `${-660 / 1440 * 100}%`, top: `${-40 / 1480 * 100}%`, aspectRatio: `${PARNAVAZ_FACADE.width} / ${PARNAVAZ_FACADE.height}` }}>
+                        <Image src="/images/projects/parnavaz-65/render.jpg" alt="" fill sizes="40rem" className="object-cover" />
+                        <svg viewBox={`0 0 ${PARNAVAZ_FACADE.width} ${PARNAVAZ_FACADE.height}`} className="absolute inset-0 h-full w-full" aria-hidden>
+                          <defs>
+                            <mask id="apartment-location-mask">
+                              <rect width={PARNAVAZ_FACADE.width} height={PARNAVAZ_FACADE.height} fill="white" />
+                              {activeLocation.band && <polygon points={activeLocation.band} fill="black" />}
+                            </mask>
+                          </defs>
+                          {/* Dim everything but the apartment's floor, then fill the apartment itself. */}
+                          <rect width={PARNAVAZ_FACADE.width} height={PARNAVAZ_FACADE.height} fill="rgba(11,13,15,.55)" mask="url(#apartment-location-mask)" />
+                          {activeLocation.band && <polygon points={activeLocation.band} fill="none" stroke="rgba(243,240,233,.85)" strokeWidth={1.5} strokeDasharray="6 5" vectorEffect="non-scaling-stroke" />}
+                          {activeLocation.outline && <>
+                            <polygon points={activeLocation.outline} fill="rgba(11,13,15,.45)" stroke="#0b0d0f" strokeWidth={6} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                            <polygon points={activeLocation.outline} fill="none" stroke="#fff3d6" strokeWidth={2.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" className="location-pulse" />
+                          </>}
+                        </svg>
+                      </div>
+                    </div>
+                    {!activeLocation.outline && <p className="mt-2 text-[10px] leading-relaxed text-cream/55">{copy.courtyard}</p>}
+                    <div className="relative mt-3 bg-[#f3efe6]" style={{ aspectRatio: `${PARNAVAZ_PLAN.width} / ${PARNAVAZ_PLAN.height}` }}>
+                      <Image src={activeLocation.plan.image.src} alt="" fill sizes="24rem" className="object-contain mix-blend-multiply" />
+                      <svg viewBox={`0 0 ${PARNAVAZ_PLAN.width} ${PARNAVAZ_PLAN.height}`} className="absolute inset-0 h-full w-full" aria-hidden>
+                        {activeLocation.plan.units.map((planUnit, index) => (
+                          <polygon key={planUnit.number ?? index} points={planPoints(planUnit.points)} vectorEffect="non-scaling-stroke" strokeLinejoin="round"
+                            fill={planUnit === activeLocation.unit ? "rgba(27,30,29,.78)" : "rgba(30,30,28,.06)"}
+                            stroke={planUnit === activeLocation.unit ? "#dfc58c" : "rgba(30,30,28,.3)"} strokeWidth={planUnit === activeLocation.unit ? 2.5 : 1} />
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+                )}
                 {selectedLayout && selectedModel && <button type="button" onClick={() => setShowDesign(!showDesign)} className="mt-6 flex min-h-11 items-center justify-between border border-cream/20 px-4 text-xs text-cream/70 hover:border-brass hover:text-brass"><span>{showDesign ? copy.back3d : copy.source}</span><span aria-hidden>{showDesign ? "◇" : "↗"}</span></button>}
                 <div className="mt-auto pt-7">
                   <Link href={inquiryHref(lang, "parnavaz-65", activeUnit.number)} data-project-slug="parnavaz-65" data-contact-action="apartment-explorer-inquiry" className="flex min-h-12 items-center justify-between gap-4 bg-brass px-4 text-sm font-semibold text-ink transition-colors hover:bg-brass-bright">{copy.inquiry}<span aria-hidden>→</span></Link>
