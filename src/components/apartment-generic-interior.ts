@@ -56,17 +56,17 @@ function createMaterials() {
   return {
     // Oiled oak boards with a faint satin finish that reflects the windows.
     floor: metric(physical({
-      color: "#f3eee7", ...floorOak, bumpScale: 0.0016, roughness: 0.62,
+      color: "#f6e4cc", ...floorOak, bumpScale: 0.0016, roughness: 0.62,
       clearcoat: 0.16, clearcoatRoughness: 0.44,
     }), 1.2, 2.4),
-    oak: metric(physical({ color: "#f0e9df", ...oak, bumpScale: 0.00065, roughness: 0.61, clearcoat: 0.1, clearcoatRoughness: 0.5 }), 0.45, 1.8),
-    paleOak: metric(physical({ color: "#fff9ed", ...oak, bumpScale: 0.0005, roughness: 0.67, clearcoat: 0.08, clearcoatRoughness: 0.55 }), 0.45, 1.8),
+    oak: metric(physical({ color: "#f4dcbc", ...oak, bumpScale: 0.00065, roughness: 0.61, clearcoat: 0.1, clearcoatRoughness: 0.5 }), 0.45, 1.8),
+    paleOak: metric(physical({ color: "#fae8cf", ...oak, bumpScale: 0.0005, roughness: 0.67, clearcoat: 0.08, clearcoatRoughness: 0.55 }), 0.45, 1.8),
     darkOak: metric(physical({ color: "#8e7b61", ...oak, bumpScale: 0.0005, roughness: 0.64, clearcoat: 0.08, clearcoatRoughness: 0.5 }), 0.45, 1.8),
-    wall: metric(standard({ color: "#ede6da", ...plaster, bumpScale: 0.0004, roughness: 0.98, envMapIntensity: 0.6 }), 0.8),
+    wall: metric(standard({ color: "#efe4d4", ...plaster, bumpScale: 0.0004, roughness: 0.98, envMapIntensity: 0.6 }), 0.8),
     wallCap: standard({ color: "#f3ede3", roughness: 0.88 }),
     // Lit mostly from below in the overview, so a little self-light keeps it pale.
     ceiling: metric(standard({
-      color: "#f1ebe1", ...plaster, bumpScale: 0.0003, emissive: "#6b655b", emissiveIntensity: 0.32, roughness: 0.97,
+      color: "#f3ebdf", ...plaster, bumpScale: 0.0003, emissive: "#82786a", emissiveIntensity: 0.4, roughness: 0.97,
     }), 0.8),
     linen: fabric("#f1eadc", "#fffaf0"),
     cream: fabric("#f7f0e4", "#fffdf6", 0.00045),
@@ -78,9 +78,9 @@ function createMaterials() {
       sheen: 0.45, sheenRoughness: 0.9, sheenColor: "#f0e4cf", envMapIntensity: 0.4,
     }), 0.26),
     // Honed stone: smooth enough to pick up soft highlights.
-    stone: metric(physical({ color: "#f1e9df", ...stone, bumpScale: 0.00045, roughness: 0.56, clearcoat: 0.18, clearcoatRoughness: 0.4 }), 0.8),
+    stone: metric(physical({ color: "#f3e7d6", ...stone, bumpScale: 0.00045, roughness: 0.56, clearcoat: 0.18, clearcoatRoughness: 0.4 }), 0.8),
     // 30 cm bathroom tiles and 60 cm outdoor porcelain share one grout map.
-    tile: metric(physical({ color: "#e2d9cd", ...tile, bumpScale: 0.0005, roughness: 0.5, clearcoat: 0.24, clearcoatRoughness: 0.32 }), 1.2),
+    tile: metric(physical({ color: "#e6d6c2", ...tile, bumpScale: 0.0005, roughness: 0.5, clearcoat: 0.24, clearcoatRoughness: 0.32 }), 1.2),
     balcony: metric(standard({ color: "#d6cdbf", ...tile, bumpScale: 0.0006, roughness: 0.82 }), 2.4),
     ceramic: physical({ color: "#f7f1e8", roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.06 }),
     brass: metric(standard({ color: "#b89a69", ...metal, bumpScale: 0.00012, metalness: 0.95, roughness: 0.32 }), 0.18),
@@ -92,6 +92,9 @@ function createMaterials() {
     lightLeaf: physical({ color: "#85906b", roughness: 0.66, sheen: 0.4, sheenColor: "#c4cfa4", side: THREE.DoubleSide }),
     soil: standard({ color: "#44392d", roughness: 1 }),
     warmLight: standard({ color: "#fff1d8", emissive: "#ffe5bc", emissiveIntensity: 1.1, roughness: 1 }),
+    // Rice paper and opal glass glowing from a bulb inside.
+    paper: standard({ color: "#fbf3e6", emissive: "#f6dcb4", emissiveIntensity: 0.55, roughness: 1, side: THREE.DoubleSide }),
+    matteBlack: physical({ color: "#1f1e1c", roughness: 0.55, metalness: 0.2 }),
     artPaper: standard({ color: "#dfd4c2", roughness: 1 }),
     glass: new THREE.MeshPhysicalMaterial({
       color: "#e4ece8", transparent: true, opacity: 0.12, roughness: 0.03, ior: 1.5,
@@ -102,7 +105,8 @@ function createMaterials() {
       color: "#fff5e1", ...linen, bumpScale: 0.00025, transparent: true, opacity: 0.46,
       side: THREE.DoubleSide, roughness: 1, depthWrite: false,
     }), 0.16),
-    mirror: standard({ color: "#d7dcd4", metalness: 1, roughness: 0.03, envMapIntensity: 1.4 }),
+    // Without real reflections a perfect mirror reads black; a soft one reads as glass.
+    mirror: standard({ color: "#eef0ea", metalness: 0.85, roughness: 0.12, envMapIntensity: 2.6 }),
     daylight: new THREE.MeshBasicMaterial({ map: daylightTexture(), side: THREE.DoubleSide }),
   };
 }
@@ -182,6 +186,53 @@ function books(parent: THREE.Object3D, m: Materials, x: number, y: number, z: nu
   box(parent, width * 0.86, 0.022, width * 0.62, m.sage, x, y + 0.036, z);
 }
 
+/** Opal glass globe on a small oak base, as on the boards' nightstands. */
+function globeLamp(parent: THREE.Object3D, m: Materials, x: number, y: number, z: number) {
+  cylinder(parent, 0.05, 0.06, 0.05, m.oak, x, y + 0.025, z, 20);
+  mesh(parent, new THREE.SphereGeometry(0.1, 24, 16), m.paper, x, y + 0.15, z).castShadow = false;
+}
+
+/** Tripod floor lamp with a linen drum shade. */
+function floorLamp(parent: THREE.Object3D, m: Materials, x: number, z: number) {
+  for (let leg = 0; leg < 3; leg += 1) {
+    const angle = leg * Math.PI * 2 / 3;
+    const rod = cylinder(parent, 0.011, 0.013, 1.42, m.oak, x + Math.sin(angle) * 0.1, 0.7, z + Math.cos(angle) * 0.1, 8);
+    rod.rotation.set(-Math.cos(angle) * 0.14, 0, Math.sin(angle) * 0.14);
+  }
+  cylinder(parent, 0.19, 0.22, 0.3, m.linen, x, 1.5, z, 32);
+  cylinder(parent, 0.2, 0.2, 0.004, m.warmLight, x, 1.36, z, 32).castShadow = false;
+}
+
+/** Rice paper lantern on a cord, ribbed like the boards' living room pendant. */
+function lantern(parent: THREE.Object3D, m: Materials, x: number, z: number, height: number, radius: number) {
+  cylinder(parent, 0.004, 0.004, WALL_HEIGHT - height - radius, m.matteBlack, x, (WALL_HEIGHT + height + radius) / 2 + 0.04, z, 6);
+  const globe = mesh(parent, new THREE.SphereGeometry(radius, 40, 24), m.paper, x, height, z);
+  globe.scale.y = 0.86;
+  globe.castShadow = false;
+  for (let rib = 1; rib < 8; rib += 1) {
+    const ring = mesh(parent, new THREE.TorusGeometry(radius * Math.sin(rib / 8 * Math.PI) * 1.002, 0.0018, 4, 48),
+      m.artPaper, x, height + radius * 0.86 * Math.cos(rib / 8 * Math.PI), z);
+    ring.rotation.x = Math.PI / 2;
+    ring.castShadow = false;
+  }
+}
+
+/** Folded towels, stacked. */
+function towels(parent: THREE.Object3D, m: Materials, x: number, y: number, z: number, width: number) {
+  for (let fold = 0; fold < 2; fold += 1) {
+    box(parent, width, 0.055, 0.24, fold ? m.linen : m.cream, x, y + 0.03 + fold * 0.058, z, 0.02);
+  }
+}
+
+/** Matte black thermostatic shower: riser rail, round head, hand set and mixer. */
+function showerSet(parent: THREE.Object3D, m: Materials, x: number, faceZ: number) {
+  cylinder(parent, 0.011, 0.011, 1.15, m.matteBlack, x, 1.45, faceZ + 0.04, 8);
+  box(parent, 0.012, 0.012, 0.32, m.matteBlack, x, 2.02, faceZ + 0.18);
+  cylinder(parent, 0.12, 0.12, 0.018, m.matteBlack, x, 2.0, faceZ + 0.33, 28);
+  box(parent, 0.24, 0.06, 0.05, m.matteBlack, x, 1.05, faceZ + 0.025, 0.02);
+  cylinder(parent, 0.022, 0.03, 0.2, m.matteBlack, x + 0.08, 1.42, faceZ + 0.06, 10);
+}
+
 /** A duvet that drapes over the mattress edges, with a few soft folds. */
 function duvet(parent: THREE.Object3D, m: Materials, width: number, depth: number, top: number) {
   const geometry = new THREE.PlaneGeometry(width, depth, 32, 32);
@@ -254,9 +305,11 @@ function furniture(
     screen?: { readonly x: number; readonly width: number; readonly mount: number } | null;
     /** Width of clear wall behind the middle of a bed or sofa, for its art. */
     artRoom?: number;
+    /** Stands on a tiled bathroom floor. */
+    wet?: boolean;
   } = {},
 ): THREE.Group {
-  const { wallGap = null, kitchen = "full", joined = [], screen = null, artRoom = Infinity } = options;
+  const { wallGap = null, kitchen = "full", joined = [], screen = null, artRoom = Infinity, wet = false } = options;
   const [left, top, planWidth, planDepth] = item.rect;
   const rotation = item.rotation ?? 0;
   const sideways = Math.abs(Math.sin(THREE.MathUtils.degToRad(rotation))) > 0.5;
@@ -276,7 +329,11 @@ function furniture(
   switch (item.kind) {
     case "bed": {
       box(group, w, 0.24, d, m.oak, 0, 0.17, 0, 0.03);
+      // Upholstered linen headboard in soft vertical panels.
       box(group, w * 1.02, 0.95, 0.09, m.tan, 0, 0.6, -d / 2 + 0.045, 0.04);
+      for (let seam = 1; seam < 4; seam += 1) {
+        box(group, 0.008, 0.8, 0.008, m.darkOak, -w * 0.51 + seam * w * 1.02 / 4, 0.62, -d / 2 + 0.092);
+      }
       box(group, w * 1.04, 0.08, 0.11, m.oak, 0, 1.1, -d / 2 + 0.05, 0.02);
       box(group, w * 0.95, 0.22, d * 0.95, m.cream, 0, 0.4, 0.015, 0.07);
       duvet(group, m, w * 1.03, d * 0.72, 0.56).position.z = d * 0.13;
@@ -285,14 +342,15 @@ function furniture(
       if (wallGap !== null && artRoom >= 0.5) {
         const art = new THREE.Group();
         art.position.set(0, 1.62, -d / 2 - wallGap + 0.02);
-        framedArt(art, m, Math.min(1.0, w * 0.6, artRoom - 0.1), 0.6);
+        framedArt(art, m, Math.min(1.15, w * 0.68, artRoom - 0.1), 0.72);
         upper.add(art);
       }
+      // Square pillows leaning on the headboard, a sage cushion in front.
       for (const side of [-1, 1]) {
-        const pillow = box(group, w * 0.4, 0.15, d * 0.17, m.cream, side * w * 0.23, 0.6, -d * 0.36, 0.07);
-        pillow.rotation.x = -0.25;
+        const pillow = box(group, w * 0.42, 0.44, 0.14, m.cream, side * w * 0.23, 0.72, -d / 2 + 0.2, 0.06);
+        pillow.rotation.x = -0.32;
       }
-      box(group, w * 0.34, 0.12, d * 0.08, m.sage, 0, 0.6, -d * 0.24, 0.05).rotation.x = -0.2;
+      box(group, w * 0.3, 0.3, 0.1, m.sage, 0, 0.67, -d / 2 + 0.33, 0.05).rotation.x = -0.28;
       break;
     }
     case "sofa": {
@@ -387,13 +445,18 @@ function furniture(
         const radius = Math.min(w, d) / 2;
         cylinder(group, radius, radius, 0.035, m.oak, 0, 0.5, 0, 32);
         cylinder(group, radius * 0.92, radius * 0.92, 0.44, m.oak, 0, 0.26, 0, 32);
-        tableLamp(group, m, 0, 0.52, 0);
+        globeLamp(group, m, 0, 0.52, 0);
         break;
       }
-      box(group, w, 0.46, d, m.oak, 0, 0.27, 0, 0.015);
-      box(group, w * 0.9, 0.16, 0.012, m.paleOak, 0, 0.36, d / 2 + 0.006);
-      box(group, w * 0.3, 0.012, 0.02, m.brass, 0, 0.36, d / 2 + 0.016);
-      tableLamp(group, m, 0, 0.5, -d * 0.05);
+      // Drawer over an open shelf, on short legs.
+      box(group, w, 0.04, d, m.oak, 0, 0.5, 0, 0.012);
+      box(group, w, 0.16, d, m.oak, 0, 0.4, 0, 0.012);
+      box(group, w * 0.92, 0.13, 0.012, m.paleOak, 0, 0.4, d / 2 + 0.006, 0.004);
+      box(group, w * 0.22, 0.012, 0.018, m.darkOak, 0, 0.4, d / 2 + 0.016);
+      box(group, w, 0.025, d, m.oak, 0, 0.13, 0, 0.008);
+      for (const side of [-1, 1]) box(group, 0.025, 0.4, d, m.oak, side * (w / 2 - 0.0125), 0.3, 0);
+      books(group, m, 0, 0.145, 0, Math.min(0.2, w * 0.5));
+      globeLamp(group, m, w * 0.12, 0.52, -d * 0.05);
       break;
     }
     case "kitchen": {
@@ -404,8 +467,9 @@ function furniture(
       for (let door = 0; door < doors; door += 1) {
         const x = (door - (doors - 1) / 2) * w / doors;
         box(group, w / doors - 0.012, 0.7, 0.018, m.paleOak, x, 0.47, d / 2 + 0.01, 0.004);
-        box(group, Math.min(0.2, w / doors * 0.45), 0.012, 0.02, m.darkOak, x, 0.8, d / 2 + 0.024);
       }
+      // Handleless fronts: a recessed finger pull runs under the worktop.
+      box(group, w - 0.01, 0.022, 0.012, m.black, 0, 0.836, d / 2 + 0.003);
       if (w > 1.1) {
         // Hob and oven, sink and tap, then upper cabinets with a light strip.
         const hobAt = item.fittings ? item.fittings.hob : kitchen === "sink" ? null : kitchen === "hob" ? 0 : -0.28;
@@ -424,14 +488,19 @@ function furniture(
         if (sinkAt !== null) {
           box(group, 0.5, 0.015, Math.min(0.4, d * 0.7), m.steel, sinkX, 0.9, 0, 0.02);
           box(group, 0.42, 0.02, Math.min(0.34, d * 0.6), m.stone, sinkX, 0.89, 0, 0.02);
-          cylinder(group, 0.012, 0.012, 0.3, m.brass, sinkX, 1.05, -d * 0.36, 10);
-          const spout = mesh(group, new THREE.TorusGeometry(0.08, 0.011, 8, 18, Math.PI), m.brass, sinkX, 1.2, -d * 0.24);
+          // Matte black gooseneck tap.
+          cylinder(group, 0.012, 0.012, 0.3, m.matteBlack, sinkX, 1.05, -d * 0.36, 10);
+          const spout = mesh(group, new THREE.TorusGeometry(0.08, 0.011, 8, 18, Math.PI), m.matteBlack, sinkX, 1.2, -d * 0.28);
           spout.rotation.y = Math.PI / 2;
         }
-        box(upper, w, 0.68, Math.min(0.36, d * 0.6), m.paleOak, 0, 1.86, -d / 2 + Math.min(0.18, d * 0.3), 0.01);
+        // Wall cabinets rise almost to the ceiling, as on the boards.
+        box(upper, w, 0.86, Math.min(0.36, d * 0.6), m.paleOak, 0, 1.95, -d / 2 + Math.min(0.18, d * 0.3), 0.01);
         for (let door = 1; door < doors; door += 1) {
-          box(upper, 0.008, 0.64, 0.01, m.darkOak, -w / 2 + door * w / doors, 1.86, -d / 2 + Math.min(0.36, d * 0.6) + 0.005);
+          box(upper, 0.008, 0.82, 0.01, m.darkOak, -w / 2 + door * w / doors, 1.95, -d / 2 + Math.min(0.36, d * 0.6) + 0.005);
         }
+        // A white vase of olive branches at whichever end is clear of the hob and sink.
+        const clearOf = (at: number) => Math.min(hobAt === null ? Infinity : Math.abs(at - hobX), sinkAt === null ? Infinity : Math.abs(at - sinkX));
+        vase(group, m, clearOf(-w * 0.4) > clearOf(w * 0.4) ? -w * 0.4 : w * 0.4, 0.9, -d * 0.12, 1.25);
         box(upper, w * 0.94, 0.012, 0.02, m.warmLight, 0, 1.5, -d / 2 + Math.min(0.34, d * 0.58));
         box(upper, w, 0.6, 0.012, m.stone, 0, 1.2, -d / 2 + 0.006);
       }
@@ -441,8 +510,8 @@ function furniture(
     case "fridge": {
       box(group, w, 2.02, d, m.paleOak, 0, 1.03, 0, 0.012);
       box(group, w * 0.96, 0.012, 0.02, m.darkOak, 0, 1.28, d / 2 + 0.006);
-      box(group, 0.018, 0.5, 0.03, m.brass, -w * 0.38, 1.0, d / 2 + 0.02, 0.006);
-      box(group, 0.018, 0.3, 0.03, m.brass, -w * 0.38, 1.55, d / 2 + 0.02, 0.006);
+      box(group, 0.018, 0.5, 0.03, m.darkOak, -w * 0.38, 1.0, d / 2 + 0.02, 0.006);
+      box(group, 0.018, 0.3, 0.03, m.darkOak, -w * 0.38, 1.55, d / 2 + 0.02, 0.006);
       break;
     }
     case "wardrobe": {
@@ -482,7 +551,9 @@ function furniture(
         box(group, w / drawers - 0.012, 0.6, 0.012, m.paleOak, (drawer - (drawers - 1) / 2) * w / drawers, 0.46, d / 2 + 0.006);
       }
       plant(group, m, Math.min(0.12, w * 0.15), 0.42, w * 0.3, 0, 0.86);
-      if (w > 0.7) tableLamp(group, m, -w * 0.3, 0.86, 0);
+      // A bathroom shelf holds towels; elsewhere a console gets a lamp.
+      if (wet) towels(group, m, -w * 0.2, 0.855, 0, Math.min(0.3, w * 0.35));
+      else if (w > 0.7) tableLamp(group, m, -w * 0.3, 0.86, 0);
       break;
     }
     case "shelving": {
@@ -522,29 +593,38 @@ function furniture(
         tray.receiveShadow = true;
         mesh(group, new THREE.CylinderGeometry(radius - 0.02, radius - 0.02, 1.9, 40, 1, true, -Math.PI / 2, Math.PI / 2),
           m.glass, corner.x, 1.01, corner.z);
-        const rail = mesh(group, new THREE.TorusGeometry(radius - 0.02, 0.01, 6, 40, Math.PI / 2), m.steel, corner.x, 1.96, corner.z);
+        const rail = mesh(group, new THREE.TorusGeometry(radius - 0.02, 0.01, 6, 40, Math.PI / 2), m.matteBlack, corner.x, 1.96, corner.z);
         rail.rotation.set(Math.PI / 2, 0, Math.PI / 2);
-        cylinder(upper, 0.011, 0.011, 1.5, m.black, w / 2 - 0.06, 1.0, -d / 2 + radius * 0.45, 8);
-        cylinder(upper, 0.11, 0.11, 0.02, m.black, w / 2 - radius * 0.3, 2.02, -d / 2 + radius * 0.3);
-        cylinder(group, 0.03, 0.03, 0.006, m.black, w / 2 - radius * 0.35, 0.064, -d / 2 + radius * 0.35);
+        cylinder(upper, 0.011, 0.011, 1.5, m.matteBlack, w / 2 - 0.06, 1.0, -d / 2 + radius * 0.45, 8);
+        cylinder(upper, 0.11, 0.11, 0.02, m.matteBlack, w / 2 - radius * 0.3, 2.02, -d / 2 + radius * 0.3);
+        cylinder(group, 0.03, 0.03, 0.006, m.matteBlack, w / 2 - radius * 0.35, 0.064, -d / 2 + radius * 0.35);
         break;
       }
       box(group, w, 0.06, d, m.stone, 0, 0.03, 0, 0.012);
       box(group, w, 1.95, 0.01, m.glass, 0, 1.0, d / 2);
       box(group, 0.01, 1.95, d, m.glass, w / 2, 1.0, 0);
-      box(group, w, 0.02, 0.02, m.steel, 0, 1.98, d / 2);
-      cylinder(upper, 0.011, 0.011, 1.5, m.black, -w * 0.3, 1.0, -d / 2 + 0.06, 8);
-      cylinder(upper, 0.11, 0.11, 0.02, m.black, -w * 0.3, 2.02, -d / 2 + 0.16);
-      cylinder(group, 0.03, 0.03, 0.006, m.black, 0, 0.064, 0);
+      // Black-framed glass, as on the boards.
+      box(group, w, 0.02, 0.02, m.matteBlack, 0, 1.98, d / 2);
+      box(group, 0.02, 0.02, d, m.matteBlack, w / 2, 1.98, 0);
+      box(group, 0.02, 1.95, 0.02, m.matteBlack, w / 2, 1.0, d / 2);
+      showerSet(upper, m, -w * 0.3, -d / 2);
+      cylinder(group, 0.03, 0.03, 0.006, m.matteBlack, 0, 0.064, 0);
       break;
     }
     case "bathtub": {
-      box(group, w, 0.52, d, m.ceramic, 0, 0.27, 0, 0.09);
-      box(group, w * 0.86, 0.05, d * 0.8, m.stone, 0, 0.5, 0, 0.04);
-      cylinder(group, 0.012, 0.012, 0.18, m.black, 0, 0.62, -d * 0.43, 8);
-      box(group, 0.025, 0.016, 0.14, m.black, 0, 0.7, -d * 0.38);
-      box(group, w * 0.98, 0.03, 0.18, m.oak, 0, 0.56, d * 0.25, 0.01);
-      cylinder(group, 0.04, 0.035, 0.08, m.ceramic, w * 0.25, 0.615, d * 0.25, 12);
+      // Tiled bath panel, a white tub with a rolled rim, a fixed glass screen
+      // and a matte black shower set at the tap end, as on the boards.
+      box(group, w, 0.5, d, m.tile, 0, 0.25, 0, 0.01);
+      box(group, w * 0.96, 0.06, d * 0.92, m.ceramic, 0, 0.52, 0, 0.03);
+      box(group, w * 0.86, 0.05, d * 0.76, m.stone, 0, 0.5, 0, 0.04);
+      // The tub runs along local z with its taps at the back end.
+      const screenAt = -d / 2 + Math.min(0.8, d * 0.45);
+      box(group, w * 0.9, 1.4, 0.012, m.glass, 0, 1.27, screenAt);
+      box(group, w * 0.9, 0.016, 0.016, m.matteBlack, 0, 1.97, screenAt);
+      cylinder(group, 0.012, 0.012, 0.16, m.matteBlack, 0, 0.64, -d / 2 + 0.03, 8);
+      showerSet(upper, m, 0, -d / 2);
+      box(group, w * 0.7, 0.03, 0.16, m.oak, 0, 0.56, d * 0.3, 0.01);
+      cylinder(group, 0.04, 0.035, 0.08, m.ceramic, w * 0.2, 0.615, d * 0.3, 12);
       break;
     }
     case "toilet": {
@@ -557,14 +637,24 @@ function furniture(
       break;
     }
     case "vanity": {
-      box(group, w, 0.48, d, m.oak, 0, 0.5, 0, 0.012);
-      box(group, w + 0.02, 0.035, d + 0.02, m.stone, 0, 0.76, 0, 0.008);
-      const basin = cylinder(group, Math.min(w, d) * 0.38, Math.min(w, d) * 0.28, 0.13, m.ceramic, 0, 0.84, d * 0.05, 32);
-      basin.scale.x = 1.1;
-      cylinder(group, 0.011, 0.011, 0.24, m.black, 0, 0.9, -d * 0.4, 8);
-      const mirror = cylinder(upper, Math.min(0.32, w * 0.42), Math.min(0.32, w * 0.42), 0.02, m.mirror, 0, 1.45, -d / 2 + 0.012, 40);
-      mirror.rotation.x = Math.PI / 2;
-      box(upper, 0.04, 0.32, 0.04, m.warmLight, Math.min(0.42, w * 0.5), 1.45, -d / 2 + 0.03, 0.01);
+      // Oak washstand: a drawer under the stone top, an open shelf of towels
+      // below, a white vessel basin, a black tap and a backlit mirror.
+      box(group, w, 0.18, d, m.oak, 0, 0.66, 0, 0.012);
+      box(group, w * 0.94, 0.14, 0.012, m.paleOak, 0, 0.66, d / 2 + 0.006, 0.004);
+      box(group, w * 0.22, 0.012, 0.018, m.darkOak, 0, 0.66, d / 2 + 0.016);
+      box(group, w, 0.025, d, m.oak, 0, 0.16, 0, 0.008);
+      for (const side of [-1, 1]) box(group, 0.03, 0.6, d, m.oak, side * (w / 2 - 0.015), 0.45, 0);
+      towels(group, m, -w * 0.18, 0.175, 0.02, Math.min(0.3, w * 0.32));
+      if (w > 0.75) towels(group, m, w * 0.2, 0.175, 0.02, Math.min(0.3, w * 0.32));
+      box(group, w + 0.02, 0.035, d + 0.02, m.stone, 0, 0.77, 0, 0.008);
+      const basin = cylinder(group, Math.min(w, d) * 0.36, Math.min(w, d) * 0.26, 0.13, m.ceramic, 0, 0.85, d * 0.05, 32);
+      basin.scale.x = 1.15;
+      cylinder(group, 0.011, 0.011, 0.26, m.matteBlack, 0, 0.92, -d * 0.4, 8);
+      box(group, 0.012, 0.012, 0.12, m.matteBlack, 0, 1.04, -d * 0.34);
+      const mirrorWidth = Math.min(0.9, w * 0.92);
+      box(upper, mirrorWidth + 0.03, 0.93, 0.01, m.warmLight, 0, 1.6, -d / 2 + 0.006);
+      box(upper, mirrorWidth, 0.9, 0.02, m.mirror, 0, 1.6, -d / 2 + 0.02);
+      vase(group, m, w * 0.36, 0.79, -d * 0.1, 1.1);
       break;
     }
     case "plant":
@@ -848,6 +938,33 @@ export function createGenericInterior(model: ApartmentModel, width: number, dept
       .reduce((room, { from, to }) => from <= 0 && to >= 0 ? 0 : Math.min(room, 2 * Math.min(Math.abs(from), Math.abs(to))), Infinity);
   };
 
+  // Bathrooms are tiled floor to ceiling, as on the boards: a thin skin on
+  // every wall face that lies inside a tiled floor area.
+  for (const area of model.floors.filter(({ kind }) => kind === "tile")) {
+    const [left, top, w, d] = area.rect;
+    const [x0, z0] = [(left - 0.5) * width, (top - 0.5) * depth];
+    const [x1, z1] = [x0 + w * width, z0 + d * depth];
+    for (const [from, to] of model.walls) {
+      const a = point(from);
+      const b = point(to);
+      const half = thicknessOf(from, to) / 2 + 0.003;
+      const vertical = Math.abs(a.x - b.x) < 0.01;
+      if (!vertical && Math.abs(a.z - b.z) >= 0.01) continue;
+      const [lo, hi] = vertical
+        ? [Math.max(Math.min(a.z, b.z), z0), Math.min(Math.max(a.z, b.z), z1)]
+        : [Math.max(Math.min(a.x, b.x), x0), Math.min(Math.max(a.x, b.x), x1)];
+      if (hi - lo < 0.1) continue;
+      for (const side of [-1, 1]) {
+        const face = (vertical ? a.x : a.z) + side * half;
+        if (vertical ? face <= x0 + 0.01 || face >= x1 - 0.01 : face <= z0 + 0.01 || face >= z1 - 0.01) continue;
+        const skin = vertical
+          ? box(walls, 0.006, WALL_HEIGHT - 0.05, hi - lo, m.tile, face, WALL_HEIGHT / 2 + 0.065, (lo + hi) / 2)
+          : box(walls, hi - lo, WALL_HEIGHT - 0.05, 0.006, m.tile, (lo + hi) / 2, WALL_HEIGHT / 2 + 0.065, face);
+        skin.castShadow = false;
+      }
+    }
+  }
+
   const balconies = model.floors.filter((item) => item.kind === "balcony");
   const onBalcony = ([x, y]: PlanPoint) => balconies.some(({ rect: [left, top, w, d] }) =>
     x >= left && x <= left + w && y >= top && y <= top + d);
@@ -949,8 +1066,51 @@ export function createGenericInterior(model: ApartmentModel, width: number, dept
       joined: item.kind === "sofa" ? joinedEnds(item) : [],
       screen: item.kind === "media" ? screenFor(item) : null,
       artRoom: artRoomFor(item, gap),
+      wet: model.floors.some(({ kind, rect: [left, top, w, d] }) => {
+        const [x, z] = [item.rect[0] + item.rect[2] / 2, item.rect[1] + item.rect[3] / 2];
+        return kind === "tile" && x > left && x < left + w && z > top && z < top + d;
+      }),
     }));
   });
+
+  // One tripod floor lamp at a free end of the longest sofa, by its back.
+  const inside = (x: number, z: number) => {
+    let hit = false;
+    model.footprint.forEach((corner, index) => {
+      const a = point(corner);
+      const b = point(model.footprint[(index + 1) % model.footprint.length]);
+      if ((a.z > z) !== (b.z > z) && x < a.x + (z - a.z) * (b.x - a.x) / (b.z - a.z)) hit = !hit;
+    });
+    return hit;
+  };
+  const nearDoor = (x: number, z: number) => model.openings.some(({ kind, from, to }) => {
+    if (kind !== "door" && kind !== "entrance" && kind !== "balcony") return false;
+    const a = point(from);
+    const b = point(to);
+    return Math.hypot((a.x + b.x) / 2 - x, (a.z + b.z) / 2 - z) < a.distanceTo(b) / 2 + 0.6;
+  });
+  const onBalconyFloor = (x: number, z: number) => balconies.some(({ rect }) => {
+    const [x0, z0, x1, z1] = boxOf(rect);
+    return x > x0 && x < x1 && z > z0 && z < z1;
+  });
+  // It stands at a free sofa end, preferably the one nearest the light from
+  // a window, and never in a doorway or where a room view starts.
+  const glazed = model.openings.filter(({ kind }) => kind === "balcony" || kind === "glazing" || kind === "window")
+    .map(({ from, to }) => point(from).add(point(to)).multiplyScalar(0.5));
+  const starts = model.viewpoints.map(({ position }) => point(position));
+  const lampSpots = sofas.flatMap((sofa) => {
+    const { centre, along, front, w, d } = frameOf(sofa);
+    const joined = joinedEnds(sofa);
+    return ([1, -1] as const).filter((end) => !joined.includes(end)).map((end) => ({
+      x: centre.x + along[0] * end * (w / 2 + 0.24) + front[0] * (-d / 2 + 0.24),
+      z: centre.z + along[1] * end * (w / 2 + 0.24) + front[1] * (-d / 2 + 0.24),
+    }));
+  }).filter(({ x, z }) => [[0, 0], [0.18, 0], [-0.18, 0], [0, 0.18], [0, -0.18]]
+    .every(([dx, dz]) => inside(x + dx, z + dz) && !solidAt(x + dx, z + dz) && !onBalconyFloor(x + dx, z + dz))
+    && !nearDoor(x, z) && starts.every((start) => Math.hypot(start.x - x, start.z - z) > 1.8));
+  const daylit = (x: number, z: number) => Math.min(Infinity, ...glazed.map((pane) => Math.hypot(pane.x - x, pane.z - z)));
+  const lampAt = lampSpots.sort((p, q) => daylit(p.x, p.z) - daylit(q.x, q.z))[0];
+  if (lampAt) floorLamp(structure, m, lampAt.x, lampAt.z);
 
   // A ceiling for interior views, with flush lights over beds and tables.
   const ceilingShape = new THREE.Shape();
@@ -986,7 +1146,10 @@ export function createGenericInterior(model: ApartmentModel, width: number, dept
     if (item.kind === "dining") {
       pendant(ceiling, m, x, z, 1.62, 0.22);
       lights.push({ x, z, y: 1.5, intensity: 2, range: 4.5, shadow: true });
-    } else if (item.kind === "bed" || item.kind === "table") {
+    } else if (item.kind === "table") {
+      lantern(ceiling, m, x, z, 2.2, 0.24);
+      lights.push({ x, z, y: 2.15, intensity: 1.7, range: 5 });
+    } else if (item.kind === "bed") {
       lights.push({ x, z, y: 2.5, intensity: 1.7, range: 5 });
     } else if (item.kind === "kitchen" && w * width * d * depth > 0.5) {
       lights.push({ x, z, y: 1.55, intensity: 1.2, range: 2.8 });

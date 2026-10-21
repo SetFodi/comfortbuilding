@@ -36,13 +36,13 @@ function createSurfaces() {
   return {
     // Oiled oak boards with a faint satin finish that reflects the windows.
     floor: metric(physical({
-      color: "#f3eee7", ...floorOak, bumpScale: 0.0016, roughness: 0.62,
+      color: "#f6e4cc", ...floorOak, bumpScale: 0.0016, roughness: 0.62,
       clearcoat: 0.16, clearcoatRoughness: 0.44,
     }), 1.2, 2.4),
-    oak: metric(physical({ color: "#f0e9df", ...oak, bumpScale: 0.00065, roughness: 0.61, clearcoat: 0.1, clearcoatRoughness: 0.5 }), 0.45, 1.8),
-    paleOak: metric(physical({ color: "#fff9ed", ...oak, bumpScale: 0.0005, roughness: 0.67, clearcoat: 0.08, clearcoatRoughness: 0.55 }), 0.45, 1.8),
+    oak: metric(physical({ color: "#f4dcbc", ...oak, bumpScale: 0.00065, roughness: 0.61, clearcoat: 0.1, clearcoatRoughness: 0.5 }), 0.45, 1.8),
+    paleOak: metric(physical({ color: "#fae8cf", ...oak, bumpScale: 0.0005, roughness: 0.67, clearcoat: 0.08, clearcoatRoughness: 0.55 }), 0.45, 1.8),
     darkOak: standard({ color: "#8e7b61", roughness: 0.66 }),
-    plaster: metric(standard({ color: "#ede6da", ...plaster, bumpScale: 0.0004, roughness: 0.98, envMapIntensity: 0.6 }), 0.8),
+    plaster: metric(standard({ color: "#efe4d4", ...plaster, bumpScale: 0.0004, roughness: 0.98, envMapIntensity: 0.6 }), 0.8),
     linen: fabric("#f1eadc", "#fffaf0"),
     cream: fabric("#f7f0e4", "#fffdf6", 0.00045),
     sage: fabric("#a5a48b", "#d6d8c2", 0.0007),
@@ -52,7 +52,7 @@ function createSurfaces() {
       sheen: 0.45, sheenRoughness: 0.9, sheenColor: "#f0e4cf", envMapIntensity: 0.4,
     }), 0.26),
     // Honed stone: smooth enough to pick up soft highlights.
-    stone: metric(physical({ color: "#f1e9df", ...stone, bumpScale: 0.00045, roughness: 0.56, clearcoat: 0.18, clearcoatRoughness: 0.4 }), 0.8),
+    stone: metric(physical({ color: "#f3e7d6", ...stone, bumpScale: 0.00045, roughness: 0.56, clearcoat: 0.18, clearcoatRoughness: 0.4 }), 0.8),
     bathTile: metric(physical({ color: "#d5cabe", ...stone, bumpScale: 0.0003, roughness: 0.52, clearcoat: 0.24, clearcoatRoughness: 0.32 }), 0.6),
     grout: standard({ color: "#ad9f8b", roughness: 1 }),
     ceramic: physical({ color: "#f7f1e8", roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.06 }),
@@ -72,7 +72,10 @@ function createSurfaces() {
       color: "#fff5e1", ...linen, bumpScale: 0.00025, transparent: true, opacity: 0.46,
       side: THREE.DoubleSide, roughness: 1, depthWrite: false,
     }), 0.16),
-    mirror: standard({ color: "#d7dcd4", metalness: 1, roughness: 0.03, envMapIntensity: 1.4 }),
+    // Without real reflections a perfect mirror reads black; a soft one reads as glass.
+    mirror: standard({ color: "#eef0ea", metalness: 0.85, roughness: 0.12, envMapIntensity: 2.6 }),
+    // Matte black taps and fittings, as on the board.
+    matteBlack: physical({ color: "#1f1e1c", roughness: 0.55, metalness: 0.2 }),
     warmLight: standard({ color: "#fff1d8", emissive: "#ffe5bc", emissiveIntensity: 1.1, roughness: 1 }),
     artPaper: standard({ color: "#dfd4c2", roughness: 1 }),
     daylight: new THREE.MeshBasicMaterial({ map: daylightTexture(), side: THREE.DoubleSide }),
@@ -404,8 +407,8 @@ export function createParnavaz4650Interior(model: ApartmentModel, width: number,
   }
   block(kitchen, 0.39, 0.012, 0.39, m.metal, -0.02, 0.903, 0, 0.025);
   block(kitchen, 0.32, 0.014, 0.32, m.stone, -0.02, 0.911, 0, 0.025);
-  round(kitchen, 0.013, 0.013, 0.26, m.brass, -0.02, 1.03, -kitchenD * 0.34);
-  const faucet = add(kitchen, new THREE.TorusGeometry(0.09, 0.012, 8, 24, Math.PI), m.brass, -0.02, 1.15, -kitchenD * 0.2);
+  round(kitchen, 0.013, 0.013, 0.26, m.matteBlack, -0.02, 1.03, -kitchenD * 0.34);
+  const faucet = add(kitchen, new THREE.TorusGeometry(0.09, 0.012, 8, 24, Math.PI), m.matteBlack, -0.02, 1.15, -kitchenD * 0.2);
   faucet.rotation.y = Math.PI / 2;
   block(kitchen, kitchenW * 0.2, 1.75, kitchenD, m.metal, kitchenW * 0.395, 0.9, 0, 0.025);
   block(kitchen, 0.018, 0.43, 0.027, m.black, kitchenW * 0.325, 1.27, kitchenD / 2 + 0.025, 0.006);
@@ -507,20 +510,20 @@ export function createParnavaz4650Interior(model: ApartmentModel, width: number,
   block(tub, tubW, 0.5, tubD, m.ceramic, 0, 0.29, 0, 0.12);
   block(tub, tubW * 0.76, 0.02, tubD * 0.84, m.bathTile, 0, 0.551, 0, 0.01);
   block(tub, tubW * 0.67, 0.022, tubD * 0.73, m.ceramic, 0, 0.565, 0, 0.01);
-  round(tub, 0.015, 0.015, 0.22, m.brass, 0, 0.64, -tubD * 0.43);
-  block(tub, 0.025, 0.025, 0.15, m.brass, 0, 0.75, -tubD * 0.36);
+  round(tub, 0.015, 0.015, 0.22, m.matteBlack, 0, 0.64, -tubD * 0.43);
+  block(tub, 0.025, 0.025, 0.15, m.matteBlack, 0, 0.75, -tubD * 0.36);
   round(tub, 0.024, 0.024, 0.004, m.metal, 0, 0.58, tubD * 0.25);
   const toilet = groupAt(structure, 221, 223.5);
   const bowl = add(toilet, new THREE.SphereGeometry(0.22, 28, 20), m.ceramic, 0, 0.28, 0.02);
   bowl.scale.set(0.78, 1, 1.1);
   oval(toilet, px(36), pz(53) * 0.78, 0.035, m.ceramic, 0.47);
   block(toilet, px(33), 0.61, 0.12, m.ceramic, 0, 0.35, -pz(53) * 0.33, 0.035);
-  block(toilet, 0.09, 0.006, 0.028, m.brass, 0, 0.66, -pz(53) * 0.33);
+  block(toilet, 0.09, 0.006, 0.028, m.matteBlack, 0, 0.66, -pz(53) * 0.33);
   const vanity = groupAt(structure, 329.5, 230.5);
   block(vanity, px(61), 0.52, pz(43), m.oak, 0, 0.48, 0, 0.015);
   block(vanity, px(63), 0.035, pz(45), m.stone, 0, 0.77, 0, 0.012);
   round(vanity, 0.185, 0.135, 0.095, m.ceramic, 0, 0.835);
-  round(vanity, 0.015, 0.015, 0.21, m.brass, 0, 0.91, -pz(43) * 0.38);
+  round(vanity, 0.015, 0.015, 0.21, m.matteBlack, 0, 0.91, -pz(43) * 0.38);
   const bathroomMirror = groupAt(walls, 329, 251, 180);
   bathroomMirror.position.y = 1.43;
   const mirror = round(bathroomMirror, 0.29, 0.29, 0.025, m.mirror);

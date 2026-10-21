@@ -367,7 +367,10 @@ function buildScene(
     view = nextView;
     ceiling.visible = nextView === "walkthrough";
     const inRoom = nextView === "walkthrough";
-    ambient.intensity = inRoom ? 0.4 : 2.5;
+    // Inside, light bounces off oak floors and linen walls, so the fill is warm.
+    ambient.color.set(inRoom ? "#fff0da" : "#fff4df");
+    ambient.groundColor.set(inRoom ? "#b39a7c" : "#8b938a");
+    ambient.intensity = inRoom ? 0.55 : 2.5;
     sun.intensity = inRoom ? 2.2 : 3.2;
     scene.environmentIntensity = inRoom ? 0.42 : nextView === "inside" ? 0.5 : 0.35;
     // A neutral curve keeps the boards' linen and oak tones true to colour.

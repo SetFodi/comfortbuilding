@@ -111,7 +111,7 @@ export interface ApartmentModel {
   readonly floors: readonly PlanFloor[];
   readonly furniture: readonly PlanFurniture[];
   readonly viewpoints: readonly {
-    readonly id: "living" | "bedroom" | "bedroom2" | "kitchen";
+    readonly id: "living" | "bedroom" | "bedroom2" | "kitchen" | "bathroom";
     readonly position: PlanPoint;
     readonly target: PlanPoint;
   }[];

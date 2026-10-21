@@ -487,8 +487,9 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       x: [[48, 0], [550, 6.35]],
       z: [[105, 0], [275, 1.66], [429, 3.53], [810, 6.9], [923, 7.76]],
     }],
-    // 3D only: opens the kitchen aisle and the passage to the bedroom.
-    widen: { x: [[280, 0.25]], z: [[395, 0.35]] },
+    // 3D only: opens the kitchen aisle, the passage to the bedroom and the
+    // walkway past the TV.
+    widen: { x: [[280, 0.4]], z: [[395, 0.35]] },
     footprint: [[39, 105], [550, 105], [550, 923], [39, 923]],
     walls: [
       [[48, 105], [80, 105]],
@@ -529,6 +530,9 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { kind: "sofa", rect: [91, 427, 81, 266], rotation: 270 },
       { kind: "table", rect: [196, 480, 44, 144] },
       { kind: "console", rect: [62, 343, 30, 82], rotation: 270 },
+      // The plan draws the TV behind the sofa; the board's living room photo
+      // hangs it on the wall opposite, which is where it goes here.
+      { kind: "media", rect: [281, 470, 24, 190], rotation: 90 },
       // Under-counter appliance at the left, the sink mid-run, the hob at the end.
       { kind: "kitchen", rect: [308, 285, 224, 67], fittings: { hob: 0.4, sink: 0 } },
       { kind: "bed", rect: [365, 478, 117, 237] },
@@ -556,6 +560,7 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { id: "living", position: [262, 662], target: [126, 535] },
       { id: "bedroom", position: [369, 754], target: [425, 544] },
       { id: "kitchen", position: [296, 412], target: [452, 312] },
+      { id: "bathroom", position: [400, 235], target: [350, 150] },
     ],
   }),
   trace({
@@ -634,6 +639,7 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { id: "living", position: [464, 740], target: [624, 533] },
       { id: "bedroom", position: [299, 758], target: [198, 565] },
       { id: "kitchen", position: [531, 371], target: [243, 301] },
+      { id: "bathroom", position: [350, 165], target: [130, 170] },
     ],
   }),
   trace({
@@ -717,6 +723,7 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { id: "living", position: [333, 663], target: [185, 501] },
       { id: "bedroom", position: [466, 704], target: [586, 559] },
       { id: "kitchen", position: [280, 325], target: [109, 327] },
+      { id: "bathroom", position: [528, 245], target: [650, 200] },
     ],
   }),
   trace({
@@ -807,6 +814,7 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { id: "living", position: [576, 676], target: [431, 526] },
       { id: "bedroom", position: [315, 730], target: [192, 550] },
       { id: "kitchen", position: [528, 339], target: [648, 392] },
+      { id: "bathroom", position: [290, 200], target: [110, 190] },
     ],
   }),
   trace({
@@ -857,7 +865,9 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { kind: "balcony", from: [698, 191], to: [799, 191] },
     ],
     floors: [
-      { kind: "tile", rect: [45, 505, 293, 150] },
+      // The bathroom and its shower; the strip by the bathroom door is hall.
+      { kind: "tile", rect: [45, 505, 187, 150] },
+      { kind: "tile", rect: [232, 566, 106, 89] },
       { kind: "balcony", rect: [45, 108, 849, 83] },
     ],
     furniture: [
@@ -895,6 +905,7 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { id: "bedroom", position: [286, 409], target: [170, 366] },
       { id: "bedroom2", position: [369, 409], target: [477, 366] },
       { id: "kitchen", position: [705, 468], target: [690, 625] },
+      { id: "bathroom", position: [205, 600], target: [80, 560] },
     ],
   }),
   trace({
@@ -1006,6 +1017,7 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { id: "bedroom", position: [417, 654], target: [480, 501] },
       { id: "bedroom2", position: [602, 654], target: [705, 501] },
       { id: "kitchen", position: [300, 285], target: [262, 150] },
+      { id: "bathroom", position: [665, 205], target: [700, 140] },
     ],
   }),
   trace({
@@ -1150,10 +1162,12 @@ export const PARNAVAZ_APARTMENT_MODELS: readonly ApartmentModel[] = [
       { kind: "plant", rect: [415, 784, 28, 32] },
     ],
     viewpoints: [
-      { id: "living", position: [425, 650], target: [255, 515] },
+      // Just inside the hall door, looking over the sofa, table and glazing.
+      { id: "living", position: [418, 505], target: [250, 690] },
       { id: "bedroom", position: [333, 237], target: [239, 187] },
       { id: "bedroom2", position: [328, 405], target: [237, 365] },
       { id: "kitchen", position: [482, 250], target: [520, 150] },
+      { id: "bathroom", position: [640, 270], target: [650, 150] },
     ],
   }),
 ];

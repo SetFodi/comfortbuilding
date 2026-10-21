@@ -23,7 +23,7 @@ function loadSource(path) {
   return loaded.exports;
 }
 
-const { boardToNormalized, getParnavazApartmentModel } = loadSource("src/lib/parnavaz-apartment-models.ts");
+const { boardToNormalized, getParnavazApartmentModel, PARNAVAZ_APARTMENT_MODELS } = loadSource("src/lib/parnavaz-apartment-models.ts");
 const {
   createWalkthroughLayout,
   canWalkTo,
@@ -195,4 +195,65 @@ test("the 117 m² living room matches its board: hall door, closed corner and so
   near(byDoor, at(141, 597));
   const throughDoor = moveWalkthrough(largeLayout, byDoor, displacement(byDoor, at(90, 597)));
   assert.ok(throughDoor.x < at(128, 597).x);
+});
+
+test("no traced piece stands inside a wall or column, except a TV unit built around one", () => {
+  for (const current of PARNAVAZ_APARTMENT_MODELS) {
+    // The 46.5 m² interior is hand-built and places its own furniture.
+    if (current.area === 46.5) continue;
+    const { width, depth } = current.size;
+    const metres = ([x, z, w, d]) => [x * width, z * depth, (x + w) * width, (z + d) * depth];
+    const onOutline = ([px, pz]) => current.footprint.some((corner, index) => {
+      const next = current.footprint[(index + 1) % current.footprint.length];
+      const [ax, az, bx, bz] = [corner[0] * width, corner[1] * depth, next[0] * width, next[1] * depth];
+      const length = Math.hypot(bx - ax, bz - az) || 1;
+      const t = Math.max(0, Math.min(1, ((px * width - ax) * (bx - ax) + (pz * depth - az) * (bz - az)) / (length * length)));
+      return Math.hypot(px * width - ax - t * (bx - ax), pz * depth - az - t * (bz - az)) < 0.05;
+    });
+    const solids = [
+      ...current.walls.map(([from, to]) => {
+        const half = onOutline(from) && onOutline(to) ? 0.11 : 0.06;
+        const [ax, az, bx, bz] = [from[0] * width, from[1] * depth, to[0] * width, to[1] * depth];
+        const vertical = Math.abs(ax - bx) < Math.abs(az - bz);
+        return { kind: "wall", box: [
+          Math.min(ax, bx) - (vertical ? half : 0), Math.min(az, bz) - (vertical ? 0 : half),
+          Math.max(ax, bx) + (vertical ? half : 0), Math.max(az, bz) + (vertical ? 0 : half),
+        ] };
+      }),
+      ...(current.columns ?? []).map((column) => ({ kind: "column", box: metres(column) })),
+    ];
+    for (const piece of current.furniture) {
+      if (piece.kind === "rug") continue;
+      const [l, t, r, b] = metres(piece.rect);
+      for (const { kind, box: [sl, st, sr, sb] } of solids) {
+        const overlap = Math.min(Math.min(r, sr) - Math.max(l, sl), Math.min(b, sb) - Math.max(t, st));
+        if (overlap <= 0.02 || (kind === "column" && piece.kind === "media")) continue;
+        assert.fail(`${current.id}: ${piece.kind} at ${piece.rect.map((v) => v.toFixed(3))} is ${overlap.toFixed(2)} m inside a ${kind}`);
+      }
+    }
+  }
+});
+
+test("bedside tables sit beside their bed, not under it", () => {
+  for (const current of PARNAVAZ_APARTMENT_MODELS) {
+    if (current.area === 46.5) continue;
+    const { width, depth } = current.size;
+    const metres = ([x, z, w, d]) => [x * width, z * depth, (x + w) * width, (z + d) * depth];
+    const beds = current.furniture.filter(({ kind }) => kind === "bed").map(({ rect }) => metres(rect));
+    for (const piece of current.furniture.filter(({ kind }) => kind === "nightstand" || kind === "sideTable")) {
+      const [l, t, r, b] = metres(piece.rect);
+      for (const [bl, bt, br, bb] of beds) {
+        const overlap = Math.min(Math.min(r, br) - Math.max(l, bl), Math.min(b, bb) - Math.max(t, bt));
+        assert.ok(overlap <= 0.02, `${current.id}: ${piece.kind} overlaps a bed by ${overlap.toFixed(2)} m`);
+      }
+    }
+  }
+});
+
+test("every apartment can be entered at its bathroom", () => {
+  for (const current of PARNAVAZ_APARTMENT_MODELS) {
+    assert.ok(current.viewpoints.some(({ id }) => id === "bathroom"), `${current.id} has a bathroom viewpoint`);
+    const spawn = walkthroughSpawn(current, "bathroom");
+    assert.equal(canWalkTo(createWalkthroughLayout(current), spawn.position), true, `${current.id} bathroom spawn is clear`);
+  }
 });
