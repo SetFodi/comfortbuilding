@@ -9,6 +9,7 @@ import { getParnavazApartmentModel } from "@/lib/parnavaz-apartment-models";
 import { PARNAVAZ_FACADE, PARNAVAZ_FACADE_FLOORS, parnavazFloorState } from "@/lib/parnavaz-facade";
 import { facadeOutline, findPlanUnit, getFloorPlan, PARNAVAZ_PLAN, planCentre, planPoints, type FloorPlan, type PlanUnit } from "@/lib/parnavaz-floor-plans";
 import type { ApartmentLayout, Lang, PricedUnit, ProjectPriceList } from "@/lib/types";
+import { ViewBoundary } from "./view-boundary";
 
 const ApartmentModelViewer = dynamic(() => import("./apartment-model-viewer"), {
   ssr: false,
@@ -49,7 +50,8 @@ const COPY = {
     bedrooms: "საძინებელი", floorApartments: "ბინები ამ სართულზე",
     planTitle: "სართულის გეგმა", floorPlan: "გეგმა", floor3d: "3D სართული", location: "მდებარეობა შენობაში",
     courtyard: "ბინა შენობის უკანა, ეზოს მხარესაა.", planNote: "გეგმა გაყიდვების ნახაზებიდანაა, ბინების კონტურები საორიენტაციოა.",
-    swipe: "გეგმა გვერდზე გადაასრიალეთ", notForSaleFloor: "მე-8 სართული გასაყიდად არ არის შეთავაზებული.", open3d: "3D-ში ნახვა",
+    swipe: "გეგმა გვერდზე გადაასრიალეთ",
+    viewError: "3D ხედი ამ მოწყობილობაზე ვერ ჩაიტვირთა. სცადეთ ხელახლა ან ნახეთ ბინის დიზაინი.", retry3d: "3D-ის ხელახლა ჩატვირთვა", notForSaleFloor: "მე-8 სართული გასაყიდად არ არის შეთავაზებული.", open3d: "3D-ში ნახვა",
   },
   en: {
     eyebrow: "From the facade to your home",
@@ -71,7 +73,8 @@ const COPY = {
     bedrooms: "Bedrooms", floorApartments: "Apartments on this floor",
     planTitle: "Floor plan", floorPlan: "Plan", floor3d: "3D floor", location: "Where it is in the building",
     courtyard: "This apartment is on the back of the building, facing the courtyard.", planNote: "Plan from the sales drawings. Apartment outlines are indicative.",
-    swipe: "Swipe the plan sideways", notForSaleFloor: "Floor 8 is not offered for sale.", open3d: "View in 3D",
+    swipe: "Swipe the plan sideways",
+    viewError: "The 3D view couldn't load on this device. Try again, or view the apartment's design instead.", retry3d: "Reload 3D", notForSaleFloor: "Floor 8 is not offered for sale.", open3d: "View in 3D",
   },
   ru: {
     eyebrow: "От фасада к вашей квартире",
@@ -93,7 +96,8 @@ const COPY = {
     bedrooms: "Спальни", floorApartments: "Квартиры на этом этаже",
     planTitle: "План этажа", floorPlan: "План", floor3d: "3D-этаж", location: "Расположение в доме",
     courtyard: "Квартира находится с задней стороны дома, окна во двор.", planNote: "План по чертежам отдела продаж. Контуры квартир ориентировочные.",
-    swipe: "Сдвиньте план в сторону", notForSaleFloor: "8-й этаж не выставлен на продажу.", open3d: "Смотреть в 3D",
+    swipe: "Сдвиньте план в сторону",
+    viewError: "3D-просмотр не загрузился на этом устройстве. Попробуйте ещё раз или посмотрите дизайн квартиры.", retry3d: "Перезагрузить 3D", notForSaleFloor: "8-й этаж не выставлен на продажу.", open3d: "Смотреть в 3D",
   },
 } as const;
 
@@ -382,8 +386,10 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
             </div>
             {floorView === "3d" && selectedPlan.units.length > 0 ? (
               <div className="h-[46svh] max-h-[36rem] min-h-72 bg-[#e9e3d8] sm:h-[62svh]">
+                <ViewBoundary area="floor-3d" message={copy.viewError} retryLabel={copy.retry3d}>
                 <ParnavazFloor3d plan={selectedPlan} units={selectedViews} hovered={hoveredUnit} label={`${copy.floor3d} · ${copy.floor} ${selectedFloor}`}
                   onHover={setHoveredUnit} onSelect={(key) => { const view = selectedViews.find((item) => item.key === key); if (view?.unit) openUnit(view.unit); }} />
+                </ViewBoundary>
               </div>
             ) : (
               <div className="overflow-x-auto overscroll-x-contain" data-floor-plan-scroll>
@@ -442,7 +448,7 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
             </div>
             <div data-apartment-content className="min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden xl:grid-cols-[minmax(0,1fr)_23rem]">
               <div data-apartment-visual className={`relative flex h-[55svh] min-h-80 flex-col lg:h-full bg-[#e9e3d8]`}>
-                {selectedModel && !showDesign ? <ApartmentModelViewer key={`${selectedModel.id}-${activeUnit.number}`} model={selectedModel} lang={lang} allowWalkthrough unit={activeUnit.number} area={activeUnit.totalArea} entrance /> : selectedLayout ? (
+                {selectedModel && !showDesign ? <ViewBoundary key={`${selectedModel.id}-${activeUnit.number}`} area="apartment-3d" message={copy.viewError} retryLabel={copy.retry3d}><ApartmentModelViewer model={selectedModel} lang={lang} allowWalkthrough unit={activeUnit.number} area={activeUnit.totalArea} entrance /></ViewBoundary> : selectedLayout ? (
                   <div className="relative h-full w-full"><Image src={selectedLayout.image.src} alt={selectedLayout.image.alt[lang]} fill sizes="(min-width: 1024px) 75vw, 96vw" quality={90} className="object-contain p-5" /></div>
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center text-ink"><CubeIcon className="size-12 text-bronze/50" /><p className="max-w-sm font-display text-2xl">{copy.noModel}</p><Link href={inquiryHref(lang, "parnavaz-65", activeUnit.number)} data-contact-action="explorer-plan-inquiry" data-project-slug="parnavaz-65" className="inline-flex min-h-12 items-center bg-ink px-5 text-sm text-cream">{copy.requestPlan} <span className="ml-5" aria-hidden>→</span></Link></div>

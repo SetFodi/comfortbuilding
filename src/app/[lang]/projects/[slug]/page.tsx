@@ -15,6 +15,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { StatusChip } from "@/components/status-chip";
 import { TitleBlock } from "@/components/title-block";
 import { UnitInventory } from "@/components/unit-inventory";
+import { ViewBoundary } from "@/components/view-boundary";
 import { getDict } from "@/lib/dictionary";
 import {
   formatUsd,
@@ -236,6 +237,13 @@ interface ProjectPageProps {
   readonly params: Promise<{ lang: string; slug: string }>;
 }
 
+
+/** Shown in place of the floor and apartment explorer if it fails in a browser. */
+const EXPLORER_ERROR = {
+  ka: { message: "ბინების ინტერაქტიული არჩევა ამ ბრაუზერში ვერ ჩაიტვირთა. ქვემოთ ნახავთ ფასებსა და ბინების დიზაინებს.", retry: "ხელახლა ცდა" },
+  en: { message: "The interactive apartment picker couldn't load in this browser. Prices and apartment designs are below.", retry: "Try again" },
+  ru: { message: "Интерактивный выбор квартир не загрузился в этом браузере. Цены и дизайны квартир ниже.", retry: "Попробовать снова" },
+} as const;
 export function generateStaticParams() {
   return PROJECTS.map((project) => ({ slug: project.slug }));
 }
@@ -564,12 +572,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </section>
 
         {project.slug === "parnavaz-65" && project.priceList && project.layouts && (
-          <ParnavazExplorer
-            lang={lang}
-            projectName={project.name[lang]}
-            priceList={project.priceList}
-            layouts={project.layouts}
-          />
+          <ViewBoundary area="parnavaz-explorer" message={EXPLORER_ERROR[lang].message} retryLabel={EXPLORER_ERROR[lang].retry}>
+            <ParnavazExplorer
+              lang={lang}
+              projectName={project.name[lang]}
+              priceList={project.priceList}
+              layouts={project.layouts}
+            />
+          </ViewBoundary>
         )}
 
         {project.layouts && project.layouts.length > 0 && (

@@ -87,3 +87,19 @@ export function trackContactEvent(
     ...(process.env.NODE_ENV === "development" ? { debug_mode: true } : {}),
   });
 }
+
+/**
+ * Records a browser error as a Google Analytics `exception`, only with the
+ * visitor's consent, so failures on other people's devices can be diagnosed.
+ * The message is trimmed and carries no form data.
+ */
+export function trackClientError(area: string, error: unknown) {
+  if (typeof window === "undefined" || readAnalyticsConsent() !== "granted") return;
+  const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  window.gtag?.("event", "exception", {
+    description: `[${area}] ${message}`.slice(0, 150),
+    fatal: false,
+    page_location: `${window.location.origin}${window.location.pathname}`,
+    translated: document.documentElement.classList.contains("translated-ltr") || document.querySelector("html[class*=translated]") !== null,
+  });
+}

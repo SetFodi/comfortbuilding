@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { ContactDock } from "@/components/contact-dock";
 import { SiteAnalytics } from "@/components/site-analytics";
+import { TranslateGuard } from "@/components/translate-guard";
 import { SiteLoader } from "@/components/site-loader";
 import { JsonLd } from "@/components/json-ld";
 import { PROJECTS } from "@/lib/projects";
@@ -140,6 +141,7 @@ export default async function LocaleRootLayout({
       className={`${serifGeorgian.variable} ${serifLatin.variable} ${sansGeorgian.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col pb-16 lg:pb-0">
+        <TranslateGuard />
         <SiteLoader lang={candidate} />
         <JsonLd
           data={jsonLdGraph([
