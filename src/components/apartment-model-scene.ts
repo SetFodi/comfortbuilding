@@ -1,20 +1,33 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import type { ApartmentModel, PlanFurniture, PlanPoint } from "@/lib/apartment-model";
+import type { ApartmentModel, PlanPoint } from "@/lib/apartment-model";
+import { createGenericInterior } from "./apartment-generic-interior";
+import { createParnavaz4650Interior } from "./parnavaz-4650-interior";
+import { createWalkthroughControls, type WalkthroughPose, type WalkthroughState } from "./apartment-walkthrough-controls";
+import { createApartmentPostprocessing } from "./apartment-postprocessing";
+import { createTvChannel, type TvChannel } from "./apartment-tv";
+import { createWalkthroughLayout } from "@/lib/apartment-walkthrough";
 
-export type ApartmentView = "dollhouse" | "inside" | "top";
+export type ApartmentView = "dollhouse" | "inside" | "top" | "walkthrough";
+
+/** What the walkthrough crosshair is resting on, if it can be used. */
+export type WalkthroughInteraction = { readonly kind: "tv"; readonly on: boolean } | null;
+
+/** How close the visitor must be to reach for the TV. */
+const TV_REACH = 3.6;
 
 export interface ApartmentScene {
   setView: (view: ApartmentView, roomId?: string) => void;
+  startWalkthrough: () => void;
+  pauseWalkthrough: () => void;
   zoom: (direction: 1 | -1) => void;
   reset: () => void;
   dispose: () => void;
 }
 
-type Material = THREE.MeshStandardMaterial;
-type Materials = ReturnType<typeof createMaterials>;
+type Material = THREE.Material;
 
 /** The furniture stays still, so one draw call per material is enough. */
 function batchStaticMeshes(group: THREE.Group) {
@@ -22,7 +35,8 @@ function batchStaticMeshes(group: THREE.Group) {
   const inverseGroup = group.matrixWorld.clone().invert();
   const batches = new Map<string, THREE.Mesh<THREE.BufferGeometry, Material>[]>();
   group.traverse((object) => {
-    if (!(object instanceof THREE.Mesh) || Array.isArray(object.material)) return;
+    // TV screens stay separate so the walkthrough can switch them on.
+    if (!(object instanceof THREE.Mesh) || Array.isArray(object.material) || object.material.transparent || object.userData.tv) return;
     const key = `${object.material.uuid}:${object.castShadow}:${object.receiveShadow}`;
     const batch = batches.get(key) ?? [];
     batch.push(object as THREE.Mesh<THREE.BufferGeometry, Material>);
@@ -54,7 +68,9 @@ function disposeScene(scene: THREE.Scene, extraMaterials: THREE.Material[] = [])
   const materials = new Set<THREE.Material>(extraMaterials);
   const textures = new Set<THREE.Texture>();
   scene.traverse((object) => {
-    if (object instanceof THREE.DirectionalLight) object.shadow.map?.dispose();
+    if (object instanceof THREE.DirectionalLight || object instanceof THREE.PointLight || object instanceof THREE.SpotLight) {
+      object.shadow.map?.dispose();
+    }
     if (!(object instanceof THREE.Mesh)) return;
     geometries.add(object.geometry);
     for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
@@ -69,268 +85,14 @@ function disposeScene(scene: THREE.Scene, extraMaterials: THREE.Material[] = [])
   textures.forEach((texture) => texture.dispose());
 }
 
-function canvasTexture(kind: "oak" | "linen" | "stone"): THREE.CanvasTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 256;
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("Canvas unavailable");
-  let seed = 1937;
-  const random = () => {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-  };
-  context.fillStyle = kind === "oak" ? "#b69a72" : kind === "linen" ? "#e0d8c8" : "#d3cbbd";
-  context.fillRect(0, 0, 256, 256);
-  for (let index = 0; index < 4200; index += 1) {
-    context.fillStyle = `rgba(${random() > 0.45 ? "65,49,32" : "255,250,236"},${random() * 0.13})`;
-    const x = random() * 256;
-    const y = random() * 256;
-    context.fillRect(x, y, kind === "oak" ? 1 : 0.65, kind === "oak" ? 15 + random() * 80 : 0.65);
-  }
-  if (kind === "oak") {
-    context.strokeStyle = "rgba(57,42,26,.18)";
-    context.lineWidth = 0.7;
-    for (let index = 0; index < 8; index += 1) {
-      context.beginPath();
-      context.moveTo(index * 32, 0);
-      context.lineTo(index * 32, 256);
-      context.moveTo(index * 32, index % 2 === 0 ? 72 : 180);
-      context.lineTo((index + 1) * 32, index % 2 === 0 ? 72 : 180);
-      context.stroke();
-    }
-  }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(kind === "oak" ? 0.45 : 2, kind === "oak" ? 0.45 : 2);
-  return texture;
-}
-
-function createMaterials() {
-  const oak = canvasTexture("oak");
-  const linen = canvasTexture("linen");
-  const stone = canvasTexture("stone");
-  return {
-    floor: new THREE.MeshStandardMaterial({ map: oak, color: "#dfc6a1", roughness: 0.88 }),
-    wood: new THREE.MeshStandardMaterial({ map: oak, color: "#c3a17a", roughness: 0.72 }),
-    darkWood: new THREE.MeshStandardMaterial({ color: "#69503b", roughness: 0.8 }),
-    wall: new THREE.MeshStandardMaterial({ color: "#e9e2d5", roughness: 0.94 }),
-    wallCap: new THREE.MeshStandardMaterial({ color: "#eee9df", roughness: 0.85 }),
-    fabric: new THREE.MeshStandardMaterial({ map: linen, color: "#f3eee3", roughness: 1 }),
-    sage: new THREE.MeshStandardMaterial({ map: linen, color: "#a3a38c", roughness: 1 }),
-    pillow: new THREE.MeshStandardMaterial({ map: linen, color: "#eee9da", roughness: 1 }),
-    rug: new THREE.MeshStandardMaterial({ map: linen, color: "#b9aa93", roughness: 1 }),
-    stone: new THREE.MeshStandardMaterial({ map: stone, color: "#ede7d9", roughness: 0.68 }),
-    ceramic: new THREE.MeshStandardMaterial({ color: "#f0eee5", roughness: 0.28 }),
-    brass: new THREE.MeshStandardMaterial({ color: "#a88950", metalness: 0.72, roughness: 0.3 }),
-    black: new THREE.MeshStandardMaterial({ color: "#2a2925", roughness: 0.45 }),
-    leaf: new THREE.MeshStandardMaterial({ color: "#596748", roughness: 0.9 }),
-    lightLeaf: new THREE.MeshStandardMaterial({ color: "#7c8760", roughness: 0.92 }),
-    soil: new THREE.MeshStandardMaterial({ color: "#352e26", roughness: 1 }),
-    glass: new THREE.MeshStandardMaterial({
-      color: "#b8d2cd", transparent: true, opacity: 0.18, roughness: 0.12,
-      metalness: 0.08, depthWrite: false, side: THREE.DoubleSide,
-    }),
-    mirror: new THREE.MeshStandardMaterial({ color: "#a8b5ad", roughness: 0.08, metalness: 0.88 }),
-  };
-}
-
-function mesh(
-  parent: THREE.Object3D,
-  geometry: THREE.BufferGeometry,
-  material: Material,
-  x: number,
-  y: number,
-  z: number,
-) {
-  const result = new THREE.Mesh(geometry, material);
-  result.position.set(x, y, z);
-  result.castShadow = true;
-  result.receiveShadow = true;
-  parent.add(result);
-  return result;
-}
-
-function box(
-  parent: THREE.Object3D, width: number, height: number, depth: number,
-  material: Material, x = 0, y = height / 2, z = 0, rounded = 0,
-) {
-  const geometry = rounded > 0
-    ? new RoundedBoxGeometry(width, height, depth, 2, Math.min(rounded, width / 3, height / 3, depth / 3))
-    : new THREE.BoxGeometry(width, height, depth);
-  return mesh(parent, geometry, material, x, y, z);
-}
-
-function cylinder(
-  parent: THREE.Object3D, top: number, bottom: number, height: number,
-  material: Material, x = 0, y = height / 2, z = 0,
-) {
-  return mesh(parent, new THREE.CylinderGeometry(top, bottom, height, 24), material, x, y, z);
-}
-
-function plant(parent: THREE.Object3D, materials: Materials, radius: number, height: number, x = 0, z = 0, y = 0) {
-  cylinder(parent, radius * 0.7, radius * 0.5, height * 0.24, materials.stone, x, y + height * 0.12, z);
-  cylinder(parent, radius * 0.63, radius * 0.63, 0.018, materials.soil, x, y + height * 0.24, z);
-  for (let index = 0; index < 9; index += 1) {
-    const angle = index * 2.39996;
-    const reach = radius * (0.5 + (index % 3) * 0.22);
-    const stemHeight = height * (0.55 + (index % 4) * 0.11);
-    const stem = cylinder(parent, 0.007, 0.009, stemHeight, materials.darkWood, x, y + height * 0.2 + stemHeight / 2, z);
-    stem.rotation.z = Math.sin(angle) * 0.24;
-    stem.rotation.x = Math.cos(angle) * 0.24;
-    const leaf = mesh(
-      parent, new THREE.SphereGeometry(1, 10, 6), index % 2 === 0 ? materials.leaf : materials.lightLeaf,
-      x + Math.sin(angle) * reach, y + height * 0.23 + stemHeight, z + Math.cos(angle) * reach,
-    );
-    leaf.scale.set(radius * 0.23, height * 0.22, radius * 0.72);
-    leaf.rotation.set(Math.cos(angle) * 0.7, angle, Math.sin(angle) * 0.7);
-  }
-}
-
-function furniture(
-  item: PlanFurniture, width: number, depth: number, materials: Materials,
-): THREE.Group {
-  const [left, top, planWidth, planDepth] = item.rect;
-  const rotation = item.rotation ?? 0;
-  const sideways = Math.abs(Math.sin(THREE.MathUtils.degToRad(rotation))) > 0.5;
-  const w = (sideways ? planDepth * depth : planWidth * width);
-  const d = (sideways ? planWidth * width : planDepth * depth);
-  const group = new THREE.Group();
-  group.position.set((left + planWidth / 2 - 0.5) * width, 0.05, (top + planDepth / 2 - 0.5) * depth);
-  group.rotation.y = -THREE.MathUtils.degToRad(rotation);
-  const leg = (x: number, z: number, height = 0.2) => cylinder(group, 0.025, 0.02, height, materials.darkWood, x, height / 2, z);
-  const rug = (rw: number, rd: number) => box(group, rw, 0.025, rd, materials.rug, 0, 0.017, 0, 0.01);
-
-  switch (item.kind) {
-    case "bed": {
-      rug(w * 1.13, d * 1.05);
-      box(group, w, 0.23, d, materials.wood, 0, 0.2, 0, 0.035);
-      box(group, w * 1.02, 1.02, 0.085, materials.wood, 0, 0.51, -d / 2 + 0.03, 0.025);
-      box(group, w * 0.96, 0.24, d * 0.96, materials.fabric, 0, 0.43, 0, 0.08);
-      box(group, w * 0.98, 0.09, d * 0.67, materials.fabric, 0, 0.58, d * 0.14, 0.035);
-      box(group, w * 1.005, 0.04, d * 0.29, materials.sage, 0, 0.64, d * 0.31, 0.017);
-      for (const side of [-1, 1]) {
-        const pillow = box(group, w * 0.4, 0.14, d * 0.2, materials.pillow, side * w * 0.24, 0.63, -d * 0.33, 0.065);
-        pillow.rotation.y = side * 0.04;
-      }
-      break;
-    }
-    case "sofa": {
-      box(group, w, 0.3, d, materials.fabric, 0, 0.3, 0, 0.08);
-      box(group, w, 0.61, d * 0.2, materials.fabric, 0, 0.62, -d * 0.4, 0.065);
-      for (const side of [-1, 1]) {
-        box(group, w * 0.105, 0.42, d, materials.fabric, side * w * 0.45, 0.47, 0, 0.055);
-        const cushion = box(group, w * 0.23, 0.12, d * 0.48, materials.sage, side * w * 0.28, 0.7, -d * 0.15, 0.05);
-        cushion.rotation.x = 0.85;
-        cushion.rotation.z = side * 0.18;
-        leg(side * w * 0.4, -d * 0.38, 0.16);
-        leg(side * w * 0.4, d * 0.38, 0.16);
-      }
-      const seats = w > 1.5 ? 3 : 2;
-      for (let seat = 0; seat < seats; seat += 1) {
-        box(group, w * 0.78 / seats - 0.02, 0.13, d * 0.73, materials.pillow,
-          (seat - (seats - 1) / 2) * w * 0.78 / seats, 0.49, d * 0.09, 0.045);
-      }
-      break;
-    }
-    case "table": {
-      rug(w * 1.8, d * 1.8);
-      const tableTop = cylinder(group, 0.5, 0.5, 0.07, materials.wood, 0, 0.46, 0);
-      tableTop.scale.set(w, 1, d);
-      cylinder(group, Math.min(w, d) * 0.18, Math.min(w, d) * 0.23, 0.4, materials.wood, 0, 0.22, 0);
-      plant(group, materials, Math.min(w, d) * 0.13, 0.33, -w * 0.18, -d * 0.12, 0.5);
-      box(group, w * 0.23, 0.025, d * 0.29, materials.pillow, w * 0.18, 0.51, d * 0.14);
-      cylinder(group, 0.055, 0.045, 0.07, materials.ceramic, w * 0.18, 0.56, d * 0.14);
-      break;
-    }
-    case "chair": {
-      cylinder(group, w * 0.4, w * 0.34, 0.13, materials.fabric, 0, 0.43, 0).scale.z = d / w;
-      box(group, w * 0.85, 0.4, 0.08, materials.wood, 0, 0.67, -d * 0.38, 0.03);
-      for (const x of [-1, 1]) for (const z of [-1, 1]) leg(x * w * 0.29, z * d * 0.29, 0.4);
-      break;
-    }
-    case "kitchen": {
-      box(group, w, 0.84, d, materials.wood, 0, 0.44, 0, 0.012);
-      box(group, w * 1.015, 0.065, d * 1.04, materials.stone, 0, 0.89, 0, 0.012);
-      const doors = Math.max(1, Math.round(w / 0.5));
-      for (let door = 0; door < doors; door += 1) {
-        const x = (door - (doors - 1) / 2) * w / doors;
-        box(group, w / doors - 0.018, 0.72, 0.018, materials.wood, x, 0.47, d / 2 + 0.012);
-        box(group, Math.min(0.15, w / doors * 0.5), 0.012, 0.025, materials.brass, x, 0.76, d / 2 + 0.03);
-      }
-      if (w > 1.4) {
-        box(group, Math.min(0.5, w * 0.24), 0.02, d * 0.76, materials.black, w * 0.26, 0.936, 0, 0.02);
-        for (const x of [-0.11, 0.11]) for (const z of [-d * 0.18, d * 0.18]) {
-          mesh(group, new THREE.TorusGeometry(0.065, 0.004, 5, 18), materials.brass, w * 0.26 + x, 0.95, z).rotation.x = -Math.PI / 2;
-        }
-        box(group, w * 0.2, 0.025, d * 0.62, materials.mirror, -w * 0.26, 0.935, 0, 0.025);
-        cylinder(group, 0.012, 0.012, 0.25, materials.brass, -w * 0.26, 1.05, -d * 0.32);
-        box(group, 0.012, 0.012, 0.15, materials.brass, -w * 0.26, 1.17, -d * 0.22);
-      } else {
-        plant(group, materials, 0.1, 0.36, 0, 0, 0.93);
-      }
-      break;
-    }
-    case "wardrobe": {
-      box(group, w, 1.85, d, materials.wood, 0, 0.93, 0, 0.015);
-      const count = Math.max(2, Math.round(w / 0.52));
-      for (let index = 0; index < count; index += 1) {
-        const x = (index - (count - 1) / 2) * w / count;
-        box(group, w / count - 0.013, 1.77, 0.018, materials.wood, x, 0.94, d / 2 + 0.012);
-        box(group, 0.012, 0.2, 0.025, materials.brass, x + w / count * 0.3, 0.95, d / 2 + 0.03);
-      }
-      break;
-    }
-    case "shower": {
-      box(group, w, 0.075, d, materials.stone, 0, 0.04, 0, 0.02);
-      box(group, w, 1.9, 0.012, materials.glass, 0, 0.99, d / 2);
-      box(group, 0.012, 1.9, d, materials.glass, w / 2, 0.99, 0);
-      cylinder(group, 0.012, 0.012, 1.45, materials.brass, -w * 0.28, 1.05, -d * 0.4);
-      cylinder(group, 0.1, 0.1, 0.025, materials.brass, -w * 0.28, 1.78, -d * 0.25);
-      cylinder(group, 0.025, 0.025, 0.008, materials.black, 0, 0.083, 0);
-      break;
-    }
-    case "bathtub": {
-      box(group, w, 0.48, d, materials.ceramic, 0, 0.25, 0, 0.1);
-      box(group, w * 0.72, 0.022, d * 0.8, materials.stone, 0, 0.493, 0, 0.01);
-      box(group, w * 0.62, 0.025, d * 0.67, materials.ceramic, 0, 0.51, 0, 0.012);
-      cylinder(group, 0.013, 0.013, 0.16, materials.brass, 0, 0.58, -d * 0.41);
-      box(group, 0.025, 0.018, d * 0.16, materials.brass, 0, 0.66, -d * 0.34);
-      box(group, w * 0.97, 0.035, d * 0.14, materials.wood, 0, 0.55, d * 0.16, 0.012);
-      cylinder(group, 0.045, 0.04, 0.08, materials.ceramic, w * 0.22, 0.61, d * 0.16);
-      break;
-    }
-    case "toilet": {
-      const bowl = mesh(group, new THREE.SphereGeometry(0.5, 20, 12), materials.ceramic, 0, 0.29, d * 0.1);
-      bowl.scale.set(w * 0.85, 0.5, d * 0.8);
-      box(group, w * 0.7, 0.63, d * 0.26, materials.ceramic, 0, 0.34, -d * 0.34, 0.05);
-      const lid = cylinder(group, 0.5, 0.5, 0.045, materials.ceramic, 0, 0.47, d * 0.1);
-      lid.scale.set(w * 0.87, 1, d * 0.76);
-      box(group, 0.08, 0.008, 0.035, materials.brass, 0, 0.66, -d * 0.34);
-      break;
-    }
-    case "vanity": {
-      box(group, w, 0.62, d, materials.wood, 0, 0.46, 0, 0.015);
-      box(group, w, 0.045, d, materials.stone, 0, 0.8, 0, 0.012);
-      const basin = cylinder(group, Math.min(w, d) * 0.39, Math.min(w, d) * 0.28, 0.12, materials.ceramic, 0, 0.88, 0);
-      basin.scale.x = 1.15;
-      cylinder(group, 0.012, 0.012, 0.21, materials.brass, 0, 0.92, -d * 0.38);
-      const mirror = cylinder(group, w * 0.38, w * 0.38, 0.025, materials.mirror, 0, 1.43, -d / 2);
-      mirror.rotation.x = Math.PI / 2;
-      break;
-    }
-    case "plant":
-      plant(group, materials, Math.min(w, d) * 0.48, Math.min(1.6, Math.max(w, d) * 2.3));
-      break;
-  }
-  return group;
-}
-
 export function createApartmentScene(
   host: HTMLDivElement,
   model: ApartmentModel,
   onReady: () => void,
   onFailure: () => void,
+  onWalkthroughState: (state: WalkthroughState) => void = () => {},
+  onWalkthroughPose: (pose: WalkthroughPose) => void = () => {},
+  onInteraction: (interaction: WalkthroughInteraction) => void = () => {},
 ): ApartmentScene {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
   const scene = new THREE.Scene();
@@ -341,10 +103,12 @@ export function createApartmentScene(
     renderer.toneMappingExposure = 1.15;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true;
     renderer.domElement.style.cssText = "display:block;width:100%;height:100%;touch-action:none;outline:none";
     renderer.domElement.setAttribute("aria-hidden", "true");
     host.appendChild(renderer.domElement);
-    return buildScene(renderer, scene, host, model, onReady, onFailure);
+    return buildScene(renderer, scene, host, model, onReady, onFailure, onWalkthroughState, onWalkthroughPose, onInteraction);
   } catch (error) {
     disposeScene(scene);
     renderer.dispose();
@@ -361,6 +125,9 @@ function buildScene(
   model: ApartmentModel,
   onReady: () => void,
   onFailure: () => void,
+  onWalkthroughState: (state: WalkthroughState) => void,
+  onWalkthroughPose: (pose: WalkthroughPose) => void,
+  onInteraction: (interaction: WalkthroughInteraction) => void,
 ): ApartmentScene {
   const camera = new THREE.PerspectiveCamera(39, 1, 0.05, 150);
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -371,54 +138,45 @@ function buildScene(
   controls.screenSpacePanning = false;
   controls.maxPolarAngle = Math.PI / 2.09;
   controls.minPolarAngle = 0.03;
-  const materials = createMaterials();
-  const aspect = model.source.crop[2] / model.source.crop[3];
-  const width = Math.sqrt(model.area * aspect);
-  const depth = width / aspect;
+  // Real metres measured on the architectural floor plan.
+  const { width, depth } = model.size;
   const size = Math.max(width, depth);
   const point = ([x, y]: PlanPoint) => new THREE.Vector3((x - 0.5) * width, 0, (y - 0.5) * depth);
-  const structure = new THREE.Group();
-  const cutaway = new THREE.Group();
-  scene.add(structure, cutaway);
-  const shape = new THREE.Shape();
-  model.footprint.forEach((coordinate, index) => {
-    const position = point(coordinate);
-    if (index === 0) shape.moveTo(position.x, -position.z);
-    else shape.lineTo(position.x, -position.z);
-  });
-  shape.closePath();
-  const floor = new THREE.Mesh(new THREE.ShapeGeometry(shape), materials.floor);
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = 0.04;
-  floor.receiveShadow = true;
-  structure.add(floor);
-  const slab = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: false }),
-    materials.wallCap,
-  );
-  slab.rotation.x = -Math.PI / 2;
-  slab.position.y = -0.17;
-  slab.receiveShadow = slab.castShadow = true;
-  structure.add(slab);
+  const interior = model.id === "parnavaz-46-50"
+    ? createParnavaz4650Interior(model, width, depth)
+    : createGenericInterior(model, width, depth);
+  const { structure, walls: cutaway, ceiling } = interior;
+  const upper: THREE.Group = ("upper" in interior && interior.upper instanceof THREE.Group)
+    ? interior.upper
+    : new THREE.Group();
+  ceiling.visible = false;
+  scene.add(structure, cutaway, ceiling, upper);
+  scene.updateMatrixWorld(true);
 
-  for (const [from, to] of model.walls) {
-    const a = point(from);
-    const b = point(to);
-    const length = a.distanceTo(b);
-    const wall = box(cutaway, length, 2.65, 0.115, materials.wall);
-    wall.position.set((a.x + b.x) / 2, 1.365, (a.z + b.z) / 2);
-    wall.rotation.y = -Math.atan2(b.z - a.z, b.x - a.x);
-    const cap = box(cutaway, length + 0.012, 0.035, 0.127, materials.wallCap);
-    cap.position.set(wall.position.x, 2.707, wall.position.z);
-    cap.rotation.y = wall.rotation.y;
-    const skirting = box(structure, length, 0.08, 0.125, materials.wallCap);
-    skirting.position.set(wall.position.x, 0.085, wall.position.z);
-    skirting.rotation.y = wall.rotation.y;
+  // TV screens the walkthrough can switch on, each with a soft glow that is
+  // only lit while it plays (in the walkthrough-only ceiling group).
+  const tvs: { mesh: THREE.Mesh; idle: THREE.Material | THREE.Material[]; glow: THREE.PointLight; on: boolean }[] = [];
+  for (const group of [structure, cutaway, upper]) {
+    group.traverse((object) => {
+      if (!(object instanceof THREE.Mesh) || !object.userData.tv) return;
+      const facing = new THREE.Vector3(0, 0, 1).applyQuaternion(object.getWorldQuaternion(new THREE.Quaternion()));
+      const glow = new THREE.PointLight("#f1dfb8", 0, 3.2, 2);
+      glow.position.copy(object.getWorldPosition(new THREE.Vector3())).addScaledVector(facing, 0.45);
+      ceiling.add(glow);
+      tvs.push({ mesh: object, idle: object.material, glow, on: false });
+    });
   }
+  let channel: TvChannel | null = null;
+  let channelMaterial: THREE.MeshBasicMaterial | null = null;
+  let aimed: (typeof tvs)[number] | null = null;
+  const raycaster = new THREE.Raycaster();
+  raycaster.far = TV_REACH;
+  const screenCentre = new THREE.Vector2(0, 0);
+  const wallLines = tvs.length ? createWalkthroughLayout(model).walls : [];
   cutaway.scale.y = 0.24;
-  model.furniture.forEach((item) => structure.add(furniture(item, width, depth, materials)));
   batchStaticMeshes(structure);
   batchStaticMeshes(cutaway);
+  batchStaticMeshes(upper);
 
   const groundMaterial = new THREE.ShadowMaterial({ color: "#000000", opacity: 0.3 });
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(size * 5, size * 5), groundMaterial);
@@ -426,7 +184,8 @@ function buildScene(
   ground.position.y = -0.205;
   ground.receiveShadow = true;
   scene.add(ground);
-  scene.add(new THREE.HemisphereLight("#fff4df", "#8b938a", 2.5));
+  const ambient = new THREE.HemisphereLight("#fff4df", "#8b938a", 2.5);
+  scene.add(ambient);
   const sun = new THREE.DirectionalLight("#ffedcf", 3.2);
   sun.position.set(-width * 0.35, size * 1.5, -depth * 0.8);
   sun.castShadow = true;
@@ -439,9 +198,40 @@ function buildScene(
   sun.shadow.bias = -0.0002;
   sun.shadow.radius = 3;
   scene.add(sun);
+  // Walkthrough sunlight comes in through the main glazing: balcony doors and
+  // fixed glass first, otherwise windows. Each opening pulls by its length.
+  const glazing = model.openings.filter((item) => item.kind === "balcony" || item.kind === "glazing");
+  const centre = model.footprint.reduce((sum, corner) => sum.add(point(corner)), new THREE.Vector3())
+    .divideScalar(Math.max(1, model.footprint.length));
+  const outward = new THREE.Vector3();
+  for (const item of glazing.length ? glazing : model.openings.filter(({ kind }) => kind === "window")) {
+    const a = point(item.from);
+    const b = point(item.to);
+    const normal = new THREE.Vector3(-(b.z - a.z), 0, b.x - a.x);
+    if (normal.dot(a.add(b).multiplyScalar(0.5).sub(centre)) < 0) normal.negate();
+    outward.add(normal);
+  }
+  if (outward.lengthSq() < 1e-8) outward.set(0, 0, 1);
+  outward.normalize();
+  const across = new THREE.Vector3(outward.z, 0, -outward.x);
+  const roomSun = outward.clone().multiplyScalar((Math.abs(outward.x) * width + Math.abs(outward.z) * depth) * 1.3)
+    .addScaledVector(across, (Math.abs(outward.z) * width + Math.abs(outward.x) * depth) * 0.4)
+    .setY(3.5);
   const fill = new THREE.DirectionalLight("#dce8ed", 1.3);
   fill.position.set(width, depth, depth);
   scene.add(fill);
+
+  // Soft image-based light gives every surface believable reflections.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  const environment = pmrem.fromScene(room, 0.04);
+  room.dispose();
+  pmrem.dispose();
+  scene.environment = environment.texture;
+  scene.environmentIntensity = 0.35;
+
+  // Allocate the screen-space effects only when the visitor enters the room.
+  let postprocessing: ReturnType<typeof createApartmentPostprocessing> | undefined;
 
   let disposed = false;
   let ready = false;
@@ -462,6 +252,10 @@ function buildScene(
     toFov: number;
   } | null = null;
   let visible = true;
+  let previousFrameTime = 0;
+  const walkthrough = createWalkthroughControls(
+    camera, renderer.domElement, model, requestRender, onWalkthroughState, onWalkthroughPose,
+  );
 
   function requestRender() {
     if (!disposed && !frame && !document.hidden && visible) frame = requestAnimationFrame(render);
@@ -470,7 +264,10 @@ function buildScene(
   function render(now: number) {
     frame = 0;
     if (disposed || document.hidden || !visible) return;
+    const delta = previousFrameTime ? Math.min((now - previousFrameTime) / 1000, 0.05) : 1 / 60;
+    previousFrameTime = now;
     if (transition) {
+      renderer.shadowMap.needsUpdate = true;
       const elapsed = Math.min(1, (now - transition.start) / transition.duration);
       const t = elapsed < 0.5 ? 4 * elapsed ** 3 : 1 - (-2 * elapsed + 2) ** 3 / 2;
       camera.position.lerpVectors(transition.from, transition.to, t);
@@ -480,13 +277,73 @@ function buildScene(
       camera.updateProjectionMatrix();
       if (elapsed >= 1) {
         transition = null;
-        controls.enabled = true;
+        controls.enabled = view !== "walkthrough";
       }
     }
     if (transition) camera.lookAt(controls.target);
-    const changed = !transition && controls.update();
-    renderer.render(scene, camera);
-    if (transition || changed) requestRender();
+    upper.visible = cutaway.scale.y > 0.6;
+    const walking = view === "walkthrough" && walkthrough.update(delta);
+    const changed = !transition && view !== "walkthrough" && controls.update();
+    if (view === "walkthrough") aim();
+    const playing = view === "walkthrough" && tvs.some((tv) => tv.on);
+    if (playing) channel?.update(now);
+    if (view === "walkthrough" && !transition && postprocessing) postprocessing.render(delta);
+    else renderer.render(scene, camera);
+    if (transition || changed || walking || playing) requestRender();
+  }
+
+  /** Finds the TV under the crosshair, if it is in reach and not behind a wall. */
+  function aim() {
+    let next: (typeof tvs)[number] | null = null;
+    if (tvs.length && walkthrough.isActive()) {
+      camera.updateMatrixWorld();
+      raycaster.setFromCamera(screenCentre, camera);
+      const [hit] = raycaster.intersectObjects(tvs.map((tv) => tv.mesh), false);
+      if (hit && !wallBetween(camera.position, hit.point)) next = tvs.find((tv) => tv.mesh === hit.object) ?? null;
+    }
+    if (next === aimed) return;
+    aimed = next;
+    onInteraction(aimed ? { kind: "tv", on: aimed.on } : null);
+  }
+
+  function wallBetween(from: THREE.Vector3, to: THREE.Vector3) {
+    // Stop short of the screen: its own wall sits a few centimetres behind it.
+    const direction = new THREE.Vector2(to.x - from.x, to.z - from.z);
+    const length = direction.length();
+    if (length < 0.25) return false;
+    direction.multiplyScalar((length - 0.2) / length);
+    return wallLines.some(({ start, end }) => {
+      const ex = end.x - start.x;
+      const ez = end.z - start.z;
+      const denominator = direction.x * ez - direction.y * ex;
+      if (Math.abs(denominator) < 1e-9) return false;
+      const sx = start.x - from.x;
+      const sz = start.z - from.z;
+      const t = (sx * ez - sz * ex) / denominator;
+      const u = (sx * direction.y - sz * direction.x) / denominator;
+      return t > 0 && t < 1 && u >= 0 && u <= 1;
+    });
+  }
+
+  function switchTv(tv: (typeof tvs)[number], on: boolean) {
+    if (tv.on === on) return;
+    tv.on = on;
+    if (on) {
+      channel ??= createTvChannel();
+      channelMaterial ??= new THREE.MeshBasicMaterial({ map: channel.texture, toneMapped: false });
+      if (!tvs.some((other) => other !== tv && other.on)) channel.start(performance.now());
+      tv.mesh.material = channelMaterial;
+    } else tv.mesh.material = tv.idle;
+    tv.glow.intensity = on ? 0.9 : 0;
+    if (tv === aimed) onInteraction({ kind: "tv", on });
+    requestRender();
+  }
+
+  function onKey(event: KeyboardEvent) {
+    if (event.code !== "KeyE" || event.repeat || view !== "walkthrough" || !aimed || !walkthrough.isActive()) return;
+    if (document.pointerLockElement !== renderer.domElement && document.activeElement !== renderer.domElement) return;
+    event.preventDefault();
+    switchTv(aimed, !aimed.on);
   }
 
   function fitDistance() {
@@ -501,8 +358,54 @@ function buildScene(
   }
 
   function setView(nextView: ApartmentView, roomId?: string, instant = false) {
+    walkthrough.leave();
+    if (nextView !== "walkthrough") tvs.forEach((tv) => switchTv(tv, false));
+    if (aimed) {
+      aimed = null;
+      onInteraction(null);
+    }
     view = nextView;
+    ceiling.visible = nextView === "walkthrough";
+    const inRoom = nextView === "walkthrough";
+    ambient.intensity = inRoom ? 0.4 : 2.5;
+    sun.intensity = inRoom ? 2.2 : 3.2;
+    scene.environmentIntensity = inRoom ? 0.42 : nextView === "inside" ? 0.5 : 0.35;
+    // A neutral curve keeps the boards' linen and oak tones true to colour.
+    renderer.toneMapping = inRoom ? THREE.NeutralToneMapping : THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = inRoom ? 0.88 : 1.15;
+    const shadowSize = inRoom ? 4096 : 2048;
+    if (sun.shadow.mapSize.x !== shadowSize) {
+      sun.shadow.map?.dispose();
+      sun.shadow.map = null;
+      sun.shadow.mapSize.set(shadowSize, shadowSize);
+    }
+    sun.shadow.radius = inRoom ? 5 : 3;
+    // Centimetre-scale bias keeps daylight from leaking through wall/ceiling joins.
+    sun.shadow.normalBias = inRoom ? 0.012 : 0.035;
+    const shadowExtent = inRoom ? size * 0.72 : size;
+    sun.shadow.camera.left = sun.shadow.camera.bottom = -shadowExtent;
+    sun.shadow.camera.right = sun.shadow.camera.top = shadowExtent;
+    sun.shadow.camera.updateProjectionMatrix();
+    if (inRoom) sun.position.copy(roomSun);
+    else sun.position.set(-width * 0.35, size * 1.5, -depth * 0.8);
+    fill.intensity = nextView === "walkthrough" ? 0.25 : 1.3;
+    renderer.shadowMap.needsUpdate = true;
+    scene.background = nextView === "walkthrough" ? new THREE.Color("#e7e1d5") : null;
     if (roomId) selectedRoom = roomId as typeof selectedRoom;
+    if (nextView === "walkthrough") {
+      if (!postprocessing) postprocessing = createApartmentPostprocessing(renderer, scene, camera);
+      const rect = host.getBoundingClientRect();
+      postprocessing.resize(rect.width, rect.height);
+      transition = null;
+      controls.enabled = false;
+      cutaway.scale.y = 1;
+      camera.fov = interiorFov();
+      camera.updateProjectionMatrix();
+      walkthrough.enter(selectedRoom);
+      previousFrameTime = 0;
+      requestRender();
+      return;
+    }
     const distance = fitDistance();
     let position: THREE.Vector3;
     let target: THREE.Vector3;
@@ -555,13 +458,14 @@ function buildScene(
     const rect = host.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return;
     camera.aspect = rect.width / rect.height;
-    if (view === "inside") {
+    if (view === "inside" || view === "walkthrough") {
       if (transition) transition.toFov = interiorFov();
       else camera.fov = interiorFov();
     }
     camera.updateProjectionMatrix();
     renderer.setSize(rect.width, rect.height, false);
-    if (ready && view !== "inside") setView(view, undefined, true);
+    postprocessing?.resize(rect.width, rect.height);
+    if (ready && view !== "inside" && view !== "walkthrough") setView(view, undefined, true);
     requestRender();
   }
 
@@ -578,6 +482,7 @@ function buildScene(
   }
 
   controls.addEventListener("change", requestRender);
+  document.addEventListener("keydown", onKey, true);
   renderer.domElement.addEventListener("webglcontextlost", contextLost);
   document.addEventListener("visibilitychange", handleVisibility);
   const resizeObserver = new ResizeObserver(resize);
@@ -605,8 +510,12 @@ function buildScene(
 
   return {
     setView,
+    startWalkthrough() {
+      if (view === "walkthrough" && ready && !disposed) walkthrough.start();
+    },
+    pauseWalkthrough: walkthrough.pause,
     zoom(direction) {
-      if (disposed) return;
+      if (disposed || view === "walkthrough") return;
       transition = null;
       controls.enabled = true;
       const offset = camera.position.clone().sub(controls.target);
@@ -623,10 +532,17 @@ function buildScene(
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener("keydown", onKey, true);
       renderer.domElement.removeEventListener("webglcontextlost", contextLost);
       controls.removeEventListener("change", requestRender);
       controls.dispose();
-      disposeScene(scene, Object.values(materials));
+      walkthrough.dispose();
+      disposeScene(scene, interior.materials);
+      environment.dispose();
+      postprocessing?.dispose();
+      tvs.forEach((tv) => { tv.mesh.material = tv.idle; });
+      channelMaterial?.dispose();
+      channel?.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
       renderer.domElement.remove();

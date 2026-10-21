@@ -32,11 +32,41 @@ For a locally served production build, also set `INQUIRY_ORIGIN=https://www.comf
 
 The project page has an eight-floor facade selector and seven furnished Three.js apartment concepts reconstructed from the supplied design boards. Floor outlines use the original facade image's coordinate system; preserve its full aspect ratio when changing the layout.
 
-Apartment availability and prices come from the project price list. Models match exact apartment areas only: 45.7, 46.5, 50.1, 55.1, 55.3, 76.4, and 117 m². Units without a matching board show a plan inquiry instead of an unrelated model. The 3D dimensions, furniture, and finishes are illustrative, not construction drawings.
+Apartment availability and prices come from the project price list. Models match exact apartment areas only: 45.7, 46.5, 50.1, 55.1, 55.3, 76.4, and 117 m². Units without a matching board show a plan inquiry instead of an unrelated model. The furniture and finishes are illustrative, not construction drawings.
+
+The AI-made design boards are not drawn to scale, so each model in `src/lib/parnavaz-apartment-models.ts` maps board pixels to metres measured on the floor VI architectural plan from the sales team's price sheet (all seven types appear on that floor). Room depths and wall positions therefore follow the plan, within roughly 10 cm; the 117 m² type uses one calibration zone per room group because its board's rooms are proportioned differently. Doors, glazing, windows, balcony railings and floor finishes are traced as openings and floor areas, and wall-hung pieces and the ceiling appear only in interior views. Six models also add 0.2–0.4 m of extra floor in tight walkways (each model's `widen` entry) so the 3D views and walkthrough feel less cramped; furniture keeps its real size, and every published area, price and dimension in the page text is unchanged. Also 3D only: interior doors narrower than 0.76 m are opened up into the wall beside them, and wall-backed furniture (beds with their nightstands, kitchens, wardrobes, bathroom fittings) is moved back onto the real wall face, because the boards draw walls two to three times their real thickness. Apartment 704 opts out (`refine: false`) because its hand-built interior places its own doors and furniture.
+
+Every trace except 704's was audited against its Japandi board at 2–5× zoom, with the architectural plan used to settle walls and windows. Traces record what the boards show:
+- structural columns (`columns`, standard 45 cm or a traced size);
+- fixed floor-to-ceiling `glazing` beside glazed balcony doors;
+- double-leaf doors, with each door's hinge side;
+- cistern ledges (`ledge`);
+- round rugs, nightstands, tables and corner showers (`shape: "round"`);
+- where each kitchen's hob and sink sit (`fittings`).
+
+Fixed glazing, windows and columns are solid in the walkthrough. Wall snapping stops at a headboard shelf or ledge behind a piece, and never pulls a piece back across other furniture. Two deliberate deviations: the 45.70 and 55.30 boards also draw a TV behind the sofa, and the models leave those out.
 
 The working Three.js viewer is currently enabled only by `npm run dev`, through the compile-time `NODE_ENV === "development"` gate in `parnavaz-explorer.tsx`. Production and preview builds show a localized "3D coming soon" panel instead, with the supplied design, prices, and inquiry link still available. Do not remove this gate until the 3D release is approved.
 
 All seven model definitions and the viewer remain in source control for continued local development. The viewer supports orbit, room views, top view, and a supplied-design fallback. Inquiry links retain both the project and apartment number; numbers are not unique across projects.
+
+### Desktop walkthrough prototype
+
+Run `npm run dev`, open `/en/projects/parnavaz-65#explore`, choose floor 7, then apartment 704. Its 46.5 m² interior uses a more detailed reconstruction of the supplied design board. The top-right person icon opens an experimental notice before entering first-person mode.
+
+Use WASD or the arrow keys to move, the mouse to look, and Escape to pause and release the cursor. If the browser does not allow pointer lock, click the scene and drag to look while using WASD. Room buttons move to clear starting positions in the living room, bedroom, and kitchen. The small plan shows your position and direction.
+
+Every apartment with a 3D model has the walkthrough, on desktop devices with a fine pointer and a viewport at least 900px wide. The dimensions and finishes remain approximate; this is not a measured walkthrough. Production still shows "3D coming soon".
+
+When the site is opened or refreshed, a small construction scene plays over the page (`site-loader.tsx`): blocks drop in and the crane sets the Comfort Building medallion on the tower, then the curtain lifts at about 2.9 s. The lift is pure CSS, so the page underneath is always in the HTML and appears even if JavaScript is slow; hero entrances wait for the lift. Client-side navigation does not replay it, and reduced motion or no JavaScript skips it.
+
+Walkthrough bonus: aim the crosshair at a TV within reach and an "E" prompt appears in Georgian, English or Russian. E switches the screen to a short brand channel (`apartment-tv.ts`): a tube-style power-on, the CB monogram traced along its arc with a gold sweep, the wordmark, and slow brass dust, with a soft glow on the room. Leaving the walkthrough switches every TV off.
+
+`npm run check:walkthrough` exercises the real movement and input modules, including doorway passage, walls, furniture, balcony edges, key cleanup, Escape, and delayed pointer-lock responses.
+
+All interiors share the procedural color, bump, and roughness textures in `src/components/apartment-surfaces.ts`. Apartment 704 has a hand-built interior; the other six types are furnished by `apartment-generic-interior.ts`, which in the walkthrough adds warm room lights, dining pendants, and daylight beyond the glazing, with the sun entering through each layout's balcony doors. The walkthrough adds contact shadows and neutral color output, with glass and sheer curtains excluded from the occlusion pass. These effects load on first entry and cap their render targets at two megapixels. The ordinary 3D and top views keep their direct rendering path.
+
+`npm run check:rendering` checks the real Three.js postprocessing passes, resource disposal, texture color spaces, and the ceiling/floor coverage across widened walkways. Compare the living-room and bedroom views in the browser as well; these tests do not judge visual quality.
 
 ## Inquiry delivery and analytics
 

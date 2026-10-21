@@ -11,6 +11,8 @@
     "check:search-content": "node scripts/verify-search-content.mjs",
     "check:carousel": "node --test tests/carousel-loading.test.mjs",
     "check:explorer": "node --test tests/parnavaz-explorer.test.mjs",
+    "check:walkthrough": "node --test tests/apartment-walkthrough.test.mjs tests/apartment-walkthrough-controls.test.mjs",
+    "check:rendering": "node --test tests/apartment-postprocessing.test.mjs tests/apartment-interior.test.mjs",
     "check:analytics": "node --experimental-strip-types --test tests/analytics.test.mjs",
     "check:inquiries": "node --experimental-strip-types --test tests/inquiries.test.mjs",
     "check:inquiry-endpoint": "node scripts/verify-inquiry-endpoint.mjs"

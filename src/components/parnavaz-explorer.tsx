@@ -250,8 +250,8 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
               <div><p className="font-mono text-[9px] tracking-[.12em] text-brass uppercase">{projectName} / {copy.floor} {activeUnit.floor}</p><p className="mt-1 font-display text-xl sm:text-2xl">{copy.apartment} {activeUnit.number}</p></div>
               <button type="button" onClick={() => setActiveUnit(null)} className="inline-flex min-h-11 shrink-0 items-center gap-3 px-2 text-xs text-cream/75 hover:text-brass"><span className="hidden sm:inline">{copy.close}</span><span className="text-2xl" aria-hidden>×</span><span className="sr-only sm:hidden">{copy.close}</span></button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden xl:grid-cols-[minmax(0,1fr)_23rem]">
-              <div className={`relative flex h-[55svh] min-h-80 flex-col lg:h-full ${ENABLE_3D_PREVIEW || showDesign ? "bg-[#e9e3d8]" : "bg-ink"}`}>
+            <div data-apartment-content className="min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden xl:grid-cols-[minmax(0,1fr)_23rem]">
+              <div data-apartment-visual className={`relative flex h-[55svh] min-h-80 flex-col lg:h-full ${ENABLE_3D_PREVIEW || showDesign ? "bg-[#e9e3d8]" : "bg-ink"}`}>
                 {!ENABLE_3D_PREVIEW && !showDesign ? (
                   <div className="draft-grid relative flex h-full flex-col items-center justify-center overflow-hidden px-8 py-8 text-center" data-3d-status="coming-soon">
                     <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brass/35 to-transparent" aria-hidden />
@@ -264,13 +264,13 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
                     <span className="mt-6 h-px w-12 bg-brass/50" aria-hidden />
                     <p className="mt-6 max-w-sm text-xs leading-relaxed text-cream/50 sm:text-sm">{copy.comingSoonNote}</p>
                   </div>
-                ) : ENABLE_3D_PREVIEW && selectedModel && !showDesign ? <ApartmentModelViewer key={selectedModel.id} model={selectedModel} lang={lang} /> : selectedLayout ? (
+                ) : ENABLE_3D_PREVIEW && selectedModel && !showDesign ? <ApartmentModelViewer key={`${selectedModel.id}-${activeUnit.number}`} model={selectedModel} lang={lang} allowWalkthrough unit={activeUnit.number} /> : selectedLayout ? (
                   <div className="relative h-full w-full"><Image src={selectedLayout.image.src} alt={selectedLayout.image.alt[lang]} fill sizes="(min-width: 1024px) 75vw, 96vw" quality={90} className="object-contain p-5" /></div>
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center text-ink"><CubeIcon className="size-12 text-bronze/50" /><p className="max-w-sm font-display text-2xl">{copy.noModel}</p><Link href={inquiryHref(lang, "parnavaz-65", activeUnit.number)} data-contact-action="explorer-plan-inquiry" data-project-slug="parnavaz-65" className="inline-flex min-h-12 items-center bg-ink px-5 text-sm text-cream">{copy.requestPlan} <span className="ml-5" aria-hidden>→</span></Link></div>
                 )}
               </div>
-              <aside className="flex flex-col border-t border-cream/15 p-5 lg:overflow-y-auto lg:border-t-0 lg:border-l lg:p-6">
+              <aside data-apartment-sidebar className="flex flex-col border-t border-cream/15 p-5 lg:overflow-y-auto lg:border-t-0 lg:border-l lg:p-6">
                 <p className="font-mono text-[9px] tracking-[.12em] text-cream/40 uppercase">{copy.floorApartments} / {activeUnit.floor}</p>
                 <div className="mt-3 grid grid-cols-4 gap-1.5">
                   {activeFloorUnits.map((unit) => <button key={unit.number} type="button" onClick={() => openUnit(unit)} aria-pressed={activeUnit.number === unit.number} aria-label={`${copy.apartment} ${unit.number}`} className={`flex min-h-11 items-center justify-center gap-1 font-mono text-xs transition-colors ${activeUnit.number === unit.number ? "bg-brass text-ink" : "bg-cream/5 text-cream/60 hover:bg-cream/10"}`}>{unit.number}{ENABLE_3D_PREVIEW && getParnavazApartmentModel(unit.totalArea) && <span className="text-[7px] opacity-60">3D</span>}</button>)}
