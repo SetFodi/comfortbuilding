@@ -38,6 +38,8 @@ export function createWalkthroughControls(
   // On-screen joystick: x to the right, y forward, each in [-1, 1].
   const stick = { x: 0, y: 0 };
   let touching = false;
+  // 1 when the stage is turned a quarter clockwise to show landscape on an upright phone.
+  let screenTurn: 0 | 1 = 0;
   const dialog = canvas.closest("dialog");
   canvas.tabIndex = 0;
   // Fingers look around the room instead of scrolling the page.
@@ -107,8 +109,11 @@ export function createWalkthroughControls(
     if (!enabled || !active || locked || !dragging || event.pointerId !== pointerId) return;
     // A finger covers less ground than a mouse, so it turns a little faster.
     const speed = event.pointerType === "touch" ? 0.0042 : 0.0026;
-    yaw -= (event.clientX - lastX) * speed;
-    pitch = THREE.MathUtils.clamp(pitch - (event.clientY - lastY) * speed, -1.15, 1.15);
+    const [dx, dy] = screenTurn
+      ? [event.clientY - lastY, lastX - event.clientX]
+      : [event.clientX - lastX, event.clientY - lastY];
+    yaw -= dx * speed;
+    pitch = THREE.MathUtils.clamp(pitch - dy * speed, -1.15, 1.15);
     lastX = event.clientX;
     lastY = event.clientY;
     orient();
@@ -233,6 +238,9 @@ export function createWalkthroughControls(
       pause();
     },
     pause,
+    setScreenTurn(turns: 0 | 1) {
+      screenTurn = turns;
+    },
     /** Joystick input: x to the right and y forward, clamped to the unit circle. */
     setStick(x: number, y: number) {
       const length = Math.hypot(x, y);

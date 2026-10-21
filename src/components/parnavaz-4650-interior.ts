@@ -504,28 +504,59 @@ export function createParnavaz4650Interior(model: ApartmentModel, width: number,
   }
 
   // Bathroom fixtures and restrained tile joints.
+  // Bath along the left wall, taps at the top end: a white tub with a rolled
+  // rim in a tiled panel, a fixed glass screen and a matte black shower set.
   const tub = groupAt(structure, 120.5, 184);
   const tubW = px(69);
   const tubD = pz(126);
-  block(tub, tubW, 0.5, tubD, m.ceramic, 0, 0.29, 0, 0.12);
-  block(tub, tubW * 0.76, 0.02, tubD * 0.84, m.bathTile, 0, 0.551, 0, 0.01);
-  block(tub, tubW * 0.67, 0.022, tubD * 0.73, m.ceramic, 0, 0.565, 0, 0.01);
-  round(tub, 0.015, 0.015, 0.22, m.matteBlack, 0, 0.64, -tubD * 0.43);
-  block(tub, 0.025, 0.025, 0.15, m.matteBlack, 0, 0.75, -tubD * 0.36);
-  round(tub, 0.024, 0.024, 0.004, m.metal, 0, 0.58, tubD * 0.25);
-  const toilet = groupAt(structure, 221, 223.5);
-  const bowl = add(toilet, new THREE.SphereGeometry(0.22, 28, 20), m.ceramic, 0, 0.28, 0.02);
-  bowl.scale.set(0.78, 1, 1.1);
-  oval(toilet, px(36), pz(53) * 0.78, 0.035, m.ceramic, 0.47);
-  block(toilet, px(33), 0.61, 0.12, m.ceramic, 0, 0.35, -pz(53) * 0.33, 0.035);
-  block(toilet, 0.09, 0.006, 0.028, m.matteBlack, 0, 0.66, -pz(53) * 0.33);
-  const vanity = groupAt(structure, 329.5, 230.5);
-  block(vanity, px(61), 0.52, pz(43), m.oak, 0, 0.48, 0, 0.015);
-  block(vanity, px(63), 0.035, pz(45), m.stone, 0, 0.77, 0, 0.012);
-  round(vanity, 0.185, 0.135, 0.095, m.ceramic, 0, 0.835);
-  round(vanity, 0.015, 0.015, 0.21, m.matteBlack, 0, 0.91, -pz(43) * 0.38);
+  block(tub, tubW, 0.5, tubD, m.bathTile, 0, 0.25, 0, 0.01);
+  block(tub, tubW * 0.97, 0.06, tubD * 0.97, m.ceramic, 0, 0.52, 0, 0.025);
+  block(tub, tubW * 0.8, 0.012, tubD * 0.84, m.stone, 0, 0.553, 0, 0.004);
+  round(tub, 0.012, 0.012, 0.16, m.matteBlack, 0, 0.64, -tubD / 2 + 0.04, 10);
+  block(tub, 0.022, 0.022, 0.12, m.matteBlack, 0, 0.71, -tubD / 2 + 0.09, 0.006);
+  const screenAt = -tubD / 2 + Math.min(0.8, tubD * 0.45);
+  block(tub, tubW * 0.9, 1.4, 0.012, m.glass, 0, 1.27, screenAt);
+  block(tub, tubW * 0.9, 0.016, 0.016, m.matteBlack, 0, 1.97, screenAt);
+  round(tub, 0.011, 0.011, 1.15, m.matteBlack, 0, 1.45, -tubD / 2 + 0.04, 8);
+  block(tub, 0.012, 0.012, 0.3, m.matteBlack, 0, 2.02, -tubD / 2 + 0.18);
+  round(tub, 0.12, 0.12, 0.018, m.matteBlack, 0, 2.0, -tubD / 2 + 0.32, 28);
+  block(tub, 0.24, 0.06, 0.05, m.matteBlack, 0, 1.05, -tubD / 2 + 0.025, 0.02);
+
+  // Toilet with its back to the bottom wall: bowl, seat and close-coupled cistern.
+  const toilet = groupAt(structure, 221, 223.5, 180);
+  const toiletW = px(36);
+  const toiletD = pz(53);
+  const bowl = add(toilet, new THREE.SphereGeometry(0.5, 28, 18), m.ceramic, 0, 0.3, toiletD * 0.1);
+  bowl.scale.set(toiletW * 0.82, 0.45, toiletD * 0.78);
+  oval(toilet, toiletW * 0.84, toiletD * 0.74, 0.04, m.ceramic, 0.46).position.z = toiletD * 0.1;
+  block(toilet, toiletW * 0.74, 0.42, toiletD * 0.24, m.ceramic, 0, 0.62, -toiletD * 0.36, 0.05);
+  block(toilet, 0.1, 0.008, 0.04, m.matteBlack, 0, 0.834, -toiletD * 0.36);
+
+  // Oak washstand against the bottom wall: a drawer under the stone top, an
+  // open shelf of towels, a white vessel basin and a black tap.
+  const vanity = groupAt(structure, 329.5, 230.5, 180);
+  const vanityW = px(61);
+  const vanityD = pz(43);
+  block(vanity, vanityW, 0.18, vanityD, m.oak, 0, 0.66, 0, 0.012);
+  block(vanity, vanityW * 0.94, 0.14, 0.012, m.paleOak, 0, 0.66, vanityD / 2 + 0.006, 0.004);
+  block(vanity, vanityW * 0.22, 0.012, 0.018, m.darkOak, 0, 0.66, vanityD / 2 + 0.016);
+  block(vanity, vanityW, 0.025, vanityD, m.oak, 0, 0.16, 0, 0.008);
+  for (const side of [-1, 1]) block(vanity, 0.03, 0.6, vanityD, m.oak, side * (vanityW / 2 - 0.015), 0.45, 0);
+  for (const at of [-0.2, 0.2]) {
+    block(vanity, Math.min(0.3, vanityW * 0.32), 0.055, 0.24, m.cream, vanityW * at, 0.2, 0.02, 0.02);
+    block(vanity, Math.min(0.3, vanityW * 0.32), 0.055, 0.24, m.linen, vanityW * at, 0.258, 0.02, 0.02);
+  }
+  block(vanity, vanityW + 0.02, 0.035, vanityD + 0.02, m.stone, 0, 0.77, 0, 0.008);
+  const basin = round(vanity, Math.min(vanityW, vanityD) * 0.36, Math.min(vanityW, vanityD) * 0.26, 0.13, m.ceramic, 0, 0.85, vanityD * 0.05);
+  basin.scale.x = 1.15;
+  round(vanity, 0.011, 0.011, 0.26, m.matteBlack, 0, 0.92, -vanityD * 0.4, 8);
+  block(vanity, 0.012, 0.012, 0.12, m.matteBlack, 0, 1.04, -vanityD * 0.34);
   const bathroomMirror = groupAt(walls, 329, 251, 180);
-  bathroomMirror.position.y = 1.43;
+  bathroomMirror.position.y = 1.5;
+  // A round mirror with a warm glow behind its edge.
+  const glow = round(bathroomMirror, 0.31, 0.31, 0.01, m.warmLight);
+  glow.rotation.x = Math.PI / 2;
+  glow.position.z = -0.005;
   const mirror = round(bathroomMirror, 0.29, 0.29, 0.025, m.mirror);
   mirror.rotation.x = Math.PI / 2;
   for (let row = 1; row < 6; row += 1) rectangle(walls, [58, 110, 314, 0.6], 0.003, m.grout, row * 0.42);

@@ -140,6 +140,12 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
     setActiveUnit(unit);
   }
 
+  // Only a real mouse previews on hover. On iPhone a tap also fires pointerenter,
+  // and changing the page there makes Safari swallow the tap as a hover.
+  function previewOnHover(event: React.PointerEvent, number: number) {
+    if (event.pointerType === "mouse") setHoveredFloor(number);
+  }
+
   function openFloor(number: number) {
     setSelectedFloor(number);
     setHoveredFloor(null);
@@ -166,7 +172,7 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
         </div>
 
         <div className="overflow-hidden border border-cream/15 bg-basalt lg:grid lg:grid-cols-[minmax(0,1.7fr)_minmax(19rem,.8fr)]">
-          <div className="relative self-start overflow-hidden bg-ink" style={{ aspectRatio: `${PARNAVAZ_FACADE.width} / ${PARNAVAZ_FACADE.height}` }} onPointerLeave={() => setHoveredFloor(null)}>
+          <div className="relative self-start overflow-hidden bg-ink" style={{ aspectRatio: `${PARNAVAZ_FACADE.width} / ${PARNAVAZ_FACADE.height}` }} onPointerLeave={(event) => { if (event.pointerType === "mouse") setHoveredFloor(null); }}>
             <Image src="/images/projects/parnavaz-65/render.jpg" alt={projectName} fill sizes="(min-width: 1024px) 65vw, 100vw" quality={90} className="object-contain" />
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,13,15,.08)_45%,rgba(11,13,15,.6)_100%)]" aria-hidden />
             <svg viewBox={`0 0 ${PARNAVAZ_FACADE.width} ${PARNAVAZ_FACADE.height}`} className="absolute inset-0 h-full w-full" aria-hidden>
@@ -177,7 +183,7 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
                   fill={highlighted ? available ? "rgba(197,170,114,.26)" : "rgba(243,240,233,.18)" : "transparent"}
                   stroke={highlighted ? available ? "#dfc58c" : "#f3f0e9" : "transparent"} strokeWidth={2} strokeLinejoin="round" vectorEffect="non-scaling-stroke"
                   className="cursor-pointer transition-[fill,stroke] duration-200 motion-reduce:transition-none"
-                  onPointerEnter={() => setHoveredFloor(floor.number)} onClick={() => openFloor(floor.number)} />;
+                  onPointerEnter={(event) => previewOnHover(event, floor.number)} onClick={() => openFloor(floor.number)} />;
               })}
             </svg>
             <div className="pointer-events-none absolute z-10 transition-[left,top] duration-300 motion-reduce:transition-none" style={{ left: `${shape.marker[0] / PARNAVAZ_FACADE.width * 100}%`, top: `${shape.marker[1] / PARNAVAZ_FACADE.height * 100}%` }} aria-hidden>
@@ -200,7 +206,7 @@ export function ParnavazExplorer({ lang, projectName, priceList, layouts }: Parn
               {[...PARNAVAZ_FACADE_FLOORS].reverse().map((floor) => (
                 <button key={floor.number} type="button" aria-label={`${copy.floor} ${floor.number} · ${parnavazFloorState(priceList, floor.number) === "available" ? copy.available : parnavazFloorState(priceList, floor.number) === "sold" ? copy.sold : copy.notForSale}`}
                   aria-pressed={selectedFloor === floor.number} onClick={() => openFloor(floor.number)}
-                  onPointerEnter={() => setHoveredFloor(floor.number)} onPointerLeave={() => setHoveredFloor(null)} onFocus={() => setHoveredFloor(floor.number)} onBlur={() => setHoveredFloor(null)}
+                  onPointerEnter={(event) => previewOnHover(event, floor.number)} onPointerLeave={(event) => { if (event.pointerType === "mouse") setHoveredFloor(null); }} onFocus={() => setHoveredFloor(floor.number)} onBlur={() => setHoveredFloor(null)}
                   className={`relative flex min-h-11 items-center justify-center font-mono text-sm transition-colors ${previewFloor === floor.number ? "bg-brass text-ink" : "bg-cream/5 text-cream/60 hover:bg-cream/10"}`}>
                   {floor.number}<span className={`absolute right-1.5 bottom-1.5 size-1 rounded-full ${parnavazFloorState(priceList, floor.number) === "available" ? "bg-brass-bright" : "bg-cream/25"}`} aria-hidden />
                 </button>

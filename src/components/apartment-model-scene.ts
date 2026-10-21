@@ -26,6 +26,8 @@ export interface ApartmentScene {
   moveWalkthrough: (x: number, y: number) => void;
   /** Uses whatever the crosshair rests on, as E does. */
   interact: () => void;
+  /** Quarter turns the stage is rotated on screen, so swipes map to its axes. */
+  setScreenTurn: (turns: 0 | 1) => void;
   zoom: (direction: 1 | -1) => void;
   reset: () => void;
   dispose: () => void;
@@ -401,8 +403,7 @@ function buildScene(
     if (roomId) selectedRoom = roomId as typeof selectedRoom;
     if (nextView === "walkthrough") {
       if (!postprocessing) postprocessing = createApartmentPostprocessing(renderer, scene, camera);
-      const rect = host.getBoundingClientRect();
-      postprocessing.resize(rect.width, rect.height);
+      postprocessing.resize(host.clientWidth, host.clientHeight);
       transition = null;
       controls.enabled = false;
       cutaway.scale.y = 1;
@@ -462,7 +463,9 @@ function buildScene(
   }
 
   function resize() {
-    const rect = host.getBoundingClientRect();
+    // Layout size, not the on-screen box: a stage rotated to landscape on a
+    // phone still renders at its own width and height.
+    const rect = { width: host.clientWidth, height: host.clientHeight };
     if (rect.width < 1 || rect.height < 1) return;
     camera.aspect = rect.width / rect.height;
     if (view === "inside" || view === "walkthrough") {
@@ -523,6 +526,9 @@ function buildScene(
     pauseWalkthrough: walkthrough.pause,
     moveWalkthrough(x, y) {
       if (!disposed && view === "walkthrough") walkthrough.setStick(x, y);
+    },
+    setScreenTurn(turns) {
+      walkthrough.setScreenTurn(turns);
     },
     interact() {
       if (!disposed && view === "walkthrough" && aimed && walkthrough.isActive()) switchTv(aimed, !aimed.on);

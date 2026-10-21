@@ -178,9 +178,36 @@ function subscribeTouch(callback: () => void) {
   return () => query.removeEventListener("change", callback);
 }
 const isTouch = () => window.matchMedia(touchQuery).matches;
+const portraitQuery = "(orientation: portrait)";
+function subscribePortrait(callback: () => void) {
+  const query = window.matchMedia(portraitQuery);
+  query.addEventListener("change", callback);
+  return () => query.removeEventListener("change", callback);
+}
+const isPortrait = () => window.matchMedia(portraitQuery).matches;
+
+/** Android can go fullscreen and hold landscape; iPhone ignores both, harmlessly. */
+async function enterLandscape() {
+  try {
+    if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.({ navigationUI: "hide" });
+    const orientation = screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> };
+    await orientation.lock?.("landscape");
+  } catch {
+    // Not supported here; the stage turns itself instead.
+  }
+}
+
+function leaveLandscape() {
+  try {
+    screen.orientation?.unlock?.();
+    if (document.fullscreenElement) void document.exitFullscreen();
+  } catch {
+    // Nothing to undo.
+  }
+}
 
 /** Game-style thumbstick: drag the knob to walk, further to walk faster. */
-function Joystick({ label, onMove }: { label: string; onMove: (x: number, y: number) => void }) {
+function Joystick({ label, onMove, turned = false }: { label: string; onMove: (x: number, y: number) => void; turned?: boolean }) {
   const base = useRef<HTMLDivElement>(null);
   const finger = useRef<number | null>(null);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
@@ -188,8 +215,10 @@ function Joystick({ label, onMove }: { label: string; onMove: (x: number, y: num
   const track = (event: React.PointerEvent) => {
     const rect = base.current?.getBoundingClientRect();
     if (!rect) return;
-    let dx = event.clientX - (rect.left + rect.width / 2);
-    let dy = event.clientY - (rect.top + rect.height / 2);
+    const sx = event.clientX - (rect.left + rect.width / 2);
+    const sy = event.clientY - (rect.top + rect.height / 2);
+    // On a stage turned a quarter clockwise, screen down is the stick's right.
+    let [dx, dy] = turned ? [sy, -sx] : [sx, sy];
     const length = Math.hypot(dx, dy);
     if (length > reach) {
       dx *= reach / length;
@@ -259,8 +288,13 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
   // Phones and tablets walk with an on-screen joystick and look by swiping.
   const touch = useSyncExternalStore(subscribeTouch, isTouch, serverDesktop) && !desktop;
   const canWalk = desktop || touch;
+  const portrait = useSyncExternalStore(subscribePortrait, isPortrait, serverDesktop);
+  // On touch screens the walkthrough fills the screen, turned to landscape
+  // when the phone is held upright (even with rotation lock on).
   const walkthroughAvailable = allowWalkthrough;
   const walking = view === "walkthrough";
+  const immersive = touch && walking;
+  const turned = immersive && portrait;
 
   useEffect(() => {
     const host = canvasHost.current;
@@ -297,6 +331,7 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
 
   const changeView = (next: ApartmentView) => {
     if (next === "walkthrough" && (!walkthroughAvailable || !canWalk)) return;
+    if (next !== "walkthrough" && touch) leaveLandscape();
     setView(next);
     setShowNotice(next === "walkthrough");
     scene.current?.setView(next, room);
@@ -306,16 +341,31 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
     if (!canWalk) scene.current?.pauseWalkthrough();
   }, [canWalk]);
 
+  useEffect(() => {
+    scene.current?.setScreenTurn(turned ? 1 : 0);
+  }, [turned]);
+
+  useEffect(() => () => {
+    if (touch) leaveLandscape();
+  }, [touch]);
+
   const startWalking = () => {
     if (!canWalk || !walkthroughAvailable) return;
     setShowNotice(false);
+    if (touch) void enterLandscape();
     scene.current?.startWalkthrough({ touch });
   };
 
   const iconButton = "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-ink/75 text-cream backdrop-blur-md transition hover:border-brass/60 hover:text-brass focus-visible:outline-brass disabled:opacity-40";
 
   return (
-    <div className="flex h-full min-h-[340px] flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#1b1e1d]" data-state={status} data-model-id={model.id} data-view={view} data-walk-state={walking ? walkState : undefined}>
+    <div className={immersive
+      ? "fixed z-[400] flex flex-col overflow-hidden bg-[#1b1e1d]"
+      : "flex h-full min-h-[340px] flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#1b1e1d]"}
+      style={turned
+        ? { top: 0, left: "100vw", width: "100dvh", height: "100vw", transform: "rotate(90deg)", transformOrigin: "top left" }
+        : immersive ? { inset: 0, width: "100vw", height: "100dvh" } : undefined}
+      data-state={status} data-model-id={model.id} data-view={view} data-walk-state={walking ? walkState : undefined} data-immersive={immersive ? (turned ? "turned" : "full") : undefined}>
       {status === "fallback" ? (
         <div className="p-5 sm:p-7">
           <p className="text-sm text-cream">{copy.unavailable}</p>
@@ -331,7 +381,7 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-3 py-3 sm:px-5">
+          <div className={`flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-3 sm:px-5 ${immersive ? "py-1.5" : "py-3"}`}>
             {walkthroughAvailable ? (
               <>
                 <div className="flex items-center gap-3">
@@ -436,7 +486,7 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
                 )}
                 {touch ? (
                   <>
-                    <Joystick label={copy.stick} onMove={(x, y) => scene.current?.moveWalkthrough(x, y)} />
+                    <Joystick label={copy.stick} turned={turned} onMove={(x, y) => scene.current?.moveWalkthrough(x, y)} />
                     <p className="pointer-events-none absolute right-4 bottom-18 max-w-[45%] text-right text-[10px] leading-relaxed text-cream/70 [text-shadow:0_1px_3px_rgba(0,0,0,.6)]">{copy.swipe}</p>
                     <button type="button" onClick={() => scene.current?.pauseWalkthrough()} className="absolute right-4 bottom-4 flex min-h-11 items-center gap-2 rounded-full border border-white/20 bg-ink/80 px-4 text-xs text-cream backdrop-blur-md">Ⅱ <span>{copy.pauseTouch}</span></button>
                   </>
@@ -482,7 +532,7 @@ function ApartmentModelExperience({ model, lang, allowWalkthrough = false, unit,
           </div>
           {walkthroughAvailable && !canWalk && <p className="px-4 py-3 text-[10px] text-cream/50">{copy.desktop}</p>}
           {walking && status === "ready" && (
-            <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-t border-white/10 bg-ink/70 px-4 py-2" role="group" aria-label={copy.rooms}>
+            <div className={`flex shrink-0 items-center gap-2 overflow-x-auto border-t border-white/10 bg-ink/70 px-4 ${immersive ? "py-1" : "py-2"}`} role="group" aria-label={copy.rooms}>
               <span className="mr-2 text-[10px] text-cream/40">{copy.rooms}</span>
               {model.viewpoints.map((viewpoint) => (
                 <button type="button" key={viewpoint.id} onClick={() => {
