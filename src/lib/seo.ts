@@ -7,7 +7,7 @@ import { LANGS, type Lang, type Localized } from "./types";
 export const SITE_URL = "https://www.comfortbuilding.ge";
 // Manually maintained: the shared business/project graph changed on this date.
 // Do not replace this with the build date or imply refreshed inventory.
-export const SITE_UPDATED_AT = new Date("2026-10-20T00:00:00+04:00");
+export const SITE_UPDATED_AT = new Date("2026-10-23T00:00:00+04:00");
 export const BUYING_GUIDE_PUBLISHED_AT = new Date("2026-08-21T00:00:00+04:00");
 
 export const HOME_DESCRIPTIONS: Localized = {

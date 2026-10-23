@@ -50,7 +50,7 @@ const PARNAVAZ_65_PRICE_LIST: ProjectPriceList = {
     { number: "708", floor: 7, totalArea: 55.1, pricePerSqm: 3700 },
     { number: "709", floor: 7, totalArea: 117, pricePerSqm: 3600 },
   ],
-  parking: { price: 30000, available: 8, total: 9 },
+  parking: { price: 40000, available: 9, total: 9 },
   notForSaleFloors: [8],
 };
 
