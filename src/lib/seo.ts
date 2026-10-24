@@ -5,6 +5,8 @@ import { CONTACT, COMPANY_NAME } from "./site";
 import { LANGS, type Lang, type Localized } from "./types";
 
 export const SITE_URL = "https://www.comfortbuilding.ge";
+// Yandex Webmaster ownership code for www.comfortbuilding.ge.
+export const YANDEX_VERIFICATION = "bec3b500c9ed634d";
 // Manually maintained: the shared business/project graph changed on this date.
 // Do not replace this with the build date or imply refreshed inventory.
 export const SITE_UPDATED_AT = new Date("2026-10-23T00:00:00+04:00");

@@ -23,6 +23,7 @@ import {
   pagePath,
   SITE_URL,
   websiteJsonLd,
+  YANDEX_VERIFICATION,
 } from "@/lib/seo";
 import { COMPANY_NAME } from "@/lib/site";
 import { isLang, LANGS } from "@/lib/types";
@@ -78,12 +79,10 @@ export async function generateMetadata({
     description: HOME_DESCRIPTIONS[lang],
     alternates: languageAlternates(lang),
     category: "construction and real estate",
-    // Ownership tags for Yandex Webmaster and Bing Webmaster Tools. The
-    // codes come from each console and are set as Vercel env variables.
+    // Ownership tags for Yandex Webmaster and Bing Webmaster Tools. They
+    // are public by design; Bing's can also come from a Vercel env variable.
     verification: {
-      ...(process.env.YANDEX_VERIFICATION
-        ? { yandex: process.env.YANDEX_VERIFICATION }
-        : {}),
+      yandex: YANDEX_VERIFICATION,
       ...(process.env.BING_VERIFICATION
         ? { other: { "msvalidate.01": process.env.BING_VERIFICATION } }
         : {}),
