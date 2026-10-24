@@ -78,6 +78,16 @@ export async function generateMetadata({
     description: HOME_DESCRIPTIONS[lang],
     alternates: languageAlternates(lang),
     category: "construction and real estate",
+    // Ownership tags for Yandex Webmaster and Bing Webmaster Tools. The
+    // codes come from each console and are set as Vercel env variables.
+    verification: {
+      ...(process.env.YANDEX_VERIFICATION
+        ? { yandex: process.env.YANDEX_VERIFICATION }
+        : {}),
+      ...(process.env.BING_VERIFICATION
+        ? { other: { "msvalidate.01": process.env.BING_VERIFICATION } }
+        : {}),
+    },
     creator: COMPANY_NAME[lang],
     publisher: COMPANY_NAME[lang],
     robots: {

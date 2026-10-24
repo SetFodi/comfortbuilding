@@ -9,6 +9,8 @@ export const SITE_URL = "https://www.comfortbuilding.ge";
 // Do not replace this with the build date or imply refreshed inventory.
 export const SITE_UPDATED_AT = new Date("2026-10-23T00:00:00+04:00");
 export const BUYING_GUIDE_PUBLISHED_AT = new Date("2026-08-21T00:00:00+04:00");
+// Foreign-buyer section and residence permit threshold added.
+export const BUYING_GUIDE_UPDATED_AT = new Date("2026-10-24T00:00:00+04:00");
 
 export const HOME_DESCRIPTIONS: Localized = {
   ka: "კომფორტ ბილდინგი — სამშენებლო კომპანია ბათუმში. გაეცანით მიმდინარე და დასრულებულ საცხოვრებელ პროექტებს, თავისუფალ ბინებსა და პირდაპირ საკონტაქტო ინფორმაციას.",
@@ -116,7 +118,15 @@ export function organizationJsonLd(lang: Lang) {
     "@type": ["Organization", "GeneralContractor"],
     "@id": `${SITE_URL}/#organization`,
     name: COMPANY_NAME[lang],
-    alternateName: ["Comfort Building", "კომფორტ ბილდინგი"],
+    // Every spelling people search for the company, in all three languages.
+    alternateName: Array.from(
+      new Set([
+        ...LANGS.map((code) => COMPANY_NAME[code]),
+        ...LANGS.map((code) => LEGAL_NAMES[code]),
+        "Comfort Building",
+        "Comfort Building Batumi",
+      ]),
+    ).filter((name) => name !== COMPANY_NAME[lang]),
     legalName: LEGAL_NAMES[lang],
     url: SITE_URL,
     logo: {
@@ -144,6 +154,7 @@ export function organizationJsonLd(lang: Lang) {
       addressRegion: "Adjara",
       addressCountry: "GE",
     },
+    knowsLanguage: ["ka", "en", "ru"],
     areaServed: [
       { "@type": "City", name: "Batumi" },
       { "@type": "City", name: "Tbilisi" },
@@ -242,10 +253,18 @@ export function projectJsonLd(project: Project, lang: Lang) {
   });
   const floorPlans = [...layoutPlans, ...inventoryPlans];
 
+  const alternateNames = Array.from(
+    new Set([
+      ...LANGS.map((code) => project.name[code]),
+      ...(project.searchNames ?? []),
+    ]),
+  ).filter((name) => name !== project.name[lang]);
+
   return {
     "@type": "ApartmentComplex",
     "@id": `${url}#project`,
     name: project.name[lang],
+    alternateName: alternateNames,
     description: project.summary[lang],
     url,
     mainEntityOfPage: { "@id": `${url}#webpage` },
@@ -254,8 +273,11 @@ export function projectJsonLd(project: Project, lang: Lang) {
       "@type": "PostalAddress",
       streetAddress: project.address[lang],
       addressLocality: project.city[lang],
+      ...(project.city.en === "Batumi" ? { addressRegion: "Adjara" } : {}),
       addressCountry: "GE",
     },
+    containedInPlace: { "@type": "City", name: project.city[lang] },
+    hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.mapQuery)}`,
     ...(project.status === "completed" ? { yearBuilt: project.endYear } : {}),
     telephone: CONTACT.phoneDisplay,
     amenityFeature: project.features[lang].map((feature) => ({

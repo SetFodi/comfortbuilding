@@ -108,6 +108,11 @@ export interface Project {
   /** Buyer questions shown on the project page and as FAQPage data. */
   readonly faqs?: Readonly<Record<Lang, readonly FaqItem[]>>;
   readonly mapQuery: string;
+  /**
+   * Latin names people type into search for this project, most common
+   * first. The first one is added to Georgian and Russian page titles.
+   */
+  readonly searchNames?: readonly string[];
   readonly cover: SiteImage;
   readonly listingImage?: SiteImage;
   readonly heroImage?: SiteImage;

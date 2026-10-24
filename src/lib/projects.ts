@@ -302,6 +302,7 @@ export const PROJECTS: readonly Project[] = [
     },
     priceList: PARNAVAZ_65_PRICE_LIST,
     mapQuery: "Parnavaz Mepe Street 65, Batumi, Georgia",
+    searchNames: ["Parnavaz Mepe 65", "Parnavaz 65"],
     cover: PARNAVAZ_65_RENDER,
     heroImageMobile: {
       src: "/images/projects/parnavaz-65/render-mobile.jpg",
@@ -398,6 +399,7 @@ export const PROJECTS: readonly Project[] = [
     ],
     inventory: COMFORT_HOUSE_INVENTORY,
     mapQuery: "Gorgasali Street 104, Batumi, Georgia",
+    searchNames: ["Comfort House", "Comfort House Batumi"],
     cover: {
       src: "/images/experimental-ai/comfort-house-golden-hour.png",
       width: 1517,
@@ -633,6 +635,7 @@ export const PROJECTS: readonly Project[] = [
       },
     ],
     mapQuery: "Parnavaz Mepe Street 150, Batumi, Georgia",
+    searchNames: ["Parnavaz Mepe 150"],
     cover: {
       src: "/images/projects/house-on-parnavaz/cover.jpg",
       width: 720,
@@ -830,6 +833,7 @@ export const PROJECTS: readonly Project[] = [
       },
     ],
     mapQuery: "Takaishvili Street 51, Batumi, Georgia",
+    searchNames: ["Twins", "Twins Batumi"],
     cover: {
       src: "/images/experimental-ai/twins-blue-hour.png",
       width: 1401,
@@ -1024,6 +1028,7 @@ export const PROJECTS: readonly Project[] = [
       },
     ],
     mapQuery: "Dolidze Street 24, Tbilisi, Georgia",
+    searchNames: ["Grand House", "Grand House Tbilisi", "Dolidze 24"],
     cover: {
       src: "/images/projects/grand-house/cover.jpg",
       width: 2048,
@@ -1192,6 +1197,7 @@ export const PROJECTS: readonly Project[] = [
       },
     ],
     mapQuery: "Chavchavadze Street 107, Batumi, Georgia",
+    searchNames: ["Red Line", "Red Line Batumi"],
     cover: {
       src: "/images/projects/red-line/cover.jpg",
       width: 800,

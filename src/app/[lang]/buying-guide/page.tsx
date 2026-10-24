@@ -13,6 +13,7 @@ import {
   absoluteUrl,
   breadcrumbJsonLd,
   BUYING_GUIDE_PUBLISHED_AT,
+  BUYING_GUIDE_UPDATED_AT,
   jsonLdGraph,
   pageMetadata,
   pagePath,
@@ -36,14 +37,14 @@ const AVAILABLE_COUNT = COMFORT_HOUSE.inventory!.floors.flatMap(
 
 const META_TITLE: Localized = {
   ka: "როგორ ვიყიდოთ ბინა ბათუმში | მყიდველის გზამკვლევი",
-  en: "How to buy an apartment in Batumi | Buyer guide",
-  ru: "Как купить квартиру в Батуми | Руководство покупателя",
+  en: "How to buy an apartment in Batumi, including as a foreigner | Buyer guide",
+  ru: "Как купить квартиру в Батуми, в том числе иностранцу | Руководство покупателя",
 };
 
 const META_DESCRIPTION: Localized = {
-  ka: "პრაქტიკული გზამკვლევი ბათუმში ბინის შესაძენად: როგორ შეადაროთ ფასი და ფართობი, რა გადაამოწმოთ დეველოპერთან და საჯარო რეესტრში, და რა ჰკითხოთ გაყიდვების გუნდს.",
-  en: "A practical guide to buying an apartment in Batumi: compare total prices and areas, check the developer and Public Registry, and prepare questions for the sales team.",
-  ru: "Практическое руководство по покупке квартиры в Батуми: сравнение полной стоимости и площади, проверка застройщика и реестра, вопросы отделу продаж.",
+  ka: "პრაქტიკული გზამკვლევი ბათუმში ბინის შესაძენად: ფასისა და ფართობის შედარება, დეველოპერისა და საჯარო რეესტრის შემოწმება, ყიდვა საზღვარგარეთიდან და ბინადრობის ნებართვა.",
+  en: "A practical guide to buying an apartment in Batumi: compare total prices and areas, check the developer and Public Registry, buy from abroad, and residence permits for owners.",
+  ru: "Как купить квартиру в Батуми: полная стоимость и площадь, проверка застройщика и реестра, покупка иностранцем и дистанционно, вид на жительство для владельцев.",
 };
 
 type StepAction = "apartments" | "projects" | "registry" | "contact";
@@ -57,7 +58,7 @@ const COPY = {
     stats: [
       ["გამოქვეყნებული პროექტი", String(PROJECTS.length).padStart(2, "0")],
       ["გასაყიდი ბინა", String(AVAILABLE_COUNT).padStart(2, "0")],
-      ["განახლებულია", "21.08.26"],
+      ["განახლებულია", "24.10.26"],
     ],
     introTitle: "ჯერ შეადარეთ. შემდეგ დაუკავშირდით კონკრეტული კითხვებით.",
     intro: [
@@ -135,6 +136,32 @@ const COPY = {
     ctaLede: "მიუთითეთ ბინის ნომერი და თქვენი საკონტაქტო ინფორმაცია. საიტი მოამზადებს წერილს გაყიდვების გუნდისთვის.",
     ctaPrimary: "მოთხოვნის მომზადება",
     ctaSecondary: "ყველა გასაყიდი ბინა",
+    abroadEyebrow: "ყიდვა საზღვარგარეთიდან",
+    abroadTitle: "ბინის ყიდვა ბათუმში უცხო ქვეყნის მოქალაქისთვის",
+    abroadLede: "ჩვენი მყიდველების ნაწილი საქართველოს გარეთ ცხოვრობს. ესაა საკითხები, რომლებზეც ყველაზე ხშირად გვეკითხებიან. წესები იცვლება, ამიტომ გადახდამდე დეტალები დამოუკიდებელ იურისტთან დააზუსტეთ.",
+    abroad: [
+      {
+        title: "უცხოელს შეუძლია ბინის ფლობა",
+        text: "უცხო ქვეყნის მოქალაქეს შეუძლია საქართველოში ბინა იყიდოს და საკუთარ სახელზე დაარეგისტრიროს. შეზღუდვები ეხება სასოფლო-სამეურნეო მიწას და არა ბინებს.",
+      },
+      {
+        title: "საკუთრება საჯარო რეესტრში რეგისტრირდება",
+        text: "ნასყიდობა რეგისტრირდება საჯარო რეესტრის ეროვნულ სააგენტოში, როგორც წესი, იუსტიციის სახლის მეშვეობით. მოითხოვეთ კონკრეტული ბინის მოქმედი ამონაწერი.",
+      },
+      {
+        title: "ყიდვა ჩამოსვლის გარეშეც შეიძლება",
+        text: "თქვენ ნაცვლად ხელს წარმომადგენელი მოაწერს სანოტარო მინდობილობით. საზღვარგარეთ გაფორმებულ მინდობილობას, როგორც წესი, სჭირდება აპოსტილი ან საკონსულო ლეგალიზაცია და დამოწმებული ქართული თარგმანი.",
+      },
+      {
+        title: "ბინადრობის ნებართვა ქონების მფლობელისთვის",
+        text: "საბაზრო ღირებულებით არანაკლებ 150 000 აშშ დოლარის საცხოვრებელი ქონების ფლობამ შეიძლება მოგცეთ დროებითი ბინადრობის ნებართვის უფლება. 2026 წლის 1 მარტიდან ზღვარი 100 000 დოლარიდან გაიზარდა; მოქმედი წესები სახელმწიფო სერვისების განვითარების სააგენტოში დააზუსტეთ.",
+      },
+      {
+        title: "გაყიდვები ქართულ, ინგლისურ და რუსულ ენებზე",
+        text: "გაყიდვების გუნდი სამივე ენაზე პასუხობს ზარებსა და წერილებს და გამოგიგზავნით კონკრეტული ბინის გეგმას, ფასსა და ფოტოებს.",
+      },
+    ],
+    abroadSource: "სახელმწიფო სერვისების განვითარების სააგენტო",
     faqTitle: "ხშირი კითხვები ბინის ყიდვამდე",
     faqs: [
       {
@@ -153,6 +180,14 @@ const COPY = {
         question: "შემიძლია ბინა დისტანციურად შევარჩიო?",
         answer: "ბინების ფართობებისა და სართულების შედარება ონლაინ შეგიძლიათ. დისტანციური გარიგების, წარმომადგენლობის, ხელმოწერისა და რეგისტრაციის პირობები დეველოპერთან და დამოუკიდებელ იურისტთან წინასწარ შეათანხმეთ.",
       },
+      {
+        question: "შეუძლია თუ არა უცხოელს ბინის ყიდვა ბათუმში?",
+        answer: "დიახ. უცხო ქვეყნის მოქალაქეს შეუძლია საქართველოში ბინა იყიდოს და საჯარო რეესტრში საკუთარ სახელზე დაარეგისტრიროს. შეზღუდვები ეხება სასოფლო-სამეურნეო მიწას და არა ბინებს. გადახდამდე დოკუმენტები დამოუკიდებელ იურისტს გადაამოწმებინეთ.",
+      },
+      {
+        question: "ბინის ყიდვა ბინადრობის ნებართვას იძლევა?",
+        answer: "საბაზრო ღირებულებით არანაკლებ 150 000 აშშ დოლარის საცხოვრებელი ქონების ფლობამ შეიძლება მოგცეთ დროებითი ბინადრობის ნებართვის უფლება (2026 წლის 1 მარტამდე ზღვარი 100 000 დოლარი იყო). გადაწყვეტილებას სახელმწიფო იღებს; მოქმედი წესები სახელმწიფო სერვისების განვითარების სააგენტოში დააზუსტეთ.",
+      },
     ],
   },
   en: {
@@ -163,7 +198,7 @@ const COPY = {
     stats: [
       ["published projects", String(PROJECTS.length).padStart(2, "0")],
       ["apartments for sale", String(AVAILABLE_COUNT).padStart(2, "0")],
-      ["last updated", "21.08.26"],
+      ["last updated", "24.10.26"],
     ],
     introTitle: "Compare first. Then contact the developer with specific questions.",
     intro: [
@@ -241,6 +276,32 @@ const COPY = {
     ctaLede: "Include its number and your contact details. The site will prepare an email to the sales team.",
     ctaPrimary: "Prepare an inquiry",
     ctaSecondary: "All apartments for sale",
+    abroadEyebrow: "Buying from abroad",
+    abroadTitle: "Buying an apartment in Batumi as a foreign citizen",
+    abroadLede: "Many of our buyers live outside Georgia. These are the points they ask about most. Rules change, so confirm the details with an independent lawyer before you pay.",
+    abroad: [
+      {
+        title: "Foreigners can own apartments",
+        text: "Foreign citizens can buy an apartment in Georgia and register it in their own name. Restrictions apply to agricultural land, not to apartments.",
+      },
+      {
+        title: "Ownership is registered in the Public Registry",
+        text: "The purchase is registered with the National Agency of Public Registry, usually through a Public Service Hall. Ask for a current registry extract for the specific apartment.",
+      },
+      {
+        title: "You can buy without travelling",
+        text: "A representative can sign for you with a notarised power of attorney. One signed abroad usually needs an apostille or consular legalisation and a certified Georgian translation.",
+      },
+      {
+        title: "Residence permit for property owners",
+        text: "Owning residential property with a market value of at least USD 150,000 can qualify you for a temporary residence permit. The threshold rose from USD 100,000 on 1 March 2026; check the current rules with the Public Service Development Agency.",
+      },
+      {
+        title: "Sales in Georgian, English and Russian",
+        text: "The sales team answers calls and emails in all three languages and can send you the plan, price and photos of a specific apartment.",
+      },
+    ],
+    abroadSource: "Public Service Development Agency",
     faqTitle: "Questions to settle before buying",
     faqs: [
       {
@@ -259,6 +320,14 @@ const COPY = {
         question: "Can I choose an apartment remotely?",
         answer: "You can compare published apartment areas and floors online. Discuss remote transactions, representation, signing, and registration with the developer and an independent lawyer before proceeding.",
       },
+      {
+        question: "Can a foreign citizen buy an apartment in Batumi?",
+        answer: "Yes. Foreign citizens can buy an apartment in Georgia and register it in their own name in the Public Registry. Restrictions apply to agricultural land, not to apartments. Have an independent lawyer check the documents before paying.",
+      },
+      {
+        question: "Does buying an apartment give a residence permit?",
+        answer: "Owning residential property with a market value of at least USD 150,000 can qualify the owner for a temporary residence permit (the threshold was USD 100,000 before 1 March 2026). The state decides each application; check the current rules with the Public Service Development Agency.",
+      },
     ],
   },
   ru: {
@@ -269,7 +338,7 @@ const COPY = {
     stats: [
       ["опубликованных проектов", String(PROJECTS.length).padStart(2, "0")],
       ["квартир в продаже", String(AVAILABLE_COUNT).padStart(2, "0")],
-      ["обновлено", "21.08.26"],
+      ["обновлено", "24.10.26"],
     ],
     introTitle: "Сначала сравните. Затем задайте застройщику конкретные вопросы.",
     intro: [
@@ -347,6 +416,32 @@ const COPY = {
     ctaLede: "Укажите номер квартиры и свои контакты. Сайт подготовит письмо для отдела продаж.",
     ctaPrimary: "Подготовить запрос",
     ctaSecondary: "Все квартиры в продаже",
+    abroadEyebrow: "Покупка из-за рубежа",
+    abroadTitle: "Как иностранцу купить квартиру в Батуми",
+    abroadLede: "Многие наши покупатели живут за пределами Грузии. Вот что они спрашивают чаще всего. Правила меняются, поэтому перед оплатой уточните детали у независимого юриста.",
+    abroad: [
+      {
+        title: "Иностранцы могут владеть квартирой",
+        text: "Иностранный гражданин может купить квартиру в Грузии и зарегистрировать её на своё имя. Ограничения касаются сельскохозяйственной земли, а не квартир.",
+      },
+      {
+        title: "Право собственности регистрируется в Публичном реестре",
+        text: "Покупка регистрируется в Национальном агентстве публичного реестра, обычно через Дом юстиции. Запросите актуальную выписку из реестра по конкретной квартире.",
+      },
+      {
+        title: "Купить можно, не приезжая",
+        text: "За вас может подписать представитель по нотариальной доверенности. Доверенности, оформленной за рубежом, обычно нужен апостиль или консульская легализация и заверенный перевод на грузинский язык.",
+      },
+      {
+        title: "ВНЖ для владельцев недвижимости",
+        text: "Владение жилой недвижимостью рыночной стоимостью от 150 000 долларов США может дать право на временный вид на жительство. С 1 марта 2026 года порог вырос со 100 000 долларов; актуальные условия уточняйте в Агентстве развития государственных услуг.",
+      },
+      {
+        title: "Продажи на русском, английском и грузинском",
+        text: "Отдел продаж отвечает на звонки и письма на трёх языках и может прислать планировку, цену и фото конкретной квартиры.",
+      },
+    ],
+    abroadSource: "Агентство развития государственных услуг",
     faqTitle: "Вопросы, которые стоит решить до покупки",
     faqs: [
       {
@@ -365,9 +460,19 @@ const COPY = {
         question: "Можно выбрать квартиру дистанционно?",
         answer: "Сравнить опубликованные площади и этажи квартир можно онлайн. Заранее обсудите с застройщиком и независимым юристом дистанционную сделку, представительство, подписание и регистрацию.",
       },
+      {
+        question: "Может ли иностранец купить квартиру в Батуми?",
+        answer: "Да. Иностранный гражданин может купить квартиру в Грузии и зарегистрировать её на своё имя в Публичном реестре. Ограничения касаются сельскохозяйственной земли, а не квартир. Перед оплатой попросите независимого юриста проверить документы.",
+      },
+      {
+        question: "Даёт ли покупка квартиры вид на жительство?",
+        answer: "Владение жилой недвижимостью рыночной стоимостью от 150 000 долларов США может дать право на временный вид на жительство (до 1 марта 2026 года порог составлял 100 000 долларов). Решение принимает государство; актуальные условия уточняйте в Агентстве развития государственных услуг.",
+      },
     ],
   },
 } as const;
+
+const RESIDENCE_URL = "https://sda.gov.ge/";
 
 const REGISTRY_URL: Localized = {
   ka: "https://napr.gov.ge/ka/page/fees-and-terms/immovable-property-registration-fee",
@@ -415,7 +520,7 @@ function guideJsonLd(lang: Lang) {
       description: META_DESCRIPTION[lang],
       image: absoluteUrl(HERO_IMAGE.src),
       datePublished: BUYING_GUIDE_PUBLISHED_AT.toISOString(),
-      dateModified: BUYING_GUIDE_PUBLISHED_AT.toISOString(),
+      dateModified: BUYING_GUIDE_UPDATED_AT.toISOString(),
       inLanguage: lang,
       mainEntityOfPage: { "@id": `${url}#webpage` },
       author: { "@id": `${SITE_URL}/#organization` },
@@ -574,6 +679,53 @@ export default async function BuyingGuidePage({
           </ol>
         </div>
       </article>
+
+      <section
+        id="buying-from-abroad"
+        className="scroll-mt-24 border-t border-cream/10 bg-basalt py-24 text-cream md:py-32"
+      >
+        <div className="wrap grid gap-14 lg:grid-cols-12 lg:gap-20">
+          <Reveal className="lg:col-span-5">
+            <p className="eyebrow">{copy.abroadEyebrow}</p>
+            <h2 className="mt-5 font-display text-4xl leading-tight font-medium md:text-6xl">
+              {copy.abroadTitle}
+            </h2>
+            <p className="mt-6 max-w-xl leading-relaxed text-cream/65">
+              {copy.abroadLede}
+            </p>
+            <a
+              href={RESIDENCE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-slide mt-8 inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-brass"
+            >
+              {copy.abroadSource} <span aria-hidden>↗</span>
+            </a>
+          </Reveal>
+          <Reveal className="lg:col-span-7" delayMs={100}>
+            <ol className="border-t border-cream/15">
+              {copy.abroad.map((point, index) => (
+                <li
+                  key={point.title}
+                  className="grid gap-3 border-b border-cream/15 py-7 sm:grid-cols-[3rem_1fr]"
+                >
+                  <span className="font-mono text-[10px] text-brass sm:pt-2">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <h3 className="font-display text-2xl leading-snug">
+                      {point.title}
+                    </h3>
+                    <p className="mt-3 max-w-2xl leading-relaxed text-cream/65">
+                      {point.text}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Reveal>
+        </div>
+      </section>
 
       <section className="draft-grid bg-ink py-20 md:py-28">
         <div className="wrap grid gap-10 lg:grid-cols-12 lg:items-end">

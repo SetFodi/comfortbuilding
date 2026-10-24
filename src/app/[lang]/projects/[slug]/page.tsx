@@ -149,46 +149,58 @@ function layoutsTitle(project: Project, lang: Lang) {
   return `${count} layouts from ${min} to ${max} m²`;
 }
 
+/**
+ * The project name as searched: Georgian and Russian names get the Latin
+ * name people type ("რედ ლაინი (Red Line)").
+ */
+function searchLabel(project: Project, lang: Lang): string {
+  const name = project.name[lang];
+  const latin = project.searchNames?.[0];
+  if (lang === "en" || !latin || name.includes(latin)) return name;
+  return `${name} (${latin})`;
+}
+
+/** "Red Line, Batumi", but not "Grand House Tbilisi, Tbilisi". */
+function withCity(name: string, city: string): string {
+  return name.includes(city) ? name : `${name}, ${city}`;
+}
+
 function projectMetaTitle(project: Project, lang: Lang): string {
+  const label = searchLabel(project, lang);
+
   if (project.priceList) {
     const from = formatUsd(priceListSummary(project.priceList).minRate);
     if (lang === "ka") {
-      return `${project.name.ka} — ბინები ბათუმში ${from}-დან მ²-ზე`;
+      return `${label} — ბინები ბათუმში ${from}-დან მ²-ზე`;
     }
     if (lang === "ru") {
-      return `${project.name.ru} — новостройка в Батуми, квартиры от ${from} за м²`;
+      return `${label} — новостройка в Батуми, квартиры от ${from} за м²`;
     }
-    return `${project.name.en} — apartments for sale in Batumi from ${from}/m²`;
+    return `${label} — apartments for sale in Batumi from ${from}/m²`;
   }
 
   if (project.layouts) {
     if (lang === "ka") {
-      return `${project.name.ka} — იყიდება ბინები ბათუმში, მშენებარე სახლი`;
+      return `${label} — იყიდება ბინები ბათუმში, მშენებარე სახლი`;
     }
     if (lang === "ru") {
-      return `${project.name.ru} — новостройка в Батуми, квартиры от застройщика`;
+      return `${label} — новостройка в Батуми, квартиры от застройщика`;
     }
-    return `${project.name.en} — new apartments for sale in Batumi`;
+    return `${label} — new apartments for sale in Batumi`;
   }
 
   if (project.inventory) {
     if (lang === "ka") {
-      return `${project.name.ka} | ბინები ბათუმში და ხელმისაწვდომობა`;
+      return `${label} | ბინები ბათუმში და ხელმისაწვდომობა`;
     }
     if (lang === "ru") {
-      return `${project.name.ru} | квартиры в Батуми и наличие`;
+      return `${label} | квартиры в Батуми и наличие`;
     }
-    return `${project.name.en} Batumi apartments | Availability and sales contact`;
+    return `${label} Batumi apartments | Availability and sales contact`;
   }
 
-  if (lang === "ka") {
-    const city = project.city.ka === "ბათუმი" ? "ბათუმში" : "თბილისში";
-    return `${project.name.ka} — საცხოვრებელი პროექტი ${city}`;
-  }
-  if (lang === "ru") {
-    return `${project.name.ru} — жилой проект в ${project.city.ru}`;
-  }
-  return `${project.name.en} residential project in ${project.city.en}`;
+  // Completed buildings are mostly searched by name or street address.
+  return `${withCity(label, project.city[lang])} — ${project.address[lang]}`;
 }
 
 function projectMetaDescription(project: Project, lang: Lang): string {

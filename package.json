@@ -15,7 +15,8 @@
     "check:rendering": "node --test tests/apartment-postprocessing.test.mjs tests/apartment-interior.test.mjs",
     "check:analytics": "node --experimental-strip-types --test tests/analytics.test.mjs",
     "check:inquiries": "node --experimental-strip-types --test tests/inquiries.test.mjs",
-    "check:inquiry-endpoint": "node scripts/verify-inquiry-endpoint.mjs"
+    "check:inquiry-endpoint": "node scripts/verify-inquiry-endpoint.mjs",
+    "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
     "next": "16.4.0",
