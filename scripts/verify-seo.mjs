@@ -203,7 +203,7 @@ for (const language of languages) {
   );
   for (const [slug, expectedCount, includes701] of [
     ["comfort-house", 10, false],
-    ["parnavaz-65", 20, false],
+    ["parnavaz-65", 20, true],
   ]) {
     const projectName = html.match(
       new RegExp(`<option\\b[^>]*\\bvalue="${slug}"[^>]*>([\\s\\S]*?)<\\/option>`, "i"),
@@ -222,6 +222,13 @@ for (const language of languages) {
       includes701,
       `/${language}/contact must preserve apartment 701's availability for ${slug}`,
     );
+    if (slug === "parnavaz-65") {
+      assert.equal(
+        projectApartments.some((label) => /\b501\b/.test(label)),
+        false,
+        `/${language}/contact must exclude sold Parnavaz apartment 501`,
+      );
+    }
   }
   assert.ok(
     html.includes('"@type":"ContactPoint"'),

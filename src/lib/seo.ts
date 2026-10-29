@@ -9,7 +9,7 @@ export const SITE_URL = "https://www.comfortbuilding.ge";
 export const YANDEX_VERIFICATION = "bec3b500c9ed634d";
 // Manually maintained: the shared business/project graph changed on this date.
 // Do not replace this with the build date or imply refreshed inventory.
-export const SITE_UPDATED_AT = new Date("2026-10-23T00:00:00+04:00");
+export const SITE_UPDATED_AT = new Date("2026-10-29T00:00:00+04:00");
 export const BUYING_GUIDE_PUBLISHED_AT = new Date("2026-08-21T00:00:00+04:00");
 // Foreign-buyer section and residence permit threshold added.
 export const BUYING_GUIDE_UPDATED_AT = new Date("2026-10-24T00:00:00+04:00");

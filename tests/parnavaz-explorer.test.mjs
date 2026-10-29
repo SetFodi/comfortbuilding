@@ -101,10 +101,14 @@ test("all 20 published Parnavaz apartments can reach the inquiry form with their
   }
 });
 
-test("sold apartment 701 is rejected for both Parnavaz and Comfort House", () => {
-  for (const projectSlug of ["parnavaz-65", "comfort-house"]) {
-    const result = parseInquiry({ ...baseInquiry, projectSlug }, inquiryProjects);
-    assert.equal(result.ok, false, `${projectSlug} apartment 701 is sold`);
+test("Parnavaz 701 is available while Parnavaz 501 and Comfort House 701 are sold", () => {
+  const available = parseInquiry(baseInquiry, inquiryProjects);
+  assert.equal(available.ok, true, "Parnavaz apartment 701 is available");
+  assert.equal(available.inquiry.projectSlug, "parnavaz-65");
+  assert.equal(available.inquiry.apartmentNumber, "701");
+  for (const [projectSlug, unitId] of [["parnavaz-65", "501"], ["comfort-house", "701"]]) {
+    const result = parseInquiry({ ...baseInquiry, projectSlug, unitId }, inquiryProjects);
+    assert.equal(result.ok, false, `${projectSlug} apartment ${unitId} is sold`);
     assert.equal(result.error, "apartment");
   }
   assert.equal(
@@ -128,7 +132,7 @@ test("unlisted, sold, floor-eight, and missing Parnavaz apartment choices are re
 });
 
 test("floor selection distinguishes sold floors and the excluded eighth floor from available apartments", () => {
-  const expectedCounts = [0, 0, 2, 1, 5, 7, 5, 0];
+  const expectedCounts = [0, 0, 2, 1, 4, 7, 6, 0];
   for (let floor = 1; floor <= 8; floor += 1) {
     const count = parnavaz.priceList.units.filter((unit) => unit.floor === floor).length;
     assert.equal(count, expectedCounts[floor - 1], `Availability on floor ${floor}`);

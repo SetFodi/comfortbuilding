@@ -22,8 +22,8 @@ const PARNAVAZ_65_RENDER: SiteImage = {
 /**
  * Transcribed from the sales team's sheet "ქალაქი ბათუმი, ფარნავაზ მეფის
  * ქუჩა #65.pdf". Prices are per m² of total area; apartments not listed are
- * sold, and floor VIII is not for sale. Apartment 701 was confirmed sold on
- * 20 October 2026 and removed from the available inventory.
+ * sold, and floor VIII is not for sale. Owner correction on 29 October 2026:
+ * apartment 501 is sold; apartment 701 is available.
  */
 const PARNAVAZ_65_PRICE_LIST: ProjectPriceList = {
   asOf: { ka: "ოქტომბერი 2026", en: "October 2026", ru: "Октябрь 2026" },
@@ -32,7 +32,6 @@ const PARNAVAZ_65_PRICE_LIST: ProjectPriceList = {
     { number: "301", floor: 3, totalArea: 55.3, pricePerSqm: 3000 },
     { number: "304", floor: 3, totalArea: 97.4, pricePerSqm: 3500 },
     { number: "401", floor: 4, totalArea: 55.3, pricePerSqm: 3200 },
-    { number: "501", floor: 5, totalArea: 55.3, pricePerSqm: 3200 },
     { number: "503", floor: 5, totalArea: 45.7, pricePerSqm: 3500 },
     { number: "506", floor: 5, totalArea: 54, pricePerSqm: 3500 },
     { number: "507", floor: 5, totalArea: 55.1, pricePerSqm: 3500 },
@@ -44,6 +43,7 @@ const PARNAVAZ_65_PRICE_LIST: ProjectPriceList = {
     { number: "606", floor: 6, totalArea: 50.1, pricePerSqm: 3600 },
     { number: "607", floor: 6, totalArea: 55.1, pricePerSqm: 3600 },
     { number: "608", floor: 6, totalArea: 117, pricePerSqm: 3500 },
+    { number: "701", floor: 7, totalArea: 55.3, pricePerSqm: 3500 },
     { number: "703", floor: 7, totalArea: 46.3, pricePerSqm: 3700 },
     { number: "704", floor: 7, totalArea: 46.5, pricePerSqm: 3700 },
     { number: "705", floor: 7, totalArea: 43.4, pricePerSqm: 3700 },
