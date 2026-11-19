@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 const auditOrigin = process.env.SEO_BASE_URL ?? "http://localhost:3000";
 const canonicalOrigin = "https://www.comfortbuilding.ge";
 const languages = ["ka", "en", "ru"];
+const comfortHouseAvailable = 9;
+const parnavazAvailable = 20;
 
 function auditUrl(path) {
   return new URL(path, auditOrigin);
@@ -137,17 +139,17 @@ for (const [language, heading] of [
   assert.ok(html.includes(heading), `/${language}/apartments must target ${heading}`);
   assert.equal(
     html.match(/"@type":"Offer"/g)?.length,
-    10,
-    `/${language}/apartments must publish 10 visible offers`,
+    comfortHouseAvailable,
+    `/${language}/apartments must publish an offer for each available apartment`,
   );
   assert.equal(
     html.match(/id="apartment-[^"]+"/g)?.length,
-    10,
-    `/${language}/apartments must render 10 apartment cards`,
+    comfortHouseAvailable,
+    `/${language}/apartments must render a card for each available apartment`,
   );
   assert.equal(
     html.match(/data-contact-action="apartment-inquiry"/g)?.length,
-    10,
+    comfortHouseAvailable,
     `/${language}/apartments must expose an inquiry action for every apartment`,
   );
 }
@@ -193,8 +195,8 @@ for (const language of languages) {
   const apartmentLabels = apartmentOptions.map((option) => option.label);
   assert.equal(
     apartmentLabels.length,
-    29,
-    `/${language}/contact must offer all 29 available apartments`,
+    comfortHouseAvailable + parnavazAvailable,
+    `/${language}/contact must offer all available apartments`,
   );
   assert.equal(
     new Set(apartmentOptions.map((option) => option.value)).size,
@@ -202,8 +204,8 @@ for (const language of languages) {
     `/${language}/contact apartment choices must have unique values across projects`,
   );
   for (const [slug, expectedCount, includes701] of [
-    ["comfort-house", 9, false],
-    ["parnavaz-65", 20, true],
+    ["comfort-house", comfortHouseAvailable, false],
+    ["parnavaz-65", parnavazAvailable, true],
   ]) {
     const projectName = html.match(
       new RegExp(`<option\\b[^>]*\\bvalue="${slug}"[^>]*>([\\s\\S]*?)<\\/option>`, "i"),
