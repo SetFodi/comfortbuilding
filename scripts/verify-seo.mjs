@@ -193,8 +193,8 @@ for (const language of languages) {
   const apartmentLabels = apartmentOptions.map((option) => option.label);
   assert.equal(
     apartmentLabels.length,
-    30,
-    `/${language}/contact must offer all 30 available apartments`,
+    29,
+    `/${language}/contact must offer all 29 available apartments`,
   );
   assert.equal(
     new Set(apartmentOptions.map((option) => option.value)).size,
@@ -202,7 +202,7 @@ for (const language of languages) {
     `/${language}/contact apartment choices must have unique values across projects`,
   );
   for (const [slug, expectedCount, includes701] of [
-    ["comfort-house", 10, false],
+    ["comfort-house", 9, false],
     ["parnavaz-65", 20, true],
   ]) {
     const projectName = html.match(
@@ -222,6 +222,12 @@ for (const language of languages) {
       includes701,
       `/${language}/contact must preserve apartment 701's availability for ${slug}`,
     );
+    if (slug === "comfort-house") {
+      assert.ok(
+        !projectApartments.some((label) => /\b801\b/.test(label)),
+        `/${language}/contact must exclude sold Comfort House apartment 801`,
+      );
+    }
     if (slug === "parnavaz-65") {
       assert.equal(
         projectApartments.some((label) => /\b501\b/.test(label)),
