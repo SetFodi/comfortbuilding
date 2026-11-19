@@ -1,15 +1,24 @@
 @import "tailwindcss";
+@import "./fonts.css";
+@import "./residences.css";
+@import "./studio.css";
+
+:root {
+  --font-sans-geo: "Noto Sans Georgian";
+  --font-serif-geo: "Noto Serif Georgian";
+  --font-serif-lat: "Noto Serif";
+}
 
 @theme inline {
-  --color-ink: #0b0d0f;
-  --color-basalt: #14171a;
-  --color-iron: #292d31;
-  --color-limestone: #e9e5dc;
-  --color-paper: #f5f2eb;
-  --color-cream: #f3f0e9;
-  --color-brass: #c5aa72;
-  --color-brass-bright: #dfc58c;
-  --color-bronze: #715326;
+  --color-ink: #17282d;
+  --color-basalt: #203440;
+  --color-iron: #344c55;
+  --color-limestone: #e2e9e4;
+  --color-paper: #fafbf8;
+  --color-cream: #f6f8f4;
+  --color-brass: #c4d7f8;
+  --color-brass-bright: #dfebff;
+  --color-bronze: #39578d;
 }
 
 html {
@@ -77,20 +86,6 @@ a {
   width: 100%;
   max-width: 90rem;
   padding-inline: clamp(1.25rem, 4vw, 3.5rem);
-}
-
-.draft-grid {
-  background-image:
-    linear-gradient(rgb(243 240 233 / 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(243 240 233 / 0.045) 1px, transparent 1px);
-  background-size: clamp(3rem, 7vw, 6.5rem) clamp(3rem, 7vw, 6.5rem);
-}
-
-.draft-grid-light {
-  background-image:
-    linear-gradient(rgb(11 13 15 / 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(11 13 15 / 0.055) 1px, transparent 1px);
-  background-size: clamp(3rem, 7vw, 6.5rem) clamp(3rem, 7vw, 6.5rem);
 }
 
 .apartment-explorer-dialog[open] {

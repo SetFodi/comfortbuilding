@@ -135,7 +135,6 @@ export default async function ContactPage({ params }: ContactPageProps) {
         lede={LEDE[lang]}
         image={HERO_IMAGE.src}
         imageAlt={HERO_ALT[lang]}
-        annotation="DIRECT CONTACT / BATUMI / GEORGIA"
       />
 
       <LeadInquiryForm

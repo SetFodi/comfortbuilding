@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ContactBand } from "@/components/contact-band";
 import { JsonLd } from "@/components/json-ld";
-import { PageHero } from "@/components/page-hero";
+import { portfolioCardItem } from "@/components/portfolio-card";
 import {
   ProjectsBrowser,
   type ProjectBrowserItem,
@@ -65,18 +65,9 @@ const BUYING_COPY: LocalizedList = {
   ],
 };
 
-const IMAGE_ALT: Localized = {
-  ka: "სახლი პიაცასთან — გაუმჯობესებული არქიტექტურული ფოტო",
-  en: "Enhanced architectural photograph of House near the Piazza",
-  ru: "Улучшенная архитектурная фотография дома возле Пьяццы",
-};
 
-const HERO_IMAGE = {
-  src: "/images/experimental-ai/house-near-piazza-enhanced.png",
-  width: 1419,
-  height: 1109,
-  alt: IMAGE_ALT,
-} as const;
+
+const HERO_IMAGE = PROJECTS.find((project) => project.slug === "house-near-piazza")!.cover;
 
 interface ProjectsPageProps {
   readonly params: Promise<{ lang: string }>;
@@ -105,19 +96,11 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
   const lang = await resolveLang(params);
   const dict = getDict(lang);
   const projects: readonly ProjectBrowserItem[] = PROJECTS.map((project) => {
-    const image = project.listingImage ?? project.cover;
-
     return {
-      slug: project.slug,
-      name: project.name[lang],
-      city: project.city[lang],
-      address: project.address[lang],
+      ...portfolioCardItem(project, lang),
       summary: project.summary[lang],
       floors: projectFloors(project, dict.misc.tba),
       period: projectPeriod(project, dict.misc.tba),
-      status: project.status,
-      accent: project.accent,
-      image: { src: image.src, alt: image.alt[lang] },
     };
   });
 
@@ -150,17 +133,12 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
           ]),
         ])}
       />
-      <PageHero
-        eyebrow={dict.nav.projects}
-        title={TITLE[lang]}
-        lede={LEDE[lang]}
-        image={HERO_IMAGE.src}
-        imageAlt={IMAGE_ALT[lang]}
-        annotation={`ARCHIVE / ${String(PROJECTS.length).padStart(2, "0")} PROJECTS / 02 CITIES`}
-      />
-
-      <section className="draft-grid bg-ink py-20 md:py-28">
+      <section className="portfolio-section archive-section">
         <div className="wrap">
+          <div className="archive-heading">
+            <p className="section-kicker"><i aria-hidden />Comfort Building</p>
+            <h1 className="edition-title">{TITLE[lang]}</h1>
+          </div>
           <ProjectsBrowser
             lang={lang}
             projects={projects}
@@ -168,7 +146,6 @@ export default async function ProjectsPage({ params }: ProjectsPageProps) {
               all: dict.filters.all,
               ongoing: dict.filters.ongoing,
               completed: dict.filters.completed,
-              view: dict.cta.viewProject,
               floors: dict.titleBlock.floors,
               filterLabel: dict.filters.label,
             }}

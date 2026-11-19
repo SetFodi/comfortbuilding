@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ANALYTICS_CONSENT_EVENT,
   ANALYTICS_CONSENT_KEY,
@@ -20,17 +21,17 @@ const COPY = {
   ka: {
     title: "ვებსაიტის სტატისტიკა",
     text: "თქვენი თანხმობით ვზომავთ გვერდების ნახვებს, დარეკვის ღილაკზე დაწკაპუნებებსა და გაგზავნილ მოთხოვნებს. ფორმაში შეყვანილი პირადი მონაცემები Google Analytics-ს არ გადაეცემა.",
-    allow: "სტატისტიკის დაშვება", decline: "სტატისტიკის გარეშე", settings: "სტატისტიკის პარამეტრები",
+    allow: "დაშვება", decline: "უარი", settings: "სტატისტიკის პარამეტრები",
   },
   en: {
     title: "Website analytics",
     text: "With your permission, we measure page views, clicks on call buttons and submitted inquiries. Personal details entered in the form are not sent to Google Analytics.",
-    allow: "Allow analytics", decline: "Without analytics", settings: "Analytics preferences",
+    allow: "Allow", decline: "Decline", settings: "Analytics preferences",
   },
   ru: {
     title: "Статистика сайта",
     text: "С вашего согласия мы измеряем просмотры страниц, нажатия на кнопку звонка и отправленные запросы. Личные данные из формы не передаются в Google Analytics.",
-    allow: "Разрешить статистику", decline: "Без статистики", settings: "Настройки статистики",
+    allow: "Разрешить", decline: "Отклонить", settings: "Настройки статистики",
   },
 } as const;
 
@@ -39,6 +40,7 @@ export function SiteAnalytics({ lang, projectSlugs }: { readonly lang: Lang; rea
   const [consent, setConsent] = useState<AnalyticsConsent | null>(null);
   const [showPreferences, setShowPreferences] = useState(false);
   const [ready, setReady] = useState(false);
+  const [homeSlot, setHomeSlot] = useState<HTMLElement | null>(null);
   const lastPage = useRef<string | null>(null);
   const copy = COPY[lang];
 
@@ -52,6 +54,11 @@ export function SiteAnalytics({ lang, projectSlugs }: { readonly lang: Lang; rea
     });
     return () => cancelAnimationFrame(frame);
   }, []);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setHomeSlot(document.getElementById("homepage-analytics-preferences")));
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
 
   useEffect(() => {
     if (consent !== "granted" || lastPage.current === pathname) return;
@@ -100,18 +107,24 @@ export function SiteAnalytics({ lang, projectSlugs }: { readonly lang: Lang; rea
     window.dispatchEvent(new Event(ANALYTICS_CONSENT_EVENT));
   }
 
+  const preferences = (
+    <section data-analytics-preferences aria-label={copy.title} className="consent-note">
+      <details>
+        <summary>{copy.title}<span aria-hidden>ⓘ</span></summary>
+        <p>{copy.text}</p>
+      </details>
+      <div className="consent-actions">
+        <button type="button" onClick={() => choose("denied")}>{copy.decline}</button>
+        <button type="button" onClick={() => choose("granted")}>{copy.allow}</button>
+      </div>
+    </section>
+  );
+
   return (
     <>
       {consent === "granted" && <Script id="comfortbuilding-google-analytics" src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />}
       {ready && showPreferences ? (
-        <section data-analytics-preferences aria-label={copy.title} className="fixed right-4 bottom-20 left-4 z-50 border border-brass/25 bg-ink p-5 text-cream shadow-2xl sm:left-auto sm:max-w-md lg:bottom-5">
-          <h2 className="text-base font-semibold text-brass">{copy.title}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-cream/65">{copy.text}</p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button type="button" onClick={() => choose("granted")} className="min-h-11 bg-brass px-4 text-sm font-semibold text-ink hover:bg-brass-bright">{copy.allow}</button>
-            <button type="button" onClick={() => choose("denied")} className="min-h-11 px-2 text-sm text-cream/75 hover:text-cream">{copy.decline}</button>
-          </div>
-        </section>
+        homeSlot && !consent && pathname === `/${lang}` ? createPortal(preferences, homeSlot) : preferences
       ) : ready && (
         <button data-analytics-preferences type="button" onClick={() => setShowPreferences(true)} className="mx-auto block min-h-11 px-4 py-3 text-center text-xs text-cream/50 hover:text-brass">{copy.settings}</button>
       )}

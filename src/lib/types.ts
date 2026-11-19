@@ -13,6 +13,13 @@ export interface SiteImage {
   readonly alt: Localized;
 }
 
+/** A silent clip that plays over the desktop hero image, which is its poster. */
+export interface SiteVideo {
+  readonly src: string;
+  readonly width: number;
+  readonly height: number;
+}
+
 export type ProjectStatus = "ongoing" | "completed";
 
 export interface AvailabilityItem {
@@ -117,6 +124,7 @@ export interface Project {
   readonly listingImage?: SiteImage;
   readonly heroImage?: SiteImage;
   readonly heroImageMobile?: SiteImage;
+  readonly heroVideo?: SiteVideo;
   readonly gallery: readonly SiteImage[];
   readonly floorplans?: readonly SiteImage[];
 }

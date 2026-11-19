@@ -20,6 +20,23 @@ const PARNAVAZ_65_RENDER: SiteImage = {
 };
 
 /**
+ * AI-enhanced re-render of PARNAVAZ_65_RENDER (Higgsfield, Nano Banana Pro):
+ * same massing, floors and balconies, new light and street. The facade
+ * explorer and promo keep the original render, because their apartment
+ * outlines are traced on its pixels.
+ */
+const PARNAVAZ_65_GOLDEN_HOUR: SiteImage = {
+  src: "/images/experimental-ai/parnavaz-65-golden-hour.jpg",
+  width: 2528,
+  height: 1696,
+  alt: {
+    ka: "ფარნავაზ მეფის ქ. №65 — ბათუმში მშენებარე 8-სართულიანი საცხოვრებელი სახლის გაუმჯობესებული ვიზუალიზაცია ოქროს საათზე",
+    en: "Parnavaz Mepe St. №65 — enhanced golden-hour visualisation of the 8-storey residential building under construction in Batumi",
+    ru: "ул. Парнаваз Мепе №65 — улучшенная визуализация строящегося 8-этажного жилого дома в Батуми в золотой час",
+  },
+};
+
+/**
  * Transcribed from the sales team's sheet "ქალაქი ბათუმი, ფარნავაზ მეფის
  * ქუჩა #65.pdf". Prices are per m² of total area; apartments not listed are
  * sold, and floor VIII is not for sale. Owner correction on 29 October 2026:
@@ -303,14 +320,19 @@ export const PROJECTS: readonly Project[] = [
     priceList: PARNAVAZ_65_PRICE_LIST,
     mapQuery: "Parnavaz Mepe Street 65, Batumi, Georgia",
     searchNames: ["Parnavaz Mepe 65", "Parnavaz 65"],
-    cover: PARNAVAZ_65_RENDER,
+    cover: PARNAVAZ_65_GOLDEN_HOUR,
     heroImageMobile: {
-      src: "/images/projects/parnavaz-65/render-mobile.jpg",
-      width: 1200,
-      height: 1599,
-      alt: PARNAVAZ_65_RENDER.alt,
+      src: "/images/experimental-ai/parnavaz-65-golden-hour-mobile.jpg",
+      width: 1272,
+      height: 1696,
+      alt: PARNAVAZ_65_GOLDEN_HOUR.alt,
     },
-    gallery: [PARNAVAZ_65_RENDER],
+    heroVideo: {
+      src: "/videos/parnavaz-65-push-in.mp4",
+      width: 1168,
+      height: 784,
+    },
+    gallery: [PARNAVAZ_65_GOLDEN_HOUR, PARNAVAZ_65_RENDER],
   },
   {
     slug: "comfort-house",
@@ -525,6 +547,16 @@ export const PROJECTS: readonly Project[] = [
     soldPercent: 100,
     availability: [],
     mapQuery: "Vakhtang Gorgasali Street 15, Batumi, Georgia",
+    listingImage: {
+      src: "/images/experimental-ai/house-near-piazza-morning.webp",
+      width: 1448,
+      height: 1086,
+      alt: {
+        ka: "პიაცასთან სახლის აგურის ფასადის ვიზუალიზაცია დილის შუქზე",
+        en: "Morning visualization of the brick façade and rounded balconies of House near the Piazza",
+        ru: "Визуализация кирпичного фасада дома у Пьяццы в утреннем свете",
+      },
+    },
     cover: {
       src: "/images/experimental-ai/house-near-piazza-enhanced.png",
       width: 1419,
@@ -1030,16 +1062,26 @@ export const PROJECTS: readonly Project[] = [
     mapQuery: "Dolidze Street 24, Tbilisi, Georgia",
     searchNames: ["Grand House", "Grand House Tbilisi", "Dolidze 24"],
     cover: {
-      src: "/images/projects/grand-house/cover.jpg",
-      width: 2048,
-      height: 1365,
+      src: "/images/experimental-ai/grand-house-blue-hour.jpg",
+      width: 2528,
+      height: 1696,
       alt: {
-        ka: "გრანდ ჰაუსი თბილისი — პროექტის ვიზუალიზაცია",
-        en: "Grand House Tbilisi — project render",
-        ru: "Гранд Хаус Тбилиси — визуализация проекта",
+        ka: "გრანდ ჰაუსი თბილისი — გაუმჯობესებული ვიზუალიზაცია ლურჯ საათზე",
+        en: "Grand House Tbilisi — enhanced blue-hour visualisation",
+        ru: "Гранд Хаус Тбилиси — улучшенная визуализация в синий час",
       },
     },
     gallery: [
+      {
+        src: "/images/experimental-ai/grand-house-blue-hour.jpg",
+        width: 2528,
+        height: 1696,
+        alt: {
+          ka: "გრანდ ჰაუსი — გაუმჯობესებული ვიზუალიზაცია ლურჯ საათზე",
+          en: "Grand House — enhanced blue-hour visualisation",
+          ru: "Гранд Хаус — улучшенная визуализация в синий час",
+        },
+      },
       {
         src: "/images/projects/grand-house/cover.jpg",
         width: 2048,

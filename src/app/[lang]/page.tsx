@@ -1,28 +1,20 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AboutTeaser } from "@/components/about-teaser";
 import { AvailableApartmentsSpotlight } from "@/components/available-apartments-spotlight";
-import { ParnavazPromo } from "@/components/parnavaz-promo";
-import { ContactBand } from "@/components/contact-band";
-import { Hero } from "@/components/hero";
+import { Hero, DUSK_COVER } from "@/components/hero";
 import { JsonLd } from "@/components/json-ld";
-import {
-  ProjectRegister,
-  type ProjectRegisterItem,
-} from "@/components/project-register";
-import { SectionHeading } from "@/components/section-heading";
-import { ServicesSection } from "@/components/services-section";
-import { StatBand } from "@/components/stat-band";
+import { LayoutShelf } from "@/components/layout-shelf";
+import { LandingMotion } from "@/components/landing-motion";
+import { ResidenceDirectory } from "@/components/residence-directory";
+import { portfolioCardItem } from "@/components/portfolio-card";
+import { ResidenceStory } from "@/components/residence-story";
 import { getDict } from "@/lib/dictionary";
-import { PROJECTS, projectFloors, projectPeriod } from "@/lib/projects";
+import { findPlanUnit, planPoints, PARNAVAZ_PLAN } from "@/lib/parnavaz-floor-plans";
+import { getProject, PROJECTS } from "@/lib/projects";
 import { COMPANY_NAME } from "@/lib/site";
-import {
-  HOME_DESCRIPTIONS,
-  jsonLdGraph,
-  pageMetadata,
-  webPageJsonLd,
-} from "@/lib/seo";
+import { HOME_DESCRIPTIONS, jsonLdGraph, pageMetadata, webPageJsonLd } from "@/lib/seo";
 import { isLang, type Lang, type Localized } from "@/lib/types";
 
 const PAGE_TITLE: Localized = {
@@ -31,15 +23,19 @@ const PAGE_TITLE: Localized = {
   ru: "Строительная компания в Батуми",
 };
 
-const REGISTER_TITLE: Localized = {
-  ka: "საცხოვრებელი პროექტები ბათუმსა და თბილისში",
-  en: "Residential projects in Batumi and Tbilisi",
-  ru: "Жилые проекты в Батуми и Тбилиси",
-};
+const COPY = {
+  en: { about: "Comfort Building", since: "Building since 2014", company: "Our first projects took shape in Batumi. Today our portfolio spans seven residential buildings in Batumi and Tbilisi." },
+  ka: { about: "კომფორტ ბილდინგი", since: "2014 წლიდან", company: "ჩვენი პირველი პროექტები ბათუმში აშენდა. დღეს ჩვენი შვიდი საცხოვრებელი სახლი ბათუმსა და თბილისში მდებარეობს." },
+  ru: { about: "Комфорт Билдинг", since: "Строим с 2014 года", company: "Наши первые дома появились в Батуми. Сегодня в нашем портфолио семь жилых домов в Батуми и Тбилиси." },
+} as const;
 
-interface HomePageProps {
-  readonly params: Promise<{ lang: string }>;
-}
+const PIAZZA = getProject("house-near-piazza")!;
+const DIRECTORY = [PIAZZA, ...PROJECTS.filter((project) => project.slug !== PIAZZA.slug)];
+const FEATURED = getProject("parnavaz-65")!;
+const UNIT = FEATURED.priceList?.units.find((unit) => unit.totalArea === 46.5);
+const PLAN = UNIT && findPlanUnit(UNIT.number);
+
+interface HomePageProps { readonly params: Promise<{ lang: string }>; }
 
 async function resolveLang(params: HomePageProps["params"]): Promise<Lang> {
   const { lang } = await params;
@@ -47,89 +43,59 @@ async function resolveLang(params: HomePageProps["params"]): Promise<Lang> {
   return lang;
 }
 
-export async function generateMetadata({
-  params,
-}: HomePageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
   const lang = await resolveLang(params);
-  const image =
-    PROJECTS[0].heroImage ?? PROJECTS[0].listingImage ?? PROJECTS[0].cover;
   return pageMetadata({
-    lang,
-    title: `${PAGE_TITLE[lang]} — ${COMPANY_NAME[lang]}`,
-    description: HOME_DESCRIPTIONS[lang],
-    image,
+    lang, title: `${PAGE_TITLE[lang]} — ${COMPANY_NAME[lang]}`,
+    description: HOME_DESCRIPTIONS[lang], image: DUSK_COVER,
   });
 }
 
 export default async function HomePage({ params }: HomePageProps) {
   const lang = await resolveLang(params);
   const dict = getDict(lang);
-  const registerItems: readonly ProjectRegisterItem[] = PROJECTS.map(
-    (project) => {
-      const image = project.listingImage ?? project.cover;
-
-      return {
-        slug: project.slug,
-        name: project.name[lang],
-        city: project.city[lang],
-        address: project.address[lang],
-        floors: project.floorsLabel
-          ? `${project.floorsLabel} ${dict.titleBlock.floors.toLowerCase()}`
-          : `${dict.titleBlock.floors}: ${projectFloors(project, dict.misc.tba)}`,
-        period: projectPeriod(project, dict.misc.tba),
-        status: project.status,
-        cover: {
-          src: image.src,
-          alt: image.alt[lang],
-        },
-      };
-    },
-  );
+  const copy = COPY[lang];
+  const areaUnit = { en: "m²", ru: "м²", ka: "მ²" }[lang];
+  const areaFormat = new Intl.NumberFormat(lang);
 
   return (
-    <>
-      <JsonLd
-        data={jsonLdGraph([
-          webPageJsonLd(lang, "", PAGE_TITLE[lang], HOME_DESCRIPTIONS[lang]),
-        ])}
-      />
-      <Hero lang={lang} dict={dict} projects={PROJECTS} />
-      <ParnavazPromo lang={lang} placement="home" />
-      <StatBand lang={lang} />
+    <LandingMotion>
+      <JsonLd data={jsonLdGraph([webPageJsonLd(lang, "", PAGE_TITLE[lang], HOME_DESCRIPTIONS[lang])])} />
+      <Hero lang={lang} dict={dict} heading={PAGE_TITLE[lang]} projects={PROJECTS} />
+      <div id="homepage-analytics-preferences" />
+      <ResidenceDirectory lang={lang} projects={DIRECTORY.map((project) => portfolioCardItem(project, lang))} status={dict.status} />
+      {UNIT && PLAN && (
+        <ResidenceStory lang={lang} name={FEATURED.name[lang]} floor={UNIT.floor} number={UNIT.number}
+          area={`${areaFormat.format(UNIT.totalArea)} ${areaUnit}`}
+          floorImage={PLAN.plan.image.src} outline={planPoints(PLAN.unit.points)}
+          planViewBox={`0 0 ${PARNAVAZ_PLAN.width} ${PARNAVAZ_PLAN.height}`}
+          projectHref={`/${lang}/projects/${FEATURED.slug}`} />
+      )}
+      {FEATURED.layouts && (
+        <LayoutShelf lang={lang} project={FEATURED.name[lang]} layouts={FEATURED.layouts.map((layout) => {
+          const apartment = FEATURED.priceList?.units.find((unit) => unit.totalArea === layout.totalArea);
+          const path = `/${lang}/projects/${FEATURED.slug}`;
+          return {
+            id: layout.id, area: areaFormat.format(layout.totalArea), bedrooms: layout.bedrooms,
+            href: apartment ? `${path}?apartment=${apartment.number}#explore` : `${path}#layouts`,
+          };
+        })} />
+      )}
       <AvailableApartmentsSpotlight lang={lang} />
-
-      <section className="draft-grid bg-basalt py-24 md:py-32">
-        <div className="wrap">
-          <div className="flex flex-wrap items-end justify-between gap-8">
-            <SectionHeading
-              eyebrow={dict.sections.projects}
-              title={REGISTER_TITLE[lang]}
-              lede={dict.sections.projectsLede}
-            />
-            <Link
-              href={`/${lang}/projects`}
-              className="link-slide inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-brass"
-            >
-              {dict.cta.allProjects} <span aria-hidden>→</span>
-            </Link>
-          </div>
-
-          <div className="mt-14">
-            <ProjectRegister
-              lang={lang}
-              projects={registerItems}
-              labels={{
-                ongoing: dict.status.ongoing,
-                completed: dict.status.completed,
-              }}
-            />
+      <section className="studio-company">
+        <div className="company-image" data-drift>
+          <Image src="/images/projects/house-near-piazza/street.jpg" alt={PIAZZA.name[lang]} fill sizes="(min-width: 601px) 50vw, 100vw" />
+        </div>
+        <div className="studio-wrap">
+          <p className="studio-label"><i aria-hidden />{copy.since}</p>
+          <h2 className="monograph-title">{copy.about}</h2>
+          <p className="company-history">{copy.company}</p>
+          <div className="studio-actions">
+            <Link href={`/${lang}/about`} className="studio-button">{dict.cta.aboutUs}<span aria-hidden>↗</span></Link>
+            <Link href={`/${lang}/contact`} className="studio-text-link">{dict.nav.contact}</Link>
           </div>
         </div>
       </section>
-
-      <AboutTeaser lang={lang} dict={dict} />
-      <ServicesSection lang={lang} dict={dict} />
-      <ContactBand lang={lang} dict={dict} />
-    </>
+    </LandingMotion>
   );
 }

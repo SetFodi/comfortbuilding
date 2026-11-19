@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import {
-  Noto_Sans_Georgian,
-  Noto_Serif,
-  Noto_Serif_Georgian,
-} from "next/font/google";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { ContactDock } from "@/components/contact-dock";
 import { SiteAnalytics } from "@/components/site-analytics";
 import { TranslateGuard } from "@/components/translate-guard";
-import { SiteLoader } from "@/components/site-loader";
 import { JsonLd } from "@/components/json-ld";
 import { PROJECTS } from "@/lib/projects";
 import { getDict } from "@/lib/dictionary";
@@ -30,27 +24,6 @@ import { isLang, LANGS } from "@/lib/types";
 import "../globals.css";
 
 const PROJECT_SLUGS = PROJECTS.map((project) => project.slug);
-
-const serifGeorgian = Noto_Serif_Georgian({
-  variable: "--font-serif-geo",
-  subsets: ["georgian", "latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
-const serifLatin = Noto_Serif({
-  variable: "--font-serif-lat",
-  subsets: ["cyrillic"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
-const sansGeorgian = Noto_Sans_Georgian({
-  variable: "--font-sans-geo",
-  subsets: ["georgian", "latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 interface LocaleLayoutProps {
   readonly children: React.ReactNode;
@@ -147,11 +120,10 @@ export default async function LocaleRootLayout({
     <html
       lang={candidate}
       data-scroll-behavior="smooth"
-      className={`${serifGeorgian.variable} ${serifLatin.variable} ${sansGeorgian.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body className="flex min-h-full flex-col pb-16 lg:pb-0">
         <TranslateGuard />
-        <SiteLoader lang={candidate} />
         <JsonLd
           data={jsonLdGraph([
             organizationJsonLd(candidate),

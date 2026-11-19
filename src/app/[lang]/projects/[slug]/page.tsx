@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ApartmentLayouts } from "@/components/apartment-layouts";
 import { ContactBand } from "@/components/contact-band";
 import { Gallery } from "@/components/gallery";
+import { HeroVideo } from "@/components/hero-video";
 import { JsonLd } from "@/components/json-ld";
 import { PlanViewer } from "@/components/plan-viewer";
 import { ParnavazExplorer } from "@/components/parnavaz-explorer";
@@ -12,7 +13,6 @@ import { PriceContact } from "@/components/price-contact";
 import { ProjectPriceList } from "@/components/project-price-list";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
-import { StatusChip } from "@/components/status-chip";
 import { TitleBlock } from "@/components/title-block";
 import { UnitInventory } from "@/components/unit-inventory";
 import { ViewBoundary } from "@/components/view-boundary";
@@ -392,7 +392,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         ])}
       />
       <article>
-        <section className="relative flex min-h-svh items-end overflow-hidden bg-ink pt-24">
+        <section className="project-cover">
           <div className="hero-media absolute inset-0">
             <picture>
               <source media="(min-width: 768px)" srcSet={desktopHeroSrcSet} />
@@ -403,50 +403,34 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 className="absolute inset-0 h-full w-full object-cover object-center"
               />
             </picture>
+            {project.heroVideo ? <HeroVideo video={project.heroVideo} /> : null}
           </div>
-          <div
-            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(11,13,15,.48)_0%,rgba(11,13,15,.18)_35%,rgba(11,13,15,.94)_100%)]"
-            aria-hidden
-          />
-          <div className="draft-grid absolute inset-0 opacity-30" aria-hidden />
-
-          <div className="wrap hero-stagger relative z-10 pb-12 md:pb-16">
-            <Link
-              href={`/${lang}/projects`}
-              className="eyebrow link-slide inline-flex min-h-11 items-center"
-            >
-              ← {dict.nav.projects}
-            </Link>
-            <div className="mt-4 grid items-end gap-8 lg:grid-cols-12">
-              <div className="lg:col-span-9">
-                <div className="flex items-center gap-4">
-                  <span className="font-mono text-sm text-cream/65">
-                    {String(projectIndex + 1).padStart(2, "0")} /{" "}
-                    {String(PROJECTS.length).padStart(2, "0")}
-                  </span>
-                  <StatusChip
-                    status={project.status}
-                    label={dict.status[project.status]}
-                  />
-                </div>
-                <h1 className="mt-5 max-w-6xl font-display text-[clamp(3.3rem,8vw,8.2rem)] leading-[0.9] font-medium tracking-[-0.045em] text-cream">
-                  {project.name[lang]}
-                </h1>
-              </div>
-              <p className="max-w-md text-base leading-relaxed text-cream/80 lg:col-span-3">
-                {project.summary[lang]}
-              </p>
+          <div className="project-cover-shade" aria-hidden />
+          <div className="wrap project-cover-body">
+            <Link href={`/${lang}/projects`} className="project-back">← {dict.nav.projects}</Link>
+            <div className="cover-context">
+              <span className="cover-status"><i aria-hidden />{dict.status[project.status]}</span>
+              <span className="cover-location">{project.city[lang]}</span>
+            </div>
+            <h1 className="project-cover-title">{project.name[lang]}</h1>
+            <div className="project-cover-foot">
+              <p>{project.summary[lang]}</p>
+              {project.slug === "parnavaz-65" && project.priceList && project.layouts ? (
+                <a className="edition-button" href="#explore">{EXPLORE_APARTMENTS[lang]} <span aria-hidden>↓</span></a>
+              ) : (
+                <a className="edition-button" href="#overview">{OVERVIEW[lang]} <span aria-hidden>↓</span></a>
+              )}
             </div>
           </div>
         </section>
 
-        <section className="border-b border-cream/10 bg-basalt py-6">
+        <section className="project-facts">
           <div className="wrap">
-            <TitleBlock cells={titleCells} />
+            <TitleBlock cells={titleCells} onLight />
           </div>
         </section>
 
-        <section className="draft-grid-light bg-limestone py-24 text-ink md:py-32">
+        <section id="overview" className="bg-paper py-20 text-ink md:py-28">
           <div className="wrap grid gap-14 lg:grid-cols-12 lg:gap-20">
             <Reveal className="lg:col-span-7">
               <p className="eyebrow eyebrow-on-light">{DOSSIER[lang]}</p>
@@ -724,7 +708,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         )}
 
         {project.gallery.length > 1 && (
-          <section className="bg-basalt py-24 md:py-32">
+          <section id="gallery" className="bg-basalt py-24 md:py-32">
             <div className="wrap">
               <SectionHeading
                 eyebrow={dict.sections.gallery}

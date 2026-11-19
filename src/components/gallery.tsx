@@ -123,7 +123,7 @@ export function Gallery({ images, labels = DEFAULT_LABELS }: GalleryProps) {
 
   return (
     <>
-      <div className="columns-1 gap-4 space-y-4 min-[440px]:columns-2 lg:columns-3">
+      <div className={`columns-1 gap-4 space-y-4 ${images.length > 2 ? "min-[440px]:columns-2 lg:columns-3" : images.length === 2 ? "min-[440px]:columns-2" : ""}`}>
         {images.map((image, index) => (
           <button
             key={image.src + index}
@@ -137,7 +137,13 @@ export function Gallery({ images, labels = DEFAULT_LABELS }: GalleryProps) {
               alt={image.alt}
               width={image.width}
               height={image.height}
-              sizes="(min-width: 1024px) 30vw, (min-width: 440px) 45vw, 100vw"
+              sizes={
+                images.length > 2
+                  ? "(min-width: 1024px) 30vw, (min-width: 440px) 45vw, 100vw"
+                  : images.length === 2
+                    ? "(min-width: 440px) 45vw, 100vw"
+                    : "100vw"
+              }
               className="h-auto w-full transition-transform duration-700 group-hover:scale-[1.03]"
             />
           </button>

@@ -146,7 +146,6 @@ export default async function AboutPage({ params }: AboutPageProps) {
         lede={LEDE[lang]}
         image={HERO_IMAGE.src}
         imageAlt={HERO_ALT[lang]}
-        annotation="COMPANY PROFILE / BATUMI / GEORGIA"
       />
 
       <section className="draft-grid bg-basalt py-16 md:py-24">
